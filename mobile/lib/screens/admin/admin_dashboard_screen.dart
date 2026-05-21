@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/admin_models.dart';
+import '../../widgets/role_menu_button.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -31,6 +32,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       appBar: AppBar(
         title: const Text('Admin Dashboard'),
         actions: [
+          const RoleMenuButton(),
           Consumer(
             builder: (context, ref, _) {
               final notifState = ref.watch(notificationProvider);

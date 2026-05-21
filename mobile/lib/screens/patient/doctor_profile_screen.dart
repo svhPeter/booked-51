@@ -227,7 +227,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                             ),
                             const SizedBox(height: 20),
                             if (doctor.consultationFee > 0) ...[
-                              _SectionTitle(title: 'Consultation Fee'),
+                              _SectionTitle(title: 'Consultation fee (pay at clinic)'),
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.all(16),
@@ -273,6 +273,12 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               ),
                             ],
                             const SizedBox(height: 32),
+                            const Text(
+                              'Free to book on DocBook. No online payment — pay the doctor at your visit.',
+                              style: TextStyle(fontSize: 13, color: AppColors.textHint),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 12),
                             SizedBox(
                               width: double.infinity,
                               height: 54,
@@ -281,7 +287,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                   context.push('/patient/book/${doctor.id}');
                                 },
                                 icon: const Icon(Icons.calendar_month),
-                                label: const Text('Book Appointment'),
+                                label: const Text('Confirm Appointment'),
                               ),
                             ),
                             const SizedBox(height: 24),

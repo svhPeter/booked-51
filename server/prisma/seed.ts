@@ -121,7 +121,11 @@ async function main() {
   for (const doc of doctors) {
     const user = await prisma.user.upsert({
       where: { email: doc.email },
-      update: {},
+      update: {
+        doctor: {
+          update: { isApproved: true },
+        },
+      },
       create: {
         id: doc.id,
         name: doc.name,
@@ -142,6 +146,7 @@ async function main() {
             totalReviews: Math.floor(20 + Math.random() * 80),
             availableDays: doc.days,
             isAvailable: true,
+            isApproved: true,
             hospitalId: doc.hospitalId,
           },
         },

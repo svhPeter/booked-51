@@ -34,7 +34,39 @@
 | FINAL_QA_CHECKLIST.md | ✅ Created with 50+ test items |
 | CORS docs | ✅ `FRONTEND_URL` supports multiple origins (comma-separated), open-origin disabled in production |
 
-## Recommended Next: Phase 3C — Final QA + Deployment
+## ✅ Phase 3C — Final QA + Deployment (Completed)
+
+Deployed to Railway (backend) + Vercel (Flutter web) + Neon PostgreSQL.
+
+---
+
+## Current: Phase 4 — Free Booking + Chat
+
+See detailed scope in:
+
+| Document | Description |
+|----------|-------------|
+| [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) | Pakistan free-booking model, monetization later |
+| [PHASE_4_SCOPE.md](PHASE_4_SCOPE.md) | 4A and 4B tasks and acceptance criteria |
+| [CHAT_SYSTEM_PLAN.md](CHAT_SYSTEM_PLAN.md) | Appointment-scoped messaging design |
+| [COST_AND_SCALE_PLAN.md](COST_AND_SCALE_PLAN.md) | Infra costs and scaling triggers |
+
+### Phase 4A — Product stabilization (in progress)
+
+- Free booking UX (no active online payment screen)
+- Profile edit + sign-out for all roles
+- Admin doctor approval before public listing
+- Patient home UX improvements
+
+### Phase 4B — Appointment chat
+
+- Message model linked to `appointmentId`
+- REST + Socket.io with polling fallback
+- Admin metadata-only view
+
+---
+
+## Archived: Phase 3C deploy checklist
 
 ### Goal
 Deploy the platform to production. Run the full QA checklist against the live instance, fix any issues, and launch v1.0.

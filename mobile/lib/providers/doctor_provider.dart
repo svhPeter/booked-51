@@ -47,10 +47,13 @@ class DoctorNotifier extends StateNotifier<DoctorState> {
 
   DoctorNotifier(this._apiClient) : super(const DoctorState());
 
-  Future<void> fetchDoctors() async {
+  Future<void> fetchDoctors({String? specialty}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _apiClient.get('/doctors');
+      final response = await _apiClient.get(
+        '/doctors',
+        query: specialty != null && specialty.isNotEmpty ? {'specialty': specialty} : null,
+      );
       final List<dynamic> data = response.data['doctors'] ?? response.data;
       state = state.copyWith(
         doctors: data.map((e) => DoctorModel.fromJson(e)).toList(),
@@ -101,6 +104,7 @@ class DoctorNotifier extends StateNotifier<DoctorState> {
 
   void setSpecialty(String specialty) {
     state = state.copyWith(selectedSpecialty: specialty);
+    fetchDoctors(specialty: specialty.isEmpty ? null : specialty);
   }
 
   void clearSelection() {

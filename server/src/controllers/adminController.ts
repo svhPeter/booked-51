@@ -1,8 +1,10 @@
 import { Response, NextFunction } from 'express';
 import { AdminService } from '../services/adminService';
+import { MessageService } from '../services/messageService';
 import { AuthRequest } from '../middleware/auth';
 
 const adminService = new AdminService();
+const messageService = new MessageService();
 
 export const getDashboardSummary = async (_req: AuthRequest, res: Response, next: NextFunction) => {
   try {
@@ -73,6 +75,43 @@ export const listPayments = async (req: AuthRequest, res: Response, next: NextFu
     const { status, provider } = req.query as any;
     const payments = await adminService.listPayments({ status, provider });
     res.json({ success: true, payments });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const approveDoctor = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await adminService.approveDoctor(req.params.id);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const rejectDoctor = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const result = await adminService.rejectDoctor(req.params.id);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const setDoctorActive = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { isActive } = req.body;
+    const result = await adminService.setDoctorActive(req.params.id, Boolean(isActive));
+    res.json({ success: true, ...result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getAppointmentChatMeta = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const meta = await messageService.getChatMeta(req.params.id);
+    res.json({ success: true, meta });
   } catch (error) {
     next(error);
   }

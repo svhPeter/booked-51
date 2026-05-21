@@ -22,6 +22,19 @@ export class AppointmentController {
     }
   }
 
+  async getById(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const appointment = await appointmentService.getByIdForUser(
+        req.params.id,
+        req.userId!,
+        req.userRole!,
+      );
+      res.json({ appointment });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getMyAppointments(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const appointments = await appointmentService.getPatientAppointments(req.userId!);

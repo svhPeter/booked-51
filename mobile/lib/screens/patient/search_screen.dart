@@ -6,7 +6,9 @@ import '../../models/doctor.dart';
 import '../../providers/doctor_provider.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
-  const SearchScreen({super.key});
+  final String? initialSpecialty;
+
+  const SearchScreen({super.key, this.initialSpecialty});
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
@@ -19,7 +21,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(doctorProvider.notifier).fetchDoctors();
+      final spec = widget.initialSpecialty;
+      if (spec != null && spec.isNotEmpty) {
+        ref.read(doctorProvider.notifier).setSpecialty(spec);
+      } else {
+        ref.read(doctorProvider.notifier).fetchDoctors();
+      }
       ref.read(doctorProvider.notifier).fetchSpecialties();
     });
   }

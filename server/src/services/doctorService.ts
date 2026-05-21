@@ -15,7 +15,7 @@ export class DoctorService {
     const where: any = {
       role: 'doctor',
       isActive: true,
-      doctor: {},
+      doctor: { isApproved: true },
     };
 
     if (filters?.specialty) {
@@ -106,7 +106,7 @@ export class DoctorService {
 
   async getById(id: string) {
     const doc = await prisma.user.findFirst({
-      where: { id, role: 'doctor', isActive: true },
+      where: { id, role: 'doctor', isActive: true, doctor: { isApproved: true } },
       select: {
         id: true,
         name: true,

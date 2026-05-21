@@ -7,6 +7,7 @@ import '../../core/network/api_client.dart';
 import '../../models/doctor_appointment.dart';
 import '../../providers/doctor_dashboard_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../widgets/role_menu_button.dart';
 
 class DoctorDashboardScreen extends ConsumerStatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -65,6 +66,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
       appBar: AppBar(
         title: const Text('Doctor Dashboard'),
         actions: [
+          const RoleMenuButton(profileRoute: '/doctor/profile/edit'),
           Consumer(
             builder: (context, ref, _) {
               final notifState = ref.watch(notificationProvider);
@@ -254,6 +256,9 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
           final appt = items[index];
           return _AppointmentCard(
             appointment: appt,
+            onMessage: appt.status == 'confirmed' || appt.status == 'completed'
+                ? () => context.push('/doctor/appointment/${appt.id}/chat')
+                : null,
             onJoinCall: appt.status == 'confirmed'
                 ? () => _joinVideoCall(context, ref, appt.id)
                 : null,
@@ -273,7 +278,9 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
     try {
       final apiClient = ref.read(apiClientProvider);
       final response = await apiClient.get('/appointments/$appointmentId/video-session');
-      final session = response.data['session'] as Map<String, dynamic>;
+      final session = Map<String, dynamic>.from(
+        response.data['session'] as Map? ?? response.data as Map,
+      );
       if (!context.mounted) return;
       context.push('/call/$appointmentId', extra: session);
     } catch (e) {
@@ -294,12 +301,14 @@ class _AppointmentCard extends StatelessWidget {
   final VoidCallback? onComplete;
   final VoidCallback? onCancel;
   final VoidCallback? onJoinCall;
+  final VoidCallback? onMessage;
 
   const _AppointmentCard({
     required this.appointment,
     this.onComplete,
     this.onCancel,
     this.onJoinCall,
+    this.onMessage,
   });
 
   @override
@@ -386,11 +395,20 @@ class _AppointmentCard extends StatelessWidget {
               ],
             ),
           ],
-          if (onJoinCall != null || onComplete != null || onCancel != null) ...[
+          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null) ...[
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (onMessage != null) ...[
+                  _ActionButton(
+                    label: 'Message',
+                    icon: Icons.chat_bubble_outline,
+                    color: AppColors.primary,
+                    onTap: onMessage!,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (onJoinCall != null) ...[
                   _ActionButton(
                     label: 'Join Call',

@@ -159,6 +159,33 @@ class AdminNotifier extends StateNotifier<AdminState> {
     }
   }
 
+  Future<void> approveDoctor(String id) async {
+    try {
+      await _apiClient.put('/admin/doctors/$id/approve');
+      await fetchDoctors();
+    } catch (e) {
+      state = state.copyWith(error: _extractError(e));
+    }
+  }
+
+  Future<void> rejectDoctor(String id) async {
+    try {
+      await _apiClient.put('/admin/doctors/$id/reject');
+      await fetchDoctors();
+    } catch (e) {
+      state = state.copyWith(error: _extractError(e));
+    }
+  }
+
+  Future<void> setDoctorActive(String id, bool isActive) async {
+    try {
+      await _apiClient.put('/admin/doctors/$id/active', data: {'isActive': isActive});
+      await fetchDoctors();
+    } catch (e) {
+      state = state.copyWith(error: _extractError(e));
+    }
+  }
+
   Future<void> fetchPayments({String? status, String? provider}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {

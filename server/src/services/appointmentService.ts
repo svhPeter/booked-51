@@ -15,7 +15,12 @@ export class AppointmentService {
     paymentProvider?: string;
   }) {
     const doctor = await prisma.user.findFirst({
-      where: { id: data.doctorId, role: 'doctor', isActive: true },
+      where: {
+        id: data.doctorId,
+        role: 'doctor',
+        isActive: true,
+        doctor: { isApproved: true },
+      },
       include: {
         doctor: {
           select: { availableDays: true, consultationFee: true },
@@ -65,7 +70,14 @@ export class AppointmentService {
           select: { name: true, avatarUrl: true },
         },
         doctor: {
-          select: { name: true, avatarUrl: true },
+          include: {
+            doctor: {
+              select: { specialty: true, consultationFee: true },
+            },
+          },
+        },
+        hospital: {
+          select: { name: true, address: true },
         },
       },
     });
@@ -120,7 +132,102 @@ export class AppointmentService {
     io.to(`user:${data.doctorId}`).emit('new-appointment', appointment);
     io.to(`user:${data.patientId}`).emit('appointment-booked', appointment);
 
-    return appointment;
+    return this.mapPatientAppointment(appointment);
+  }
+
+  async getByIdForUser(appointmentId: string, userId: string, role: string) {
+    const row = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        doctor: {
+          include: {
+            doctor: {
+              select: { specialty: true, consultationFee: true },
+            },
+          },
+        },
+        patient: {
+          select: { name: true, email: true, phone: true, avatarUrl: true },
+        },
+        hospital: {
+          select: { name: true, address: true },
+        },
+      },
+    });
+
+    if (!row) {
+      throw new AppError('Appointment not found', 404);
+    }
+
+    const isParticipant =
+      row.patientId === userId || row.doctorId === userId || role === 'admin';
+
+    if (!isParticipant) {
+      throw new AppError('Not authorized to view this appointment', 403);
+    }
+
+    if (role === 'patient') {
+      return this.mapPatientAppointment(row);
+    }
+
+    return {
+      id: row.id,
+      patientId: row.patientId,
+      doctorId: row.doctorId,
+      date: row.date,
+      timeSlot: row.timeSlot,
+      status: row.status,
+      meetingLink: row.meetingLink,
+      notes: row.notes,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      patientName: row.patient?.name ?? '',
+      patientEmail: row.patient?.email ?? '',
+      patientPhone: row.patient?.phone ?? '',
+      patientAvatar: row.patient?.avatarUrl,
+      doctorName: row.doctor?.name ?? '',
+      specialty: row.doctor?.doctor?.specialty ?? '',
+      fee: row.doctor?.doctor?.consultationFee ?? 0,
+      hospitalName: row.hospital?.name,
+      hospitalAddress: row.hospital?.address,
+    };
+  }
+
+  private mapPatientAppointment(a: {
+    id: string;
+    patientId: string;
+    doctorId: string;
+    date: Date;
+    timeSlot: string;
+    status: string;
+    meetingLink: string | null;
+    notes: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    doctor?: {
+      name: string;
+      avatarUrl: string | null;
+      doctor?: { specialty: string | null; consultationFee: number } | null;
+    } | null;
+    hospital?: { name: string | null; address: string | null } | null;
+  }) {
+    return {
+      id: a.id,
+      patientId: a.patientId,
+      doctorId: a.doctorId,
+      date: a.date,
+      timeSlot: a.timeSlot,
+      status: a.status,
+      meetingLink: a.meetingLink,
+      notes: a.notes,
+      createdAt: a.createdAt,
+      updatedAt: a.updatedAt,
+      doctorName: a.doctor?.name ?? '',
+      doctorAvatar: a.doctor?.avatarUrl,
+      specialty: a.doctor?.doctor?.specialty ?? '',
+      fee: a.doctor?.doctor?.consultationFee ?? 0,
+      hospitalName: a.hospital?.name,
+    };
   }
 
   async getPatientAppointments(patientId: string) {
@@ -140,23 +247,7 @@ export class AppointmentService {
       },
       orderBy: { date: 'desc' },
     });
-    return rows.map((a) => ({
-      id: a.id,
-      patientId: a.patientId,
-      doctorId: a.doctorId,
-      date: a.date,
-      timeSlot: a.timeSlot,
-      status: a.status,
-      meetingLink: a.meetingLink,
-      notes: a.notes,
-      createdAt: a.createdAt,
-      updatedAt: a.updatedAt,
-      doctorName: a.doctor?.name ?? '',
-      doctorAvatar: a.doctor?.avatarUrl,
-      specialty: a.doctor?.doctor?.specialty ?? '',
-      fee: a.doctor?.doctor?.consultationFee ?? 0,
-      hospitalName: a.hospital?.name,
-    }));
+    return rows.map((a) => this.mapPatientAppointment(a));
   }
 
   async getDoctorAppointments(doctorId: string) {

@@ -114,6 +114,20 @@ class AppointmentNotifier extends StateNotifier<AppointmentState> {
     }
   }
 
+  Future<AppointmentModel?> fetchAppointmentById(String appointmentId) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _apiClient.get('/appointments/$appointmentId');
+      final data = response.data['appointment'] ?? response.data;
+      final appointment = AppointmentModel.fromJson(Map<String, dynamic>.from(data));
+      state = state.copyWith(isLoading: false);
+      return appointment;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _extractError(e));
+      return null;
+    }
+  }
+
   Future<void> cancelAppointment(String appointmentId) async {
     state = state.copyWith(isLoading: true, error: null);
     try {

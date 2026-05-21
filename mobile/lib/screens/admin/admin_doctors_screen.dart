@@ -81,6 +81,12 @@ class _DoctorCard extends ConsumerWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (!doc.isApproved)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(color: Colors.orange.shade100, borderRadius: BorderRadius.circular(8)),
+                child: const Text('Pending', style: TextStyle(fontSize: 11, color: Colors.orange)),
+              ),
             if (!doc.isActive)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -136,7 +142,44 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
               _detailRow('Available Days', doc.availableDays.join(', ')),
               _detailRow('Hospital', '${doc.hospitalName}${doc.hospitalCity.isNotEmpty ? ', ${doc.hospitalCity}' : ''}'),
               _detailRow('Status', doc.isActive ? 'Active' : 'Inactive'),
-              _detailRow('Verified', doc.isVerified ? 'Yes' : 'No'),
+              _detailRow('Email verified', doc.isVerified ? 'Yes' : 'No'),
+              _detailRow('Public listing', doc.isApproved ? 'Approved' : 'Pending approval'),
+              const SizedBox(height: 16),
+              if (!doc.isApproved)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await ref.read(adminProvider.notifier).approveDoctor(doc.id);
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    child: const Text('Approve for public listing'),
+                  ),
+                ),
+              if (doc.isApproved) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      await ref.read(adminProvider.notifier).rejectDoctor(doc.id);
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    child: const Text('Revoke approval'),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () async {
+                    await ref.read(adminProvider.notifier).setDoctorActive(doc.id, !doc.isActive);
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: Text(doc.isActive ? 'Deactivate account' : 'Activate account'),
+                ),
+              ),
             ],
           ),
         );

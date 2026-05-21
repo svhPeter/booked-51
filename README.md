@@ -31,7 +31,7 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 
 ## Project Status
 
-**Current Phase: 3C (Final QA + Deployment) — Ready — Awaiting Manual Deploy**
+**Current Phase: 4 (Free Booking + Chat)**
 
 - ✅ Phase 1: Project setup, auth, doctor list, booking
 - ✅ Phase 1.5: Booking validation, real errors, cancel flow, routing stability
@@ -43,8 +43,9 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 - ✅ Phase 2E: Notifications + Real Email OTP + Redis
 - ✅ Phase 3A: Production hardening (env validation, CORS, rate limiting, logging, error handling)
 - ✅ Phase 3B: Deployment preparation (build scripts, Flutter API config, deployment docs, QA checklists)
-- ✅ Phase 3C: Final QA verified locally, deployment docs prepared (runbook + live QA checklist)
-- ➡️ **Next: Execute deployment per DEPLOYMENT_RUNBOOK.md**
+- ✅ Phase 3C: Deployed (Railway + Vercel + Neon)
+- ➡️ **Phase 4A:** Free booking UX, profiles, admin doctor approval — see [PHASE_4_SCOPE.md](docs/PHASE_4_SCOPE.md)
+- ➡️ **Phase 4B:** Appointment-scoped chat — see [CHAT_SYSTEM_PLAN.md](docs/CHAT_SYSTEM_PLAN.md)
 
 ## Documentation
 
@@ -59,7 +60,11 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 | [Production Env Checklist](docs/PRODUCTION_ENV_CHECKLIST.md) | Required/optional env vars, secrets management |
 | [Final QA Checklist](docs/FINAL_QA_CHECKLIST.md) | Post-deployment test plan |
 | [Live QA Checklist](docs/LIVE_QA_CHECKLIST.md) | **Post-deployment verification checklist** |
-| [Next Phase Scope](docs/NEXT_PHASE_SCOPE.md) | Next planned phases |
+| [Next Phase Scope](docs/NEXT_PHASE_SCOPE.md) | Phase history and current focus |
+| [Product Strategy](docs/PRODUCT_STRATEGY.md) | Pakistan free-booking product direction |
+| [Phase 4 Scope](docs/PHASE_4_SCOPE.md) | 4A/4B implementation scope |
+| [Chat System Plan](docs/CHAT_SYSTEM_PLAN.md) | Appointment messaging design |
+| [Cost & Scale Plan](docs/COST_AND_SCALE_PLAN.md) | Infrastructure costs and scaling |
 
 ## Tech Stack
 
@@ -114,7 +119,11 @@ The web integration is in **alpha stage** — mock mode works on all platforms w
 | Patient registration + email OTP | ✅ |
 | Doctor search by name/specialty | ✅ |
 | Appointment booking (date/time slot, double-book prevention) | ✅ |
-| Payment (Mock / Stripe / PayFast) | ✅ |
+| Payment (Mock / Stripe / PayFast) | ⏸️ Dormant — pay at clinic in active flow |
+| Free booking (no online payment in UX) | ✅ Phase 4A |
+| Profile edit + sign out | ✅ Phase 4A |
+| Admin doctor approval | ✅ Phase 4A |
+| Appointment chat | ✅ Phase 4B |
 | Doctor dashboard (summary, appointments, complete/cancel) | ✅ |
 | Admin dashboard (stats, manage doctors/patients/appointments/payments) | ✅ |
 | Video calls (Agora mock mode, real Agora with keys) | ✅ |
@@ -124,7 +133,7 @@ The web integration is in **alpha stage** — mock mode works on all platforms w
 | Email SMTP optional fallback (console OTP) | ✅ |
 | Prescriptions | ⏳ Schema only |
 | Reviews & ratings | ⏳ Schema + read only |
-| Chat/messaging | ⏳ Schema only |
+| Chat/messaging | ✅ Phase 4B (appointment-scoped) |
 | Push notifications | ⏳ Wired, no server integration |
 | Tests | ❌ Not written |
 

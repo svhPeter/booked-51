@@ -41,6 +41,7 @@ class AdminDoctor {
   final String? avatarUrl;
   final bool isActive;
   final bool isVerified;
+  final bool isApproved;
   final String specialty;
   final String qualification;
   final String experience;
@@ -61,6 +62,7 @@ class AdminDoctor {
     this.avatarUrl,
     required this.isActive,
     required this.isVerified,
+    required this.isApproved,
     required this.specialty,
     required this.qualification,
     required this.experience,
@@ -83,6 +85,7 @@ class AdminDoctor {
       avatarUrl: json['avatarUrl'],
       isActive: json['isActive'] ?? true,
       isVerified: json['isVerified'] ?? false,
+      isApproved: json['isApproved'] ?? false,
       specialty: json['specialty'] ?? '',
       qualification: json['qualification'] ?? '',
       experience: json['experience'] ?? '',

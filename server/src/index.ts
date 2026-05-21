@@ -16,6 +16,7 @@ import doctorDashboardRoutes from './routes/doctorDashboard';
 import adminRoutes from './routes/admin';
 import agoraRoutes from './routes/agora';
 import notificationRoutes from './routes/notification';
+import profileRoutes from './routes/profile';
 
 const app = express();
 const httpServer = createServer(app);
@@ -99,6 +100,7 @@ app.use('/api/v1/doctor', doctorDashboardRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1', agoraRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1', profileRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
@@ -106,6 +108,23 @@ app.use(errorHandler);
 io.on('connection', (socket) => {
   socket.on('join', (userId: string) => {
     socket.join(`user:${userId}`);
+  });
+
+  socket.on('join-appointment', async (payload: { appointmentId: string; userId: string }) => {
+    try {
+      const { prisma } = await import('./config/database');
+      const appointment = await prisma.appointment.findUnique({
+        where: { id: payload.appointmentId },
+      });
+      if (
+        appointment &&
+        (appointment.patientId === payload.userId || appointment.doctorId === payload.userId)
+      ) {
+        socket.join(`appointment:${payload.appointmentId}`);
+      }
+    } catch {
+      // ignore invalid join
+    }
   });
 
   socket.on('disconnect', () => {

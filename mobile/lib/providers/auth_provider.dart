@@ -136,6 +136,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
+    try {
+      await _apiClient.post('/auth/logout');
+    } catch (_) {}
     await secureStorage.deleteAll();
     state = const AuthState();
   }

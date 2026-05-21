@@ -7,7 +7,9 @@ import '../../models/appointment.dart';
 import '../../providers/appointment_provider.dart';
 
 class MyAppointmentsScreen extends ConsumerStatefulWidget {
-  const MyAppointmentsScreen({super.key});
+  final bool embedded;
+
+  const MyAppointmentsScreen({super.key, this.embedded = false});
 
   @override
   ConsumerState<MyAppointmentsScreen> createState() =>
@@ -151,7 +153,10 @@ class _AppointmentList extends ConsumerWidget {
         final appt = appointments[index];
         final isPastOrCancelled = appt.status == AppointmentStatus.completed ||
             appt.status == AppointmentStatus.cancelled;
-        return Container(
+        return InkWell(
+          onTap: () => context.push('/patient/appointment/${appt.id}'),
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -264,6 +269,7 @@ class _AppointmentList extends ConsumerWidget {
               ],
             ],
           ),
+        ),
         );
       },
     );
@@ -273,7 +279,9 @@ class _AppointmentList extends ConsumerWidget {
     try {
       final apiClient = ref.read(apiClientProvider);
       final response = await apiClient.get('/appointments/$appointmentId/video-session');
-      final session = response.data['session'] as Map<String, dynamic>;
+      final session = Map<String, dynamic>.from(
+        response.data['session'] as Map? ?? response.data as Map,
+      );
       if (!context.mounted) return;
       context.push('/call/$appointmentId', extra: session);
     } catch (e) {

@@ -51,6 +51,7 @@ export class AdminService {
       avatarUrl: u.avatarUrl,
       isActive: u.isActive,
       isVerified: u.isVerified,
+      isApproved: u.doctor?.isApproved ?? false,
       createdAt: u.createdAt,
       specialty: u.doctor?.specialty ?? '',
       qualification: u.doctor?.qualification ?? '',
@@ -85,6 +86,7 @@ export class AdminService {
       avatarUrl: u.avatarUrl,
       isActive: u.isActive,
       isVerified: u.isVerified,
+      isApproved: u.doctor?.isApproved ?? false,
       bio: u.doctor?.bio ?? '',
       specialty: u.doctor?.specialty ?? '',
       qualification: u.doctor?.qualification ?? '',
@@ -259,5 +261,43 @@ export class AdminService {
       appointmentTimeSlot: p.appointment?.timeSlot ?? '',
       appointmentStatus: p.appointment?.status ?? '',
     }));
+  }
+
+  async approveDoctor(doctorUserId: string) {
+    const user = await prisma.user.findFirst({
+      where: { id: doctorUserId, role: 'doctor' },
+      include: { doctor: true },
+    });
+    if (!user?.doctor) throw new AppError('Doctor not found', 404);
+    await prisma.doctor.update({
+      where: { userId: doctorUserId },
+      data: { isApproved: true, isAvailable: true },
+    });
+    return { id: doctorUserId, isApproved: true };
+  }
+
+  async rejectDoctor(doctorUserId: string) {
+    const user = await prisma.user.findFirst({
+      where: { id: doctorUserId, role: 'doctor' },
+      include: { doctor: true },
+    });
+    if (!user?.doctor) throw new AppError('Doctor not found', 404);
+    await prisma.doctor.update({
+      where: { userId: doctorUserId },
+      data: { isApproved: false },
+    });
+    return { id: doctorUserId, isApproved: false };
+  }
+
+  async setDoctorActive(doctorUserId: string, isActive: boolean) {
+    const user = await prisma.user.findFirst({
+      where: { id: doctorUserId, role: 'doctor' },
+    });
+    if (!user) throw new AppError('Doctor not found', 404);
+    await prisma.user.update({
+      where: { id: doctorUserId },
+      data: { isActive },
+    });
+    return { id: doctorUserId, isActive };
   }
 }

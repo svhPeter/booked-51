@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/role_menu_button.dart';
 
 class OtpVerificationScreen extends ConsumerStatefulWidget {
   const OtpVerificationScreen({super.key});
@@ -39,7 +40,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.isAuthenticated) {
-        context.go('/patient/home');
+        context.go(homePathForRole(next.user?.role));
       }
     });
 

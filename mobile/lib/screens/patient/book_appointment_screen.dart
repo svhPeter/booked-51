@@ -82,7 +82,9 @@ class _BookAppointmentScreenState
 
     ref.listen<AppointmentState>(appointmentProvider, (previous, next) {
       if (next.bookingSuccess && next.lastBookedAppointment != null) {
-        context.push('/patient/payment', extra: next.lastBookedAppointment);
+        final id = next.lastBookedAppointment!.id;
+        ref.read(appointmentProvider.notifier).resetBookingState();
+        context.go('/patient/appointment/$id/confirmed', extra: next.lastBookedAppointment);
       }
       if (next.error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
