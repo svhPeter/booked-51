@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+**/*firebase-adminsdk*.json
+**/firebase-service-account*.json
+server/firebase-service-account*.json
+mobile/**/GoogleService-Info.plist
+mobile/**/google-services.json

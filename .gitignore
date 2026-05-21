@@ -1,0 +1,90 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Server build
+server/dist/
+server/build/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Flutter
+mobile/.dart_tool/
+mobile/.packages
+mobile/build/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies
+mobile/*.iml
+mobile/.idea/
+mobile/pubspec.lock
+mobile/coverage/
+
+# Flutter web
+mobile/build/web/
+
+# Prisma
+server/prisma/*.db
+server/prisma/*.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# Firebase service account secrets
+**/*firebase-adminsdk*.json
+**/firebase-service-account*.json
+server/firebase-service-account*.json
+mobile/**/GoogleService-Info.plist
+mobile/**/google-services.json
+
+# Misc
+*.tgz
+.eslintcache
+
+# Env / secrets
+.env
+.env.*
+!*.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Firebase / Google secrets
+**/*firebase-adminsdk*.json
+**/firebase-service-account*.json
+server/firebase-service-account*.json
+mobile/**/GoogleService-Info.plist
+mobile/**/google-services.json
+
+# Dependencies / builds
+node_modules/
+**/node_modules/
+mobile/build/
+server/dist/
+build/
+
+# OS
+.DS_Store

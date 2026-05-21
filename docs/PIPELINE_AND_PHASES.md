@@ -1,0 +1,256 @@
+# Pipeline & Phases
+
+## Phase 1 — Project Setup, Auth, Doctor List, Booking *(Completed)*
+
+### Backend
+- Express + TypeScript setup with hot reload (tsx)
+- Neon PostgreSQL connection via Prisma
+- Prisma schema: User (patient/doctor/admin), Doctor, Patient, Appointment, Slot, Hospital, Notification, Message, Payment, Prescription, Review
+- Auth: register, login (email/password), JWT access + refresh tokens, OTP verification (Nodemailer)
+- Public doctor routes: list all, search by name/specialty, get by ID, available slots
+- Appointment booking: create appointment with double-book prevention, get my appointments, cancel
+- Middleware: authenticate (JWT verify), authorize (role check), global error handler
+
+### Flutter
+- Project setup with Riverpod + GoRouter + Dio
+- Auth screens: login, register, OTP verification
+- Patient screens: home, search, doctor profile, book appointment, my appointments
+- Splash screen with auto-login
+- Role-based routing after login/splash
+- API client with token refresh interceptor
+
+## Phase 1.5 — Booking Validation, Real Errors, Cancel Flow, Routing Stability *(Completed)*
+
+### Changes
+- CORS fixed to allow all origins in development
+- Specialties endpoint URL corrected in Flutter
+- Doctor profile and getById endpoints return flat responses
+- Appointment service includes eagerly loads patient + doctor relations
+- Real backend error messages forwarded to Flutter UI
+- Role-based routing (splash screen now checks role before navigating)
+- Booking validates `availableDays` + time slot format
+- Double-book prevention (no overlapping appointments for same doctor + time)
+- Cancel endpoint returns flat data
+- My Appointments has 4 tabs + cancel button
+- Booking calendar grays out unavailable dates
+- **Critical bug fix:** GoRouter no longer re-created on every auth state change (uses `ref.listen` + `router.refresh()`)
+- **Critical bug fix:** API client `onUnauthenticated` callback triggers `logout()` on token refresh failure
+
+## Phase 2A — Payment Foundation *(Completed)*
+
+### Changes
+- Prisma schema: added `mock` to `PaymentProvider` enum, `paid` to `PaymentStatus` enum
+- Payment service with abstract `PaymentProvider` interface + 3 implementations (Mock, Stripe, PayFast)
+- Payment controller + routes: `POST /create`, `POST /mock-success`, `GET /status/:appointmentId`
+- Registered in index.ts at `/api/v1/payments`
+- Booking optionally creates payment record when `paymentProvider` is passed
+- Flutter: payment model, provider, screen with method selection
+- Booking screen navigates to payment after booking
+- Payment route registered in app.dart
+
+## Phase 2B — Doctor Dashboard *(Completed)*
+
+### Backend
+- `appointmentService.getDoctorDashboardSummary()` — counts today/upcoming/completed/cancelled + unique patients + sum of payments
+- `appointmentService.getDoctorAppointments()` — enriched with patient email/phone + payment info
+- `appointmentService.getDoctorAppointmentById()` — single appointment with full details
+- Doctor dashboard controller: summary, list, detail, complete, cancel
+- Doctor dashboard routes at `/api/v1/doctor/*` with `authenticate` + `authorize('doctor', 'admin')`
+- All endpoints verify appointment belongs to requesting doctor
+
+### Flutter
+- `DoctorAppointmentModel`, `PaymentInfo`, `DashboardSummary` models
+- `DoctorDashboardNotifier` — fetchSummary, fetchAppointments, completeAppointment, cancelAppointment
+- `DoctorDashboardScreen` — summary cards (today/patients/earnings), 4 tabs (Today/Upcoming/Completed/Cancelled), appointment cards with patient info + status/payment badges + Complete/Cancel buttons, pull-to-refresh, loading/error/empty states
+
+### Prisma Drift Fix *(Completed)*
+- `mock` and `paid` enum values were added via `db push`, causing migration drift
+- Fixed by creating a no-op migration (`20260516015934_fix_enum_drift/migration.sql`)
+- Applied via `prisma migrate resolve --applied 20260516015934_fix_enum_drift`
+- No data was lost, no schema was reset
+
+### Routing Fix — Phase 1.5 Regression *(Completed)*
+- Login screen listener always navigated to `/patient/home` regardless of role
+- GoRouter redirect only caught role mismatches on auth routes (not patient/doctor routes)
+- **Fix:** Login screen routes by role; GoRouter catch-all for role mismatches on any route
+
+## Phase 2C — Admin Dashboard *(Completed)*
+
+### Backend
+- `AdminService` with 8 methods: getDashboardSummary, listDoctors, getDoctorById, listPatients, getPatientById, listAppointments (with status/doctor/date filters), getAppointmentById, listPayments (with status/provider filters)
+- Admin controller + routes at `/api/v1/admin/*` with `authenticate` + `authorize('admin')` enforced globally via `router.use`
+- Admin routes registered in index.ts
+- Seed already included `admin@docbook.com`; prisma.seed config added to package.json
+
+### Flutter
+- `AdminSummary`, `AdminDoctor`, `AdminPatient`, `AdminAppointment`, `AdminPayment` models
+- `AdminNotifier` — fetchSummary, fetchDoctors, fetchPatients, fetchAppointments (with filters), fetchPayments (with filters), detail fetchers
+- `AdminDashboardScreen` — 8 summary cards in 2x4 grid (total doctors, patients, appointments, completed, cancelled, paid/pending payments, revenue) + 4 management navigation buttons
+- `AdminDoctorsScreen` — doctor list + detail bottom sheet (specialty, fee, rating, status)
+- `AdminPatientsScreen` — patient list + detail bottom sheet (gender, blood group, status)
+- `AdminAppointmentsScreen` — appointment list with 5 status filter chips + doctor dropdown + detail bottom sheet (patient, doctor, payment info)
+- `AdminPaymentsScreen` — payment list with 4 status chips + provider dropdown
+- All routes registered in app.dart with role guard (admin only)
+
+### Route Guard Updated
+- GoRouter redirect handles all 3 roles (admin, doctor, patient)
+- Catch-all rules for role mismatches: admin on patient/doctor routes → `/admin/dashboard`; non-admin on admin routes → `/patient/home`
+- Splash screen and login screen navigate based on role
+
+## Phase 2D — Video Calls (Agora) *(Completed)*
+
+### Backend
+- `agoraService.ts` — channel name generation (`appt_{appointmentId}`), mock token generation for dev, real RTC token via `agora-access-token` library, `isMockMode()` detection based on env config
+- `agoraController.ts` — `getAppointmentVideoSession` handler
+- `routes/agora.ts` — `GET /appointments/:id/video-session` mounted at `/api/v1`
+- All security rules enforced: participant check, status check (cancelled/completed/not-confirmed blocked), admin gets metadata only
+- Error handling: 403 for blocked states, 404 for missing appointments
+
+### Flutter
+- `VideoCallScreen` — full Agora RTC engine integration with real video rendering (`AgoraVideoView` for local + remote)
+- Mock fallback mode when Agora keys are missing (simulated UI + connecting delay)
+- Platform-aware permissions (camera/microphone) — requested on Android/iOS via `permission_handler`, skipped on web
+- Call controls: mic toggle, camera toggle, switch camera, end call (all wired to Agora engine APIs)
+- Error handling: connecting state, error display with leave button, graceful cleanup on dispose
+- Join Call button on patient `MyAppointmentsScreen` and doctor `DoctorDashboardScreen`
+- Route: `/call/:appointmentId` in app.dart
+
+### Key Decisions
+- `uid=1` for patient, `uid=2` for doctor (consistent deterministic mapping)
+- Communication profile (not live streaming) — both sides are broadcasters
+- Dynamic import of `agora-access-token` only when generating real tokens (avoids crash in mock mode)
+
+## Phase 2D.1 — Real Agora Flutter Video Engine Integration *(Completed)*
+
+### Changes from Phase 2D
+- Phase 2D used a placeholder `VideoCallScreen` with no real Agora SDK calls
+- Phase 2D.1 replaced it with full `agora_rtc_engine` v6.5 API:
+  - `createAgoraRtcEngine()` → `initialize()` → `registerEventHandler()` → `enableVideo()` → `startPreview()` → `joinChannel()`
+  - `VideoViewController` for local video (PiP overlay, top-right, 120x180)
+  - `VideoViewController.remote` with `RtcConnection` for remote video (full screen)
+  - `muteLocalAudioStream()` / `muteLocalVideoStream()` for mic/camera toggles
+  - `switchCamera()` for front/back camera toggle
+  - `leaveChannel()` + `release()` on end call or dispose
+
+### Web Limitation
+- `agora_rtc_engine` web support is **alpha stage**
+- Requires `iris-web-rtc_*.js` script tag in `mobile/web/index.html`
+- Without it, real Agora video won't render on web (mock mode still works)
+- Mobile (Android/iOS) is fully ready for real Agora
+
+## Phase 2E — Notifications + Real Email OTP + Redis *(Completed)*
+
+### Backend
+- **redis.ts** — ioredis client with in-memory `Map` fallback; lazy connect with max 1 retry; full operation without Redis
+- **emailService.ts** — Nodemailer SMTP sender when `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` are set and not placeholders; `console.log` fallback in dev
+- **otpStore.ts** — OTP generation + storage (Redis TTL 600s / in-memory `Map` fallback); resend rate limiting (60s cooldown); max 5 verification attempts (429 lock); `generateAndSendOtp()` + `verifyOtp()` helpers
+- **authService.ts** — Rewritten to use new OTP store; improved error codes (429 for rate limit, 400 for invalid/expired)
+- **notificationService.ts** — `createNotification()`, `getNotifications()` (paginated), `markAsRead()`, `markAllAsRead()`, `getUnreadCount()`; emits via `io.to(user:${userId})`
+- **notificationController.ts** — REST handlers for list, read, read-all, unread-count
+- **routes/notification.ts** — `GET /`, `PUT /:id/read`, `PUT /read-all`, `GET /unread-count` (all `authenticate`)
+- **appointmentService.ts** — Creates notifications on book (patient+doctor), cancel (patient+doctor), complete (patient)
+- **paymentController.ts** — Creates notification on payment paid
+- **index.ts** — Notification routes registered at `/api/v1/notifications`
+
+### Flutter
+- **models/notification.dart** — `NotificationModel` with `fromJson()`, type enum
+- **providers/notification_provider.dart** — `NotificationNotifier` with fetch, unread count, mark-as-read, mark-all-as-read; global provider
+- **screens/common/notifications_screen.dart** — Full UI: list, pull-to-refresh, load-more pagination, empty/error states, mark-as-read on tap, mark-all-read, type-based icons/colors, unread dot, time-ago
+- **patient/home_screen.dart** — Notification bell + red badge; fetches unread count on init
+- **doctor/doctor_dashboard_screen.dart** — Notification bell + badge; also fixed missing `api_client.dart` import (pre-existing web build blocker)
+- **admin/admin_dashboard_screen.dart** — Notification bell + badge
+
+### Key Decisions
+- OTP store uses Redis when `REDIS_URL` is set and Redis is reachable; falls back to in-memory `Map` otherwise
+- Email uses SMTP when configured with real credentials (detects `your-`/`placeholder` prefixes to skip); falls back to `console.log`
+- Notifications created asynchronously (`.catch(() => {}))` to not block appointment/payment flows
+- Socket.io emits `notification` event to `user:${userId}` room on creation; Flutter does not yet join socket rooms (future: Firebase push)
+- Doctor dashboard had a latent missing-import bug that broke `flutter build web` — fixed
+
+## Current Verified Status *(As of May 18, 2026)*
+
+| Check | Status |
+|---|---|
+| Prisma migrate status | ✅ Database schema is up to date (2 migrations) |
+| TypeScript compile | ✅ tsc --noEmit exit 0 |
+| Flutter analyze | ✅ 0 errors, 0 warnings, 37 info lints (all pre-existing in untargeted files) |
+| Flutter build web | ✅ Built successfully |
+| Backend health | ✅ Server starts and responds on port 3000 |
+| Admin login | ✅ admin@docbook.com, role=admin, token issued |
+| Doctor login | ✅ Ahmed Khan, role=doctor, token issued |
+| Patient login | ✅ Test Patient, role=patient, token issued |
+| Admin dashboard summary | ✅ Doctors:5, Patients:4, Appts:15, Revenue:7500 |
+| Doctor dashboard summary | ✅ Today:1, Upcoming:10 |
+| Patient booking + payment | ✅ Creates appointment + payment record |
+| Notification — patient booked | ✅ "Your appointment with {doctor}...has been confirmed" |
+| Notification — doctor booked | ✅ "New appointment booked with {patient}..." |
+| Notification — cancel (both) | ✅ "Your appointment...has been cancelled" + doctor notified |
+| Notification — unread count | ✅ Increments/decrements correctly |
+| Notification — mark as read | ✅ Returns isRead: true |
+| Notification — mark all as read | ✅ Returns success |
+| Notification — unauthenticated blocked | ✅ 401 |
+| OTP registration + verify | ✅ User created, verified, authenticated |
+| OTP resend rate limit | ✅ 429 "Please wait before requesting another OTP" |
+| OTP max attempts lockout | ✅ 429 after 5 failed verifications |
+| OTP console fallback | ✅ OTP printed to terminal when SMTP unconfigured/placeholder |
+| Video session — patient uid=1 | ✅ uid=1, same channel as doctor |
+| Video session — doctor uid=2 | ✅ uid=2, same channel as patient |
+| Video session — cancelled blocked | ✅ 403 "appointment is cancelled" |
+| Video session — completed blocked | ✅ 403 "appointment is completed" |
+| Video session — unrelated user blocked | ✅ 403 "not a participant" |
+| Video session — not found | ✅ 404 |
+| Video session — mock mode | ✅ Returns mock token when keys missing |
+| Health check — DB status | ✅ Returns database: healthy/unhealthy |
+| Rate limiting — login | ✅ 10 requests/min per IP |
+| Rate limiting — register | ✅ 5 requests/min per IP |
+| Rate limiting — resend OTP | ✅ 5 requests/min per IP |
+| Env validation — missing DATABASE_URL | ✅ Fails fast with clear message |
+| Env validation — missing JWT_SECRET | ✅ Fails fast with clear message |
+| CORS — dev mode | ✅ Open origin |
+| CORS — production mode | ✅ Restricted to FRONTEND_URL |
+| Request size limit | ✅ 1mb (down from 10mb) |
+| Structured logging | ✅ JSON in prod, human-readable in dev |
+| Prisma error — unique constraint | ✅ Returns 409 with field name |
+| Prisma error — not found | ✅ Returns 404 |
+| Secrets sanitized in logs | ✅ password, token, secret, authorization redacted |
+| .env.example created | ✅ Documented with categories and placeholders |
+
+## Phase 3A — Production Hardening *(Completed)*
+
+### Changes
+- **env.ts** — Rewritten with fail-fast validation for required vars (DATABASE_URL, DIRECT_URL, JWT_SECRET, JWT_REFRESH_SECRET); production-mode placeholder detection; dev-mode warnings for optional unconfigured services
+- **index.ts** — Added rate limiting (login:10/min, register:5/min, resend-otp:5/min); reduced request body limit to 1mb; CORS supports comma-separated `FRONTEND_URL` origins; enhanced health check with DB reachability + uptime; request logging middleware (method, path, status, duration)
+- **logger.ts** — New structured logger; JSON output in production, human-readable in dev; automatic redaction of secrets (password, token, secret, authorization, cookie)
+- **errorHandler.ts** — Added Prisma error handling (P2002 → 409, P2025 → 404, P2003 → 400, connection → 503); dev mode shows stack traces, production sanitizes all errors
+- **Event logging** — Login success/failure, registration, appointment booked/cancelled/completed, payment paid, video session created, notification created
+- **.env.example** — Created with categorized variables (🔴 required, 🟡 optional, 🟢 future)
+- **express-rate-limit** — Installed and configured for auth endpoints
+- **NEXT_PHASE_SCOPE.md** — Updated to reflect Phase 3A completion and Phase 3B scope
+
+## Phase 3B — Deployment Preparation *(Completed)*
+
+### Changes
+- **package.json** — Added `db:migrate:deploy`, `postinstall` (auto Prisma generate), kept `build` + `start` + `dev`
+- **api_constants.dart** — API base URL uses `String.fromEnvironment('API_BASE_URL')` with localhost default; production builds pass `--dart-define=API_BASE_URL=https://api.example.com/api/v1`
+- **docs/DEPLOYMENT_GUIDE.md** — Created: hosting recommendations (Railway/Render for backend, Vercel/Cloudflare for Flutter web, Neon for DB, Upstash for Redis), build/start commands, migration flow, health check, post-deploy checklist, rollback notes
+- **docs/PRODUCTION_ENV_CHECKLIST.md** — Created: required vs optional env vars, secret generation, what never to commit, rotation notes, example production .env
+- **docs/FINAL_QA_CHECKLIST.md** — Created: 50+ test items covering health, auth, roles, booking, payments, doctor dashboard, admin dashboard, notifications, video, CORS, Flutter web, Prisma, build verification
+
+## Next Planned Phase
+
+### Phase 3C — Final QA + Deployment *(Ready — Awaiting Manual Deploy)*
+
+**Status:** All checks pass locally. Runbook and QA checklists are prepared. Awaiting user to execute deployment steps.
+
+**Documents created:**
+- `docs/DEPLOYMENT_RUNBOOK.md` — Exact step-by-step deploy instructions for Railway + Vercel
+- `docs/LIVE_QA_CHECKLIST.md` — 50+ item checklist to run against live instance
+
+**Key updates:**
+- Fixed 4 unused import warnings in Flutter (analysis count: 36 → 32)
+- All 14 role flow QA tests passed locally
+- Production build verified from compiled `dist/` output with JSON logs
+
+### Future Feature Phases (After Phase 3)
+- **Phase 2F** — Prescriptions & Reviews
+- **Phase 2G** — Chat/Messaging
