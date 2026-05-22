@@ -51,7 +51,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.isOtpSent) {
-        context.go('/auth/otp-verification', extra: _emailController.text.trim());
+        final email = _emailController.text.trim();
+        context.go('/auth/otp-verification?email=${Uri.encodeComponent(email)}', extra: email);
       }
     });
 

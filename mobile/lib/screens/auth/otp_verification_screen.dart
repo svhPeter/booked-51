@@ -17,7 +17,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  String get _email => (GoRouterState.of(context).extra as String?) ?? '';
+  String get _email {
+    final state = GoRouterState.of(context);
+    return state.uri.queryParameters['email'] ?? (state.extra as String?) ?? '';
+  }
 
   @override
   void dispose() {
@@ -26,6 +29,13 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   }
 
   void _verifyOtp() {
+    if (_email.isEmpty) {
+      ref.read(authProvider.notifier).clearError();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email is missing. Please sign up again.')),
+      );
+      return;
+    }
     if (_formKey.currentState!.validate()) {
       ref.read(authProvider.notifier).verifyOtp(
             email: _email,
@@ -65,7 +75,9 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                 Text('Verify OTP', style: Theme.of(context).textTheme.displaySmall),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter the 6-digit code sent to $_email',
+                  _email.isEmpty
+                      ? 'Email is missing. Please go back and sign up again.'
+                      : 'Enter the 6-digit code sent to $_email',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 32),
@@ -123,11 +135,13 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                     Text("Didn't receive the code?",
                         style: Theme.of(context).textTheme.bodyMedium),
                     TextButton(
-                      onPressed: () {
-                        ref.read(authProvider.notifier).resendOtp(email: _email);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('OTP resent successfully')),
-                        );
+                      onPressed: authState.isLoading || _email.isEmpty ? null : () async {
+                        final ok = await ref.read(authProvider.notifier).resendOtp(email: _email);
+                        if (ok && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('OTP resent successfully')),
+                          );
+                        }
                       },
                       child: const Text('Resend'),
                     ),

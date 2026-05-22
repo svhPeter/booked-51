@@ -17,6 +17,7 @@ import adminRoutes from './routes/admin';
 import agoraRoutes from './routes/agora';
 import notificationRoutes from './routes/notification';
 import profileRoutes from './routes/profile';
+import { isSmtpConfigured } from './services/emailService';
 
 const app = express();
 const httpServer = createServer(app);
@@ -138,6 +139,7 @@ export { io };
 async function start() {
   await connectDatabase();
   logger.info('server_start', { port: env.port, nodeEnv: env.nodeEnv });
+  logger.info('smtp_configured', { configured: isSmtpConfigured() });
 
   httpServer.listen(env.port, () => {
     logger.info('server_listening', { port: env.port, nodeEnv: env.nodeEnv });

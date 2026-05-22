@@ -332,9 +332,17 @@ export class AuthService {
       select: { isActive: true, isVerified: true },
     });
 
-    if (user?.isActive && !user.isVerified) {
-      await generateAndSendOtp(normalizedEmail);
+    if (!user) {
+      throw new AppError('No account found for this email. Please sign up first.', 404);
     }
+    if (!user.isActive) {
+      throw new AppError('This account is inactive. Please contact support.', 403);
+    }
+    if (user.isVerified) {
+      throw new AppError('This email is already verified. Please log in.', 400);
+    }
+
+    await generateAndSendOtp(normalizedEmail);
   }
 
   async forgotPassword(email: string): Promise<void> {

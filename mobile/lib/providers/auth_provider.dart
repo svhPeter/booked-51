@@ -197,10 +197,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> resendOtp({required String email}) async {
+  Future<bool> resendOtp({required String email}) async {
+    state = state.copyWith(isLoading: true, error: null, successMessage: null);
     try {
-      await _apiClient.post('/auth/resend-otp', data: {'email': email});
-    } catch (_) {}
+      final response = await _apiClient.post('/auth/resend-otp', data: {'email': email});
+      state = state.copyWith(
+        isLoading: false,
+        successMessage: response.data['message'] ?? 'OTP resent successfully',
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _extractError(e));
+      return false;
+    }
   }
 
   Future<bool> forgotPassword({required String email}) async {
