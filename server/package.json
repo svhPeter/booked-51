@@ -13,6 +13,8 @@
     "db:seed": "tsx prisma/seed.ts",
     "admin:upsert": "tsx scripts/upsertAdmin.ts",
     "demo:deactivate": "tsx scripts/deactivateDemoUsers.ts",
+    "pending:cleanup": "tsx scripts/cleanupPendingRegistrations.ts",
+    "users:unverified-report": "tsx scripts/reportUnverifiedUsers.ts",
     "smtp:test": "tsx scripts/testSmtp.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",

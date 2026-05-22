@@ -80,6 +80,11 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                       : 'Enter the 6-digit code sent to $_email',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Verification code generated. If you do not receive email, try resend or contact support.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.textHint),
+                ),
                 const SizedBox(height: 32),
                 if (authState.error != null)
                   Container(

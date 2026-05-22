@@ -117,7 +117,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null, successMessage: null, isOtpSent: false);
     try {
-      await _apiClient.post(
+      final response = await _apiClient.post(
         '/auth/register',
         data: {
           'name': name,
@@ -127,7 +127,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'city': city,
         },
       );
-      state = state.copyWith(isLoading: false, isOtpSent: true);
+      state = state.copyWith(
+        isLoading: false,
+        isOtpSent: true,
+        successMessage: response.data['message'] ?? 'Verification code generated. If you do not receive email, try resend or contact support.',
+      );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
@@ -149,7 +153,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, error: null, successMessage: null, isOtpSent: false);
     try {
-      await _apiClient.post(
+      final response = await _apiClient.post(
         '/auth/register-doctor',
         data: {
           'name': name,
@@ -163,7 +167,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'pmdcRegistrationNumber': pmdcRegistrationNumber,
         },
       );
-      state = state.copyWith(isLoading: false, isOtpSent: true);
+      state = state.copyWith(
+        isLoading: false,
+        isOtpSent: true,
+        successMessage: response.data['message'] ?? 'Verification code generated. If you do not receive email, try resend or contact support.',
+      );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

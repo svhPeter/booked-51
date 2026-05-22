@@ -64,6 +64,29 @@ model User {
   @@map("users")
 }
 
+model PendingRegistration {
+  id                     String   @id @default(uuid())
+  email                  String   @unique
+  name                   String
+  phone                  String
+  city                   String
+  passwordHash           String
+  role                   UserRole
+  specialty              String?
+  clinicName             String?
+  consultationFee        Float?
+  pmdcRegistrationNumber String?
+  otpHash                String
+  otpExpiresAt           DateTime
+  attempts               Int      @default(0)
+  lastResendAt           DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([otpExpiresAt])
+  @@map("pending_registrations")
+}
+
 model Patient {
   id         String   @id @default(uuid())
   userId     String   @unique

@@ -4,7 +4,12 @@ import { env } from '../config/env';
 import { logger } from '../config/logger';
 import { generateTokens, verifyRefreshToken } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
-import { generateAndSendOtp, verifyOtp, canVerify } from './otpStore';
+import { generateAndSendOtp, verifyOtp as verifyStoredOtp, canVerify as canVerifyStoredOtp } from './otpStore';
+import { sendOtpEmail } from './emailService';
+
+const OTP_TTL_MS = 10 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60 * 1000;
+const MAX_PENDING_ATTEMPTS = 5;
 
 type RegisterPatientInput = {
   name: string;
@@ -28,6 +33,19 @@ type RegisterDoctorInput = {
   pmdcRegistrationNumber?: string;
 };
 
+type PendingInput = {
+  name: string;
+  email: string;
+  phone: string;
+  city: string;
+  passwordHash: string;
+  role: 'patient' | 'doctor';
+  specialty?: string | null;
+  clinicName?: string | null;
+  consultationFee?: number | null;
+  pmdcRegistrationNumber?: string | null;
+};
+
 function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
@@ -42,6 +60,18 @@ function validatePassword(password: string): void {
   if (!password || password.length < 8) {
     throw new AppError('Password must be at least 8 characters', 400);
   }
+}
+
+function generateOtp(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function otpExpiry(): Date {
+  return new Date(Date.now() + OTP_TTL_MS);
+}
+
+function publicSignupMessage(): string {
+  return 'Verification code generated. If you do not receive email, try resend or contact support.';
 }
 
 export class AuthService {
@@ -66,43 +96,19 @@ export class AuthService {
       throw new AppError('Passwords do not match', 400);
     }
 
-    const existing = await prisma.user.findUnique({
-      where: { email },
+    const passwordHash = await bcrypt.hash(data.password, 12);
+    await this.createOrUpdatePendingRegistration({
+      name,
+      email,
+      phone,
+      city,
+      passwordHash,
+      role: 'patient',
     });
 
-    if (existing) {
-      throw new AppError('Email already registered', 400);
-    }
+    logger.info('pending_patient_registration_created', { email });
 
-    const hashedPassword = await bcrypt.hash(data.password, 12);
-
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        phone,
-        password: hashedPassword,
-        role: 'patient',
-        patient: { create: { city } },
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        role: true,
-        isVerified: true,
-        isActive: true,
-        isDemo: true,
-        createdAt: true,
-      },
-    });
-
-    await generateAndSendOtp(email);
-
-    logger.info('user_registered', { userId: user.id, email: user.email, role: user.role });
-
-    return { user, message: 'OTP sent to email' };
+    return { email, message: publicSignupMessage() };
   }
 
   async registerDoctor(data: RegisterDoctorInput) {
@@ -121,61 +127,23 @@ export class AuthService {
       throw new AppError('Consultation fee must be a valid number', 400);
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing) {
-      throw new AppError('Email already registered', 400);
-    }
-
-    const hashedPassword = await bcrypt.hash(data.password, 12);
-    const user = await prisma.$transaction(async (tx) => {
-      const hospital = await tx.hospital.create({
-        data: {
-          name: clinicName,
-          city,
-        },
-      });
-
-      return tx.user.create({
-        data: {
-          name,
-          email,
-          phone,
-          password: hashedPassword,
-          role: 'doctor',
-          doctor: {
-            create: {
-              specialty,
-              consultationFee,
-              pmdcRegistrationNumber: data.pmdcRegistrationNumber?.trim() || null,
-              availableDays: [],
-              isAvailable: false,
-              isApproved: false,
-              hospital: { connect: { id: hospital.id } },
-            },
-          },
-        },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          role: true,
-          isVerified: true,
-          isActive: true,
-          isDemo: true,
-          createdAt: true,
-        },
-      });
+    const passwordHash = await bcrypt.hash(data.password, 12);
+    await this.createOrUpdatePendingRegistration({
+      name,
+      email,
+      phone,
+      city,
+      passwordHash,
+      role: 'doctor',
+      specialty,
+      clinicName,
+      consultationFee,
+      pmdcRegistrationNumber: data.pmdcRegistrationNumber?.trim() || null,
     });
 
-    await generateAndSendOtp(email);
+    logger.info('pending_doctor_registration_created', { email });
 
-    logger.info('doctor_registered_pending', { userId: user.id, email: user.email });
-
-    return {
-      user,
-      message: 'Doctor onboarding submitted. Verify your email, then wait for admin approval before public listing.',
-    };
+    return { email, message: publicSignupMessage() };
   }
 
   async login(email: string, password: string) {
@@ -241,27 +209,114 @@ export class AuthService {
   async verifyOtp(email: string, otp: string) {
     const normalizedEmail = normalizeEmail(requireText(email, 'Email'));
     const code = requireText(otp, 'OTP');
-    const ok = await canVerify(normalizedEmail);
-    if (!ok) {
-      throw new AppError('Too many failed attempts. Please request a new OTP.', 429);
+    const pending = await prisma.pendingRegistration.findUnique({ where: { email: normalizedEmail } });
+
+    if (!pending) {
+      throw new AppError('No pending verification found. Please sign up again.', 400);
     }
 
-    const valid = await verifyOtp(normalizedEmail, code);
+    if (pending.otpExpiresAt < new Date()) {
+      throw new AppError('OTP expired. Please request a new code.', 400);
+    }
+
+    if (pending.attempts >= MAX_PENDING_ATTEMPTS) {
+      throw new AppError('Too many failed attempts. Please request a new code.', 429);
+    }
+
+    const valid = await bcrypt.compare(code, pending.otpHash);
     if (!valid) {
+      await prisma.pendingRegistration.update({
+        where: { email: normalizedEmail },
+        data: { attempts: { increment: 1 } },
+      });
       throw new AppError('Invalid or expired OTP', 400);
     }
 
-    await prisma.user.update({
+    const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      data: { isVerified: true },
+      select: { id: true, role: true, isVerified: true, isDemo: true },
     });
 
-    const user = await prisma.user.findUnique({
-      where: { email: normalizedEmail },
-      select: { id: true, name: true, email: true, phone: true, role: true, avatarUrl: true, isActive: true, isVerified: true, isDemo: true },
+    if (existing?.isVerified) {
+      await prisma.pendingRegistration.delete({ where: { email: normalizedEmail } });
+      throw new AppError('Account already exists. Please sign in.', 400);
+    }
+    if (existing && (existing.isDemo || existing.role === 'admin')) {
+      throw new AppError('Existing account requires admin review. Please contact support.', 400);
+    }
+    if (existing && existing.role !== pending.role) {
+      throw new AppError('An unverified account already exists with a different role. Please contact support.', 400);
+    }
+
+    const user = await prisma.$transaction(async (tx) => {
+      const finalUser = existing
+        ? await tx.user.update({
+            where: { id: existing.id },
+            data: {
+              name: pending.name,
+              phone: pending.phone,
+              password: pending.passwordHash,
+              role: pending.role,
+              isVerified: true,
+              isActive: true,
+            },
+            select: { id: true, name: true, email: true, phone: true, role: true, avatarUrl: true, isActive: true, isVerified: true, isDemo: true },
+          })
+        : await tx.user.create({
+            data: {
+              name: pending.name,
+              email: pending.email,
+              phone: pending.phone,
+              password: pending.passwordHash,
+              role: pending.role,
+              isVerified: true,
+              isActive: true,
+            },
+            select: { id: true, name: true, email: true, phone: true, role: true, avatarUrl: true, isActive: true, isVerified: true, isDemo: true },
+          });
+
+      if (pending.role === 'patient') {
+        await tx.patient.upsert({
+          where: { userId: finalUser.id },
+          update: { city: pending.city },
+          create: { userId: finalUser.id, city: pending.city },
+        });
+      } else if (pending.role === 'doctor') {
+        const hospital = await tx.hospital.create({
+          data: {
+            name: pending.clinicName || 'Clinic / Hospital',
+            city: pending.city,
+          },
+        });
+        await tx.doctor.upsert({
+          where: { userId: finalUser.id },
+          update: {
+            specialty: pending.specialty,
+            consultationFee: pending.consultationFee ?? 0,
+            pmdcRegistrationNumber: pending.pmdcRegistrationNumber,
+            isApproved: false,
+            isAvailable: false,
+            hospitalId: hospital.id,
+          },
+          create: {
+            userId: finalUser.id,
+            specialty: pending.specialty,
+            consultationFee: pending.consultationFee ?? 0,
+            pmdcRegistrationNumber: pending.pmdcRegistrationNumber,
+            availableDays: [],
+            isApproved: false,
+            isAvailable: false,
+            hospitalId: hospital.id,
+          },
+        });
+      }
+
+      await tx.pendingRegistration.delete({ where: { email: normalizedEmail } });
+      return finalUser;
     });
 
-    const tokens = generateTokens(user!.id, user!.role);
+    const tokens = generateTokens(user.id, user.role);
+    logger.info('pending_registration_verified', { userId: user.id, email: user.email, role: user.role });
 
     return { user, ...tokens };
   }
@@ -327,32 +382,41 @@ export class AuthService {
 
   async resendOtp(email: string): Promise<void> {
     const normalizedEmail = normalizeEmail(requireText(email, 'Email'));
+    const pending = await prisma.pendingRegistration.findUnique({ where: { email: normalizedEmail } });
+
+    if (pending) {
+      await this.resendPendingOtp(normalizedEmail, pending.lastResendAt);
+      return;
+    }
+
+    const legacy = await this.findLegacyUnverifiedUser(normalizedEmail);
+    if (legacy) {
+      await this.createPendingFromLegacyUser(legacy);
+      return;
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { isActive: true, isVerified: true },
+      select: { isVerified: true, isActive: true },
     });
-
-    if (!user) {
-      throw new AppError('No account found for this email. Please sign up first.', 404);
+    if (user?.isVerified) {
+      throw new AppError('Account already exists. Please sign in.', 400);
     }
-    if (!user.isActive) {
+    if (user && !user.isActive) {
       throw new AppError('This account is inactive. Please contact support.', 403);
     }
-    if (user.isVerified) {
-      throw new AppError('This email is already verified. Please log in.', 400);
-    }
 
-    await generateAndSendOtp(normalizedEmail);
+    throw new AppError('No pending registration found. Please sign up first.', 404);
   }
 
   async forgotPassword(email: string): Promise<void> {
     const normalizedEmail = normalizeEmail(requireText(email, 'Email'));
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, isVerified: true },
     });
 
-    if (user?.isActive) {
+    if (user?.isActive && user.isVerified) {
       await generateAndSendOtp(normalizedEmail);
     }
   }
@@ -362,34 +426,154 @@ export class AuthService {
     const code = requireText(otp, 'Reset code');
     validatePassword(newPassword);
 
-    const ok = await canVerify(normalizedEmail);
+    const ok = await canVerifyStoredOtp(normalizedEmail);
     if (!ok) {
       throw new AppError('Too many failed attempts. Please request a new code.', 429);
     }
 
-    const valid = await verifyOtp(normalizedEmail, code);
+    const valid = await verifyStoredOtp(normalizedEmail, code);
     if (!valid) {
       throw new AppError('Invalid or expired reset code', 400);
     }
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { id: true, isActive: true },
+      select: { id: true, isActive: true, isVerified: true },
     });
 
-    if (!user?.isActive) {
+    if (!user?.isActive || !user.isVerified) {
       throw new AppError('Invalid or expired reset code', 400);
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        isVerified: true,
-      },
+      data: { password: hashedPassword },
     });
 
     logger.info('password_reset_completed', { userId: user.id, email: normalizedEmail });
+  }
+
+  private async createOrUpdatePendingRegistration(data: PendingInput): Promise<void> {
+    const existingUser = await prisma.user.findUnique({
+      where: { email: data.email },
+      select: { id: true, role: true, isVerified: true, isDemo: true },
+    });
+
+    if (existingUser?.isVerified) {
+      throw new AppError('Email already registered. Please sign in.', 400);
+    }
+    if (existingUser && (existingUser.isDemo || existingUser.role === 'admin')) {
+      throw new AppError('Existing account requires admin review. Please contact support.', 400);
+    }
+    if (existingUser && existingUser.role !== data.role) {
+      throw new AppError('An unverified account already exists with a different role. Please contact support.', 400);
+    }
+
+    const otp = generateOtp();
+    const otpHash = await bcrypt.hash(otp, 12);
+    const now = new Date();
+
+    await prisma.pendingRegistration.upsert({
+      where: { email: data.email },
+      update: {
+        name: data.name,
+        phone: data.phone,
+        city: data.city,
+        passwordHash: data.passwordHash,
+        role: data.role,
+        specialty: data.specialty,
+        clinicName: data.clinicName,
+        consultationFee: data.consultationFee,
+        pmdcRegistrationNumber: data.pmdcRegistrationNumber,
+        otpHash,
+        otpExpiresAt: otpExpiry(),
+        attempts: 0,
+        lastResendAt: now,
+      },
+      create: {
+        email: data.email,
+        name: data.name,
+        phone: data.phone,
+        city: data.city,
+        passwordHash: data.passwordHash,
+        role: data.role,
+        specialty: data.specialty,
+        clinicName: data.clinicName,
+        consultationFee: data.consultationFee,
+        pmdcRegistrationNumber: data.pmdcRegistrationNumber,
+        otpHash,
+        otpExpiresAt: otpExpiry(),
+        attempts: 0,
+        lastResendAt: now,
+      },
+    });
+
+    await sendOtpEmail(data.email, otp);
+  }
+
+  private async resendPendingOtp(email: string, lastResendAt: Date | null): Promise<void> {
+    if (lastResendAt && Date.now() - lastResendAt.getTime() < RESEND_COOLDOWN_MS) {
+      throw new AppError('Please wait before requesting another OTP', 429);
+    }
+
+    const otp = generateOtp();
+    const otpHash = await bcrypt.hash(otp, 12);
+
+    await prisma.pendingRegistration.update({
+      where: { email },
+      data: {
+        otpHash,
+        otpExpiresAt: otpExpiry(),
+        attempts: 0,
+        lastResendAt: new Date(),
+      },
+    });
+
+    await sendOtpEmail(email, otp);
+  }
+
+  private async findLegacyUnverifiedUser(email: string) {
+    return prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        password: true,
+        role: true,
+        isVerified: true,
+        isDemo: true,
+        patient: { select: { city: true } },
+        doctor: {
+          select: {
+            specialty: true,
+            consultationFee: true,
+            pmdcRegistrationNumber: true,
+            hospital: { select: { name: true, city: true } },
+          },
+        },
+      },
+    }).then((user) => {
+      if (!user || user.isVerified || user.isDemo || user.role === 'admin') return null;
+      if (user.role !== 'patient' && user.role !== 'doctor') return null;
+      return user;
+    });
+  }
+
+  private async createPendingFromLegacyUser(user: NonNullable<Awaited<ReturnType<AuthService['findLegacyUnverifiedUser']>>>): Promise<void> {
+    await this.createOrUpdatePendingRegistration({
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      city: user.patient?.city || user.doctor?.hospital?.city || '',
+      passwordHash: user.password,
+      role: user.role === 'doctor' ? 'doctor' : 'patient',
+      specialty: user.doctor?.specialty,
+      clinicName: user.doctor?.hospital?.name,
+      consultationFee: user.doctor?.consultationFee,
+      pmdcRegistrationNumber: user.doctor?.pmdcRegistrationNumber,
+    });
   }
 }
