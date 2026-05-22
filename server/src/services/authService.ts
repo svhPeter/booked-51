@@ -11,6 +11,7 @@ type RegisterPatientInput = {
   email: string;
   phone: string;
   password: string;
+  confirmPassword?: string;
   city: string;
   role?: string;
 };
@@ -61,6 +62,9 @@ export class AuthService {
     const phone = requireText(data.phone, 'Phone');
     const city = requireText(data.city, 'City');
     validatePassword(data.password);
+    if (data.confirmPassword !== undefined && data.confirmPassword !== data.password) {
+      throw new AppError('Passwords do not match', 400);
+    }
 
     const existing = await prisma.user.findUnique({
       where: { email },

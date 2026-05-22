@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -8,9 +9,36 @@ final secureStorage = const FlutterSecureStorage();
 
 String _extractError(dynamic e) {
   if (e is DioException) {
+    if (kDebugMode) {
+      debugPrint(
+        'Auth request failed: type=${e.type.name}, status=${e.response?.statusCode}, path=${e.requestOptions.path}',
+      );
+    }
     final data = e.response?.data;
-    if (data is Map && data['error'] != null) return data['error'];
-    if (e.response?.statusCode == 0) return 'Network error. Is the backend running?';
+    if (data is Map) {
+      final message = data['error'] ?? data['message'];
+      if (message != null && message.toString().trim().isNotEmpty) {
+        return message.toString();
+      }
+    }
+    if (data is String && data.trim().isNotEmpty) return data;
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return 'Request timed out. Please try again.';
+      case DioExceptionType.connectionError:
+        return 'Network error. Please check your connection and try again.';
+      case DioExceptionType.badResponse:
+        final status = e.response?.statusCode;
+        return status == null ? 'Request failed. Please try again.' : 'Request failed with status $status. Please try again.';
+      case DioExceptionType.badCertificate:
+        return 'Secure connection failed. Please try again later.';
+      case DioExceptionType.cancel:
+        return 'Request was cancelled. Please try again.';
+      case DioExceptionType.unknown:
+        return 'Network request failed. Please try again.';
+    }
   }
   return 'Something went wrong. Please try again.';
 }

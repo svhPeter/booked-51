@@ -1,6 +1,8 @@
 import nodemailer from 'nodemailer';
 import { env } from '../config/env';
 
+const SMTP_TIMEOUT_MS = 10_000;
+
 function isSmtpConfigured(): boolean {
   if (!env.smtpHost || !env.smtpUser || !env.smtpPass) return false;
   if (env.smtpUser.startsWith('your-') || env.smtpUser.startsWith('placeholder')) return false;
@@ -8,9 +10,20 @@ function isSmtpConfigured(): boolean {
   return true;
 }
 
+function safeEmailError(error: unknown): Record<string, string> {
+  if (!error || typeof error !== 'object') return { message: 'Unknown email error' };
+  const e = error as { message?: string; code?: string; command?: string; responseCode?: number };
+  return {
+    message: e.message || 'Unknown email error',
+    ...(e.code ? { code: e.code } : {}),
+    ...(e.command ? { command: e.command } : {}),
+    ...(e.responseCode ? { responseCode: String(e.responseCode) } : {}),
+  };
+}
+
 async function sendOtpEmail(to: string, otp: string): Promise<void> {
   if (!isSmtpConfigured()) {
-    console.log(`[DEV] OTP for ${to}: ${otp}`);
+    console.log(`[OTP_FALLBACK] SMTP not configured. OTP for ${to}: ${otp}`);
     return;
   }
 
@@ -20,6 +33,9 @@ async function sendOtpEmail(to: string, otp: string): Promise<void> {
       port: env.smtpPort,
       secure: env.smtpPort === 465,
       auth: { user: env.smtpUser, pass: env.smtpPass },
+      connectionTimeout: SMTP_TIMEOUT_MS,
+      greetingTimeout: SMTP_TIMEOUT_MS,
+      socketTimeout: SMTP_TIMEOUT_MS,
     });
 
     await transporter.sendMail({
@@ -40,8 +56,8 @@ async function sendOtpEmail(to: string, otp: string): Promise<void> {
       `,
     });
   } catch (error) {
-    console.warn(`[EMAIL] Failed to send OTP to ${to}, falling back to console:`, error);
-    console.log(`[DEV] OTP for ${to}: ${otp}`);
+    console.warn(`[EMAIL] Failed to send OTP to ${to}; falling back to OTP log`, safeEmailError(error));
+    console.log(`[OTP_FALLBACK] OTP for ${to}: ${otp}`);
   }
 }
 
