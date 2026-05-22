@@ -1,5 +1,16 @@
 # Deployment Runbook — DocBook Platform
 
+## Live Production URLs
+
+| Component | URL |
+|---|---|
+| Backend API | `https://booked-51-production.up.railway.app/api/v1` |
+| Health check | `https://booked-51-production.up.railway.app/api/v1/health` |
+| Flutter web | `https://booked-51.vercel.app` |
+| Database | Existing Neon PostgreSQL project |
+
+Railway `FRONTEND_URL` must be set to `https://booked-51.vercel.app` in production.
+
 ## Deployment Order
 
 ```
@@ -99,7 +110,7 @@ If it shows `Already applied`, that's fine.
 ### Verify Health
 
 ```bash
-curl https://your-app.railway.app/api/v1/health
+curl https://booked-51-production.up.railway.app/api/v1/health
 ```
 
 Expected:
@@ -140,14 +151,17 @@ Expected: `Database schema is up to date!`
 2. **Import GitHub repo** → Select your repo
 3. **Root Directory:** `mobile`
 4. **Framework Preset:** Other
-5. **Build Command:**
+5. **Install Command:**
    ```bash
-   flutter build web --dart-define=API_BASE_URL=https://your-app.railway.app/api/v1
+   if [ ! -d "$HOME/flutter" ]; then git clone https://github.com/flutter/flutter.git -b stable --depth 1 "$HOME/flutter"; fi && "$HOME/flutter/bin/flutter" config --enable-web && "$HOME/flutter/bin/flutter" pub get
    ```
-   *(Replace `https://your-app.railway.app/api/v1` with your actual Railway URL)*
-6. **Output Directory:** `build/web`
-7. **Environment Variables (if needed for build):** None required
-8. Click **Deploy**
+6. **Build Command:**
+   ```bash
+   "$HOME/flutter/bin/flutter" build web --release --dart-define=API_BASE_URL=https://booked-51-production.up.railway.app/api/v1
+   ```
+7. **Output Directory:** `build/web`
+8. **Environment Variables (if needed for build):** None required
+9. Click **Deploy**
 
 ### After Deploy
 
@@ -166,12 +180,40 @@ Expected: `Database schema is up to date!`
 
 Run `docs/LIVE_QA_CHECKLIST.md` against the live instance.
 
+### Phase 4 Post-Deploy Result
+
+Verified on 2026-05-22:
+
+- Backend health returned `status: "ok"` and `database: "healthy"`
+- Vercel served the Flutter web shell
+- Compiled Flutter web build contains `API_BASE_URL=https://booked-51-production.up.railway.app/api/v1`
+- Railway CORS allows `https://booked-51.vercel.app`
+- Random non-production origin did not receive an allowed CORS origin header
+- Patient, doctor, and admin login flows worked with seeded demo credentials
+- Patient booking created a `confirmed` appointment and no payment record
+- Patient appointment detail, notifications, appointment chat, doctor dashboard, admin dashboard, admin chat metadata, mock video, role blocking, and logout endpoints were verified
+
+### Post-Deploy Safety Notes
+
+- Phase 4E marks seeded users as demo data. Demo admin login is blocked in production after `20260522143000_phase4e_launch_safety` is deployed.
+- Create or update a secure production admin from Railway Shell:
+  ```bash
+  ADMIN_EMAIL=your-admin@example.com ADMIN_PASSWORD='<secure-password>' ADMIN_NAME='Platform Admin' npm run admin:upsert
+  ```
+- Do not keep `admin@docbook.com` with the seed password as a production admin.
+- Keep seeded patient/doctor accounts as demo-only, or deactivate/remove them before inviting real users.
+- The seed script is not automatically run by production deploy. `postinstall` only runs `prisma generate`.
+- The seed script is blocked in `NODE_ENV=production` unless `ALLOW_DEMO_SEED=true` is set intentionally.
+- Do not commit `.env`, Firebase service account JSON, Google service files, or real Base64 Firebase service account values.
+- Firebase and Agora are optional for current production. In-app notifications and mock video work without them.
+- Payment backend endpoints exist but the active Phase 4 UX is direct booking/pay-at-clinic; booking does not create a payment record.
+
 ### Critical Checks
 
 1. ✅ Health endpoint returns `database: "healthy"`
 2. ✅ Login works for patient, doctor, admin
 3. ✅ Patient can book appointment
-4. ✅ Mock payment succeeds
+4. ✅ Active booking flow stays pay-at-clinic and creates no payment record
 5. ✅ Notifications appear after booking
 6. ✅ Doctor dashboard loads
 7. ✅ Admin dashboard loads
@@ -209,5 +251,5 @@ Run `docs/LIVE_QA_CHECKLIST.md` against the live instance.
 | `prisma migrate deploy fails` | `DIRECT_URL` missing or wrong | Ensure `DIRECT_URL` is set (needed for migrations) |
 | `CORS error in browser` | `FRONTEND_URL` doesn't match Vercel URL | Update Railway's `FRONTEND_URL` env var |
 | 401 on all requests | `JWT_SECRET` changed after deploy | Must use same secret, or all tokens invalidated |
-| Flutter build fails | Missing Flutter SDK on Vercel | Flutter is pre-installed on Vercel; if not, use Docker |
+| Flutter build fails | Missing Flutter SDK on Vercel | Use the Install Command above to clone Flutter stable and run `flutter pub get` |
 | `module not found` | Wrong root directory | Ensure Railway root = `server`, Vercel root = `mobile` |

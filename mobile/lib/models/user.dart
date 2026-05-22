@@ -8,6 +8,8 @@ class UserModel {
   final UserRole role;
   final String? avatarUrl;
   final bool isActive;
+  final bool isVerified;
+  final bool isDemo;
   final DateTime createdAt;
 
   UserModel({
@@ -18,6 +20,8 @@ class UserModel {
     required this.role,
     this.avatarUrl,
     this.isActive = true,
+    this.isVerified = false,
+    this.isDemo = false,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -30,6 +34,8 @@ class UserModel {
       role: UserRole.values.firstWhere((r) => r.name == json['role']),
       avatarUrl: json['avatarUrl'],
       isActive: json['isActive'] ?? true,
+      isVerified: json['isVerified'] ?? false,
+      isDemo: json['isDemo'] ?? false,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -44,6 +50,8 @@ class UserModel {
         'role': role.name,
         'avatarUrl': avatarUrl,
         'isActive': isActive,
+        'isVerified': isVerified,
+        'isDemo': isDemo,
         'createdAt': createdAt.toIso8601String(),
       };
 }

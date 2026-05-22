@@ -19,6 +19,7 @@ A **free appointment booking platform** for Pakistan that helps patients find do
 3. **Trust by verification** — Doctors appear publicly only after admin approval.
 4. **Appointment-scoped chat** — Messaging tied to a booking, not open social chat.
 5. **Scale across Pakistan** — City and specialty discovery first; provinces and clinics later.
+6. **Production-safe onboarding** — Patients self-register; doctors submit onboarding requests and remain pending until admin review.
 
 ## Pakistan market fit
 
@@ -61,9 +62,19 @@ Revenue should not block doctor adoption:
 - Prescriptions and reviews (Phase 2F backlog)
 - Native app store release
 - Full province/city reference database
+- Doctor scraping/import or bulk public directory launch
+
+## Doctor Directory Guardrails
+
+- Future public directory expansion should use source-based, auditable data only.
+- Do not scrape or publish sensitive/private doctor data blindly.
+- If unclaimed profiles are introduced later, label them clearly and keep appointment/chat disabled until claimed or verified.
+- Doctors should be able to claim, update, or request removal of their profile.
+- Admin approval remains required before a doctor appears in public search as bookable.
 
 ## Related docs
 
 - [PHASE_4_SCOPE.md](PHASE_4_SCOPE.md) — Implementation scope
+- [PRODUCTION_LAUNCH_SAFETY.md](PRODUCTION_LAUNCH_SAFETY.md) — Launch safety controls
 - [CHAT_SYSTEM_PLAN.md](CHAT_SYSTEM_PLAN.md) — Messaging design
 - [COST_AND_SCALE_PLAN.md](COST_AND_SCALE_PLAN.md) — Infrastructure costs

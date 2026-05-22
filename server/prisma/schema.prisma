@@ -45,6 +45,7 @@ model User {
   avatarUrl  String?
   isVerified Boolean  @default(false)
   isActive   Boolean  @default(true)
+  isDemo     Boolean  @default(false)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
@@ -90,6 +91,7 @@ model Doctor {
   yearsOfExperience Int      @default(0)
   averageRating     Float    @default(0)
   totalReviews      Int      @default(0)
+  pmdcRegistrationNumber String?
   availableDays     String[]
   isAvailable       Boolean  @default(true)
   isApproved        Boolean  @default(false)

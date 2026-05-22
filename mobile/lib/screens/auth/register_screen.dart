@@ -16,6 +16,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _cityController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
@@ -26,6 +27,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _cityController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -37,6 +39,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             name: _nameController.text.trim(),
             email: _emailController.text.trim(),
             phone: _phoneController.text.trim(),
+            city: _cityController.text.trim(),
             password: _passwordController.text,
           );
     }
@@ -70,7 +73,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Text('Create Account', style: Theme.of(context).textTheme.displaySmall),
                 const SizedBox(height: 8),
                 Text(
-                  'Join us and start booking appointments',
+                  'Create a patient account to book appointments',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 32),
@@ -129,6 +132,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
+                  controller: _cityController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'City',
+                    prefixIcon: Icon(Icons.location_city_outlined),
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty ? 'Please enter your city' : null,
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
                   decoration: InputDecoration(
@@ -143,7 +156,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Please enter a password';
-                    if (v.length < 6) return 'Password must be at least 6 characters';
+                    if (v.length < 8) return 'Password must be at least 8 characters';
                     return null;
                   },
                 ),
@@ -178,6 +191,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       : const Text('Create Account'),
                 ),
                 const SizedBox(height: 24),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: () => context.go('/auth/doctor-onboarding'),
+                    icon: const Icon(Icons.medical_information_outlined),
+                    label: const Text('I am a doctor - request onboarding'),
+                  ),
+                ),
+                const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

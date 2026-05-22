@@ -30,11 +30,16 @@ export const authenticate = async (
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, role: true, isActive: true },
+      select: { id: true, role: true, isActive: true, isVerified: true, isDemo: true },
     });
 
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || !user.isVerified) {
       res.status(401).json({ error: 'Invalid token. User not found.' });
+      return;
+    }
+
+    if (env.nodeEnv === 'production' && user.role === 'admin' && user.isDemo) {
+      res.status(401).json({ error: 'Demo admin is disabled in production.' });
       return;
     }
 

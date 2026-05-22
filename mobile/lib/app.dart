@@ -4,7 +4,10 @@ import 'models/appointment.dart';
 import 'providers/auth_provider.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/doctor_onboarding_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
 import 'screens/auth/otp_verification_screen.dart';
+import 'screens/auth/reset_password_screen.dart';
 import 'screens/patient/patient_shell_screen.dart';
 import 'screens/patient/search_screen.dart';
 import 'screens/patient/doctor_profile_screen.dart';
@@ -65,6 +68,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/auth/doctor-onboarding',
+        builder: (context, state) => const DoctorOnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/auth/forgot-password',
+        builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/auth/reset-password',
+        builder: (context, state) => ResetPasswordScreen(
+          initialEmail: state.uri.queryParameters['email'] ?? '',
+        ),
       ),
       GoRoute(
         path: '/auth/otp-verification',

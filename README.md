@@ -23,6 +23,8 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 
 ## Test Credentials
 
+These credentials are for local/demo QA only. Demo admin login is blocked in production once Phase 4E is deployed and the demo flag migration has run.
+
 | Role | Email | Password |
 |---|---|---|
 | Patient | `patient@test.com` | `password123` |
@@ -31,7 +33,7 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 
 ## Project Status
 
-**Current Phase: 4 (Free Booking + Chat)**
+**Current Phase: 4E (Production Launch Safety)**
 
 - ✅ Phase 1: Project setup, auth, doctor list, booking
 - ✅ Phase 1.5: Booking validation, real errors, cancel flow, routing stability
@@ -43,9 +45,11 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 - ✅ Phase 2E: Notifications + Real Email OTP + Redis
 - ✅ Phase 3A: Production hardening (env validation, CORS, rate limiting, logging, error handling)
 - ✅ Phase 3B: Deployment preparation (build scripts, Flutter API config, deployment docs, QA checklists)
-- ✅ Phase 3C: Deployed (Railway + Vercel + Neon)
-- ➡️ **Phase 4A:** Free booking UX, profiles, admin doctor approval — see [PHASE_4_SCOPE.md](docs/PHASE_4_SCOPE.md)
-- ➡️ **Phase 4B:** Appointment-scoped chat — see [CHAT_SYSTEM_PLAN.md](docs/CHAT_SYSTEM_PLAN.md)
+- ✅ Phase 3C: Deployment preparation and live deployment path (Railway + Vercel + Neon)
+- ✅ **Phase 4A:** Free booking UX, profiles, admin doctor approval — see [PHASE_4_SCOPE.md](docs/PHASE_4_SCOPE.md)
+- ✅ **Phase 4B:** Appointment-scoped chat — see [CHAT_SYSTEM_PLAN.md](docs/CHAT_SYSTEM_PLAN.md)
+- ✅ Phase 4 Post-Deploy QA: Live Railway/Vercel verification completed; credential cleanup required before real public launch
+- ✅ **Phase 4E:** Production launch safety, real patient signup, pending doctor onboarding, forgot password, demo data separation
 
 ## Documentation
 
@@ -65,6 +69,7 @@ flutter run -d chrome             # Flutter web on http://localhost:8080
 | [Phase 4 Scope](docs/PHASE_4_SCOPE.md) | 4A/4B implementation scope |
 | [Chat System Plan](docs/CHAT_SYSTEM_PLAN.md) | Appointment messaging design |
 | [Cost & Scale Plan](docs/COST_AND_SCALE_PLAN.md) | Infrastructure costs and scaling |
+| [Production Launch Safety](docs/PRODUCTION_LAUNCH_SAFETY.md) | Admin bootstrap, demo data, signup/auth safety |
 
 ## Tech Stack
 
@@ -117,6 +122,10 @@ The web integration is in **alpha stage** — mock mode works on all platforms w
 | Feature | Status |
 |---|---|
 | Patient registration + email OTP | ✅ |
+| Patient-only public signup with city | ✅ Phase 4E |
+| Doctor onboarding pending admin approval | ✅ Phase 4E |
+| Forgot/reset password via OTP | ✅ Phase 4E |
+| Demo data flag + production admin bootstrap | ✅ Phase 4E |
 | Doctor search by name/specialty | ✅ |
 | Appointment booking (date/time slot, double-book prevention) | ✅ |
 | Payment (Mock / Stripe / PayFast) | ⏸️ Dormant — pay at clinic in active flow |
@@ -150,7 +159,9 @@ In development, all origins are allowed. In production (`NODE_ENV=production`), 
 |---|---|
 | `POST /auth/login` | 10 requests/minute |
 | `POST /auth/register` | 5 requests/minute |
+| `POST /auth/register-doctor` | 5 requests/minute |
 | `POST /auth/resend-otp` | 5 requests/minute |
+| `POST /auth/forgot-password` | 5 requests/minute |
 
 ### Logging
 Structured logging via `config/logger.ts`:
@@ -172,6 +183,15 @@ Limited to 1mb (down from 10mb) to prevent abuse.
 
 See the [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) for detailed instructions.
 
+### Live Deployment
+
+| Component | URL |
+|---|---|
+| Backend API | `https://booked-51-production.up.railway.app/api/v1` |
+| Health check | `https://booked-51-production.up.railway.app/api/v1/health` |
+| Flutter web | `https://booked-51.vercel.app` |
+| Database | Existing Neon PostgreSQL project |
+
 ### Quick Deployment Summary
 
 | Component | Service | Build Command | Start Command |
@@ -186,6 +206,16 @@ cd server
 npx prisma migrate deploy
 ```
 ⚠️ Never use `prisma migrate reset` or `prisma db push` on production.
+
+### Production Admin Bootstrap
+
+Create or update a secure non-demo admin from Railway Shell after env vars are set:
+
+```bash
+ADMIN_EMAIL=your-admin@example.com ADMIN_PASSWORD='<secure-password>' ADMIN_NAME='Platform Admin' npm run admin:upsert
+```
+
+Use a dedicated real admin email. Do not use `admin@docbook.com` with the demo password for production operations.
 
 ### Flutter Web Production Build
 ```bash
@@ -203,3 +233,8 @@ See [Production Env Checklist](docs/PRODUCTION_ENV_CHECKLIST.md) for the complet
 - Do not run `prisma migrate reset` on shared Neon database
 - Do not use `npx prisma db push` — always create proper migrations
 - See [Database & Migrations](docs/DATABASE_AND_MIGRATIONS.md) for details
+- Default seeded test credentials must be changed, deactivated, or removed before real public launch
+- Firebase and Agora are optional; current in-app notifications and mock video work without their secrets
+- Payment backend remains dormant in the active Phase 4 UX; patients pay doctors directly at the visit
+- Public doctor directory should later use source-based unclaimed profiles; do not scrape or publish private/sensitive data blindly
+- Doctors should be able to claim, update, or request removal of their public profile before broad launch

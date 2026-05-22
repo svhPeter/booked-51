@@ -4,8 +4,9 @@
 
 | Sub-phase | Goal | Status |
 |-----------|------|--------|
-| **4A** | Free booking UX, profiles, sign-out, admin doctor approval, home UX | In progress |
-| **4B** | Appointment-scoped chat (REST + Socket.io) | Planned after 4A |
+| **4A** | Free booking UX, profiles, sign-out, admin doctor approval, home UX | Complete |
+| **4B** | Appointment-scoped chat (REST + Socket.io) | Complete |
+| **4E** | Production launch safety, real signup, forgot password, demo separation | Complete |
 
 Payment backend and Prisma `Payment` model remain **unchanged and dormant** in the active user flow.
 
@@ -81,6 +82,42 @@ Payment backend and Prisma `Payment` model remain **unchanged and dormant** in t
 
 ---
 
+## Phase 4E — Production launch safety
+
+### Backend
+
+- [x] Public `/auth/register` is patient-only and rejects `role=admin` / `role=doctor`
+- [x] Separate `/auth/register-doctor` creates pending, unapproved doctors
+- [x] Login rejects unverified users with `Please verify your email before logging in`
+- [x] `/auth/forgot-password` and `/auth/reset-password` use OTP with expiry and rate limiting
+- [x] `User.isDemo` marks seeded demo users without deleting them
+- [x] Production demo admin login is blocked
+- [x] `npm run admin:upsert` creates/updates a secure non-demo admin
+- [x] Demo seed is blocked in production unless `ALLOW_DEMO_SEED=true`
+
+### Flutter
+
+- [x] Patient signup collects name, email, phone, password, city
+- [x] Doctor onboarding collects name, email, phone, specialty, city, clinic/hospital, fee, optional PMDC number
+- [x] Forgot password and reset password screens are linked from login
+
+### Demo data strategy
+
+- [x] Demo users stay available for presentation data
+- [x] Demo admin is not usable as production admin
+- [x] Optional `npm run demo:deactivate` deactivates demo users without deletion
+
+### 4E acceptance criteria
+
+1. Patient cannot register as admin.
+2. Patient cannot register as an approved doctor through public signup.
+3. Doctor onboarding creates `isApproved=false` until admin approval.
+4. Unverified accounts cannot log in until OTP verification.
+5. Forgot/reset password works with OTP.
+6. Unapproved doctors remain hidden from public search.
+
+---
+
 ## Out of scope
 
 - Stripe webhooks / PayFast live integration
@@ -88,6 +125,7 @@ Payment backend and Prisma `Payment` model remain **unchanged and dormant** in t
 - iOS/Android store release
 - Province/city reference tables
 - Message report/block UI (documented for future)
+- Doctor scraping/import or unclaimed profile publishing
 
 ## Deployment notes
 

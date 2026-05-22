@@ -20,6 +20,7 @@ class AuthState {
   final bool isLoading;
   final UserModel? user;
   final String? error;
+  final String? successMessage;
   final bool isOtpSent;
 
   const AuthState({
@@ -27,6 +28,7 @@ class AuthState {
     this.isLoading = false,
     this.user,
     this.error,
+    this.successMessage,
     this.isOtpSent = false,
   });
 
@@ -35,6 +37,7 @@ class AuthState {
     bool? isLoading,
     UserModel? user,
     String? error,
+    String? successMessage,
     bool? isOtpSent,
   }) {
     return AuthState(
@@ -42,6 +45,7 @@ class AuthState {
       isLoading: isLoading ?? this.isLoading,
       user: user ?? this.user,
       error: error,
+      successMessage: successMessage,
       isOtpSent: isOtpSent ?? this.isOtpSent,
     );
   }
@@ -81,9 +85,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String email,
     required String phone,
     required String password,
-    String role = 'patient',
+    required String city,
   }) async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWith(isLoading: true, error: null, successMessage: null, isOtpSent: false);
     try {
       await _apiClient.post(
         '/auth/register',
@@ -92,7 +96,43 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'email': email,
           'phone': phone,
           'password': password,
-          'role': role,
+          'city': city,
+        },
+      );
+      state = state.copyWith(isLoading: false, isOtpSent: true);
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: _extractError(e),
+      );
+    }
+  }
+
+  Future<void> registerDoctor({
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    required String specialty,
+    required String city,
+    required String clinicName,
+    required String consultationFee,
+    String? pmdcRegistrationNumber,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, successMessage: null, isOtpSent: false);
+    try {
+      await _apiClient.post(
+        '/auth/register-doctor',
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'password': password,
+          'specialty': specialty,
+          'city': city,
+          'clinicName': clinicName,
+          'consultationFee': consultationFee,
+          'pmdcRegistrationNumber': pmdcRegistrationNumber,
         },
       );
       state = state.copyWith(isLoading: false, isOtpSent: true);
@@ -135,6 +175,47 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (_) {}
   }
 
+  Future<bool> forgotPassword({required String email}) async {
+    state = state.copyWith(isLoading: true, error: null, successMessage: null);
+    try {
+      final response = await _apiClient.post('/auth/forgot-password', data: {'email': email});
+      state = state.copyWith(
+        isLoading: false,
+        successMessage: response.data['message'] ?? 'If an account exists, a reset code has been sent.',
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _extractError(e));
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null, successMessage: null);
+    try {
+      final response = await _apiClient.post(
+        '/auth/reset-password',
+        data: {
+          'email': email,
+          'otp': otp,
+          'newPassword': newPassword,
+        },
+      );
+      state = state.copyWith(
+        isLoading: false,
+        successMessage: response.data['message'] ?? 'Password reset successfully',
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _extractError(e));
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     try {
       await _apiClient.post('/auth/logout');
@@ -159,6 +240,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   void clearError() {
     state = state.copyWith(error: null);
+  }
+
+  void clearMessages() {
+    state = state.copyWith(error: null, successMessage: null);
   }
 }
 

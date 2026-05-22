@@ -4,6 +4,10 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
+  if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_SEED !== 'true') {
+    throw new Error('Demo seed is blocked in production. Set ALLOW_DEMO_SEED=true only for intentional demo/staging seeding.');
+  }
+
   console.log('Seeding database...');
 
   const hashedPassword = await bcrypt.hash('password123', 12);
@@ -11,7 +15,7 @@ async function main() {
   // Create admin
   const admin = await prisma.user.upsert({
     where: { email: 'admin@docbook.com' },
-    update: {},
+    update: { isDemo: true, isVerified: true },
     create: {
       name: 'Admin User',
       email: 'admin@docbook.com',
@@ -19,6 +23,7 @@ async function main() {
       password: hashedPassword,
       role: 'admin',
       isVerified: true,
+      isDemo: true,
       admin: { create: {} },
     },
   });
@@ -122,6 +127,8 @@ async function main() {
     const user = await prisma.user.upsert({
       where: { email: doc.email },
       update: {
+        isDemo: true,
+        isVerified: true,
         doctor: {
           update: { isApproved: true },
         },
@@ -134,6 +141,7 @@ async function main() {
         password: hashedPassword,
         role: 'doctor',
         isVerified: true,
+        isDemo: true,
         avatarUrl: null,
         doctor: {
           create: {
@@ -158,7 +166,7 @@ async function main() {
   // Create a test patient
   await prisma.user.upsert({
     where: { email: 'patient@test.com' },
-    update: {},
+    update: { isDemo: true, isVerified: true },
     create: {
       name: 'Test Patient',
       email: 'patient@test.com',
@@ -166,6 +174,7 @@ async function main() {
       password: hashedPassword,
       role: 'patient',
       isVerified: true,
+      isDemo: true,
       patient: {
         create: {
           dob: new Date('1995-06-15'),
