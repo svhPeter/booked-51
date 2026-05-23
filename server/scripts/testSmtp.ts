@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { isSmtpConfigured, maskEmail, safeEmailError, sendSmtpTestEmail } from '../src/services/emailService';
+import { isSmtpConfigured, maskEmail, sendSmtpTestEmail } from '../src/services/emailService';
 
 dotenv.config();
 
@@ -12,11 +12,21 @@ async function main() {
     throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.');
   }
 
-  await sendSmtpTestEmail(to);
-  console.log(`SMTP test email sent to ${maskEmail(to)}`);
+  console.log(`Sending SMTP test email to ${maskEmail(to)}...`);
+  const result = await sendSmtpTestEmail(to);
+
+  if (result.sent) {
+    console.log(`✅ SMTP test email sent to ${maskEmail(to)} in ${result.durationMs}ms`);
+  } else {
+    console.error(`❌ SMTP test email FAILED for ${maskEmail(to)} in ${result.durationMs}ms`);
+    if (result.error) {
+      console.error('Error:', result.error);
+    }
+    process.exit(1);
+  }
 }
 
 main().catch((error) => {
-  console.error('SMTP test failed', safeEmailError(error));
+  console.error('SMTP test failed:', error instanceof Error ? error.message : String(error));
   process.exit(1);
 });

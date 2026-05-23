@@ -116,3 +116,44 @@ export const getAppointmentChatMeta = async (req: AuthRequest, res: Response, ne
     next(error);
   }
 };
+
+export const emailDiagnostic = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { sendDiagnosticEmails, isSmtpConfigured, maskEmail } = await import('../services/emailService');
+    const to = (req.body.to as string)?.trim();
+
+    if (!to || !to.includes('@')) {
+      res.status(400).json({ error: 'Valid "to" email address required in request body.' });
+      return;
+    }
+
+    if (!isSmtpConfigured()) {
+      res.json({
+        success: false,
+        smtpConfigured: false,
+        message: 'SMTP is not configured on this server.',
+      });
+      return;
+    }
+
+    const results = await sendDiagnosticEmails(to);
+    // Only return sent/durationMs per template — never expose OTP or SMTP creds
+    const safe: Record<string, { sent: boolean; durationMs: number; error?: string }> = {};
+    for (const [tpl, r] of Object.entries(results)) {
+      safe[tpl] = {
+        sent: r.sent,
+        durationMs: r.durationMs,
+        ...(r.error ? { error: r.error.message } : {}),
+      };
+    }
+
+    res.json({
+      success: true,
+      smtpConfigured: true,
+      recipientMasked: maskEmail(to),
+      templates: safe,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

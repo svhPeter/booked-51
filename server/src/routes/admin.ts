@@ -13,6 +13,7 @@ import {
   rejectDoctor,
   setDoctorActive,
   getAppointmentChatMeta,
+  emailDiagnostic,
 } from '../controllers/adminController';
 
 const router = Router();
@@ -32,5 +33,6 @@ router.get('/appointments', listAppointments);
 router.get('/appointments/:id/chat-meta', getAppointmentChatMeta);
 router.get('/appointments/:id', getAppointmentById);
 router.get('/payments', listPayments);
+router.post('/email-diagnostic', emailDiagnostic);
 
 export default router;

@@ -5,7 +5,8 @@ import { logger } from '../config/logger';
 import { generateTokens, verifyRefreshToken } from '../middleware/auth';
 import { AppError } from '../middleware/errorHandler';
 import { generateAndSendOtp, verifyOtp as verifyStoredOtp, canVerify as canVerifyStoredOtp } from './otpStore';
-import { sendOtpEmail } from './emailService';
+import { sendOtpEmail, maskEmail } from './emailService';
+import type { EmailSendResult } from './emailService';
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
@@ -97,7 +98,7 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
-    await this.createOrUpdatePendingRegistration({
+    const emailResult = await this.createOrUpdatePendingRegistration({
       name,
       email,
       phone,
@@ -106,7 +107,12 @@ export class AuthService {
       role: 'patient',
     });
 
-    logger.info('pending_patient_registration_created', { email });
+    logger.info('pending_patient_registration_created', {
+      email: maskEmail(email),
+      emailSent: emailResult.sent,
+      emailFallback: emailResult.fallback,
+      emailDurationMs: emailResult.durationMs,
+    });
 
     return { email, message: publicSignupMessage() };
   }
@@ -128,7 +134,7 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(data.password, 12);
-    await this.createOrUpdatePendingRegistration({
+    const emailResult = await this.createOrUpdatePendingRegistration({
       name,
       email,
       phone,
@@ -141,7 +147,12 @@ export class AuthService {
       pmdcRegistrationNumber: data.pmdcRegistrationNumber?.trim() || null,
     });
 
-    logger.info('pending_doctor_registration_created', { email });
+    logger.info('pending_doctor_registration_created', {
+      email: maskEmail(email),
+      emailSent: emailResult.sent,
+      emailFallback: emailResult.fallback,
+      emailDurationMs: emailResult.durationMs,
+    });
 
     return { email, message: publicSignupMessage() };
   }
@@ -454,7 +465,7 @@ export class AuthService {
     logger.info('password_reset_completed', { userId: user.id, email: normalizedEmail });
   }
 
-  private async createOrUpdatePendingRegistration(data: PendingInput): Promise<void> {
+  private async createOrUpdatePendingRegistration(data: PendingInput): Promise<EmailSendResult> {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
       select: { id: true, role: true, isVerified: true, isDemo: true },
@@ -509,7 +520,8 @@ export class AuthService {
       },
     });
 
-    await sendOtpEmail(data.email, otp);
+    const template = data.role === 'doctor' ? 'doctor_onboarding' as const : 'signup' as const;
+    return sendOtpEmail(data.email, otp, template);
   }
 
   private async resendPendingOtp(email: string, lastResendAt: Date | null): Promise<void> {
@@ -530,7 +542,13 @@ export class AuthService {
       },
     });
 
-    await sendOtpEmail(email, otp);
+    const result = await sendOtpEmail(email, otp, 'resend');
+    logger.info('resend_otp_completed', {
+      email: maskEmail(email),
+      emailSent: result.sent,
+      emailFallback: result.fallback,
+      emailDurationMs: result.durationMs,
+    });
   }
 
   private async findLegacyUnverifiedUser(email: string) {

@@ -1,6 +1,7 @@
 import { getRedisClient } from '../config/redis';
-import { sendOtpEmail } from './emailService';
+import { sendOtpEmail, maskEmail } from './emailService';
 import { AppError } from '../middleware/errorHandler';
+import { logger } from '../config/logger';
 
 const OTP_TTL_SECONDS = 600;
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -194,6 +195,12 @@ export async function generateAndSendOtp(email: string): Promise<string> {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   await storeOtp(normalized, otp);
   await markResend(normalized);
-  await sendOtpEmail(normalized, otp);
+  const result = await sendOtpEmail(normalized, otp, 'forgot_password');
+  logger.info('forgot_password_otp_sent', {
+    email: maskEmail(normalized),
+    emailSent: result.sent,
+    emailFallback: result.fallback,
+    emailDurationMs: result.durationMs,
+  });
   return otp;
 }
