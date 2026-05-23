@@ -236,21 +236,68 @@
 - **docs/PRODUCTION_ENV_CHECKLIST.md** — Created: required vs optional env vars, secret generation, what never to commit, rotation notes, example production .env
 - **docs/FINAL_QA_CHECKLIST.md** — Created: 50+ test items covering health, auth, roles, booking, payments, doctor dashboard, admin dashboard, notifications, video, CORS, Flutter web, Prisma, build verification
 
+## Phase 4E — Production Launch Safety *(Completed)*
+
+### Changes
+- **Pending registration model** — Patient signup and doctor onboarding use `PendingRegistration` with OTP hash, expiry, attempt counter, resend cooldown
+- **Demo data flag** — All seeded users marked `isDemo=true`; demo admin login blocked in production
+- **Admin bootstrap** — `npm run admin:upsert` creates/updates real admin with `isDemo=false`
+- **Forgot/reset password** — Redis-backed OTP with rate limiting and constant-time responses
+- **Doctor onboarding** — `/auth/register-doctor` creates unapproved doctors; admin approval required for public listing
+- **Seed safety** — Seed script blocked in `NODE_ENV=production` unless `ALLOW_DEMO_SEED=true`
+
+## Phase 5A — Production Email Delivery (Brevo HTTP API) *(Completed)*
+
+### Root Cause
+Gmail SMTP timed out from Railway (connection setup exceeded 10-15s). Brevo SMTP also timed out due to Railway's restricted outbound SMTP ports.
+
+### Solution
+Switched production email delivery from SMTP to **Brevo HTTP API** (`https://api.brevo.com/v3/smtp/email`), which uses standard HTTPS (port 443) and bypasses all SMTP port restrictions.
+
+### Changes
+- **emailService.ts** — Dual-provider architecture: `EMAIL_PROVIDER=brevo` uses Brevo HTTP API via `fetch()`; `EMAIL_PROVIDER=smtp` uses nodemailer (local/dev fallback). Singleton pooled SMTP transporter for dev. All 4 OTP paths (signup, resend, doctor onboarding, forgot password) use the same `sendOtpEmail()` function with template-specific subjects and HTML
+- **env.ts** — Added `emailProvider`, `brevoApiKey`, `emailFromName`
+- **index.ts** — Health endpoint shows `email.provider` (brevo/smtp/none); startup logs active provider
+- **adminController.ts** — `POST /admin/email-diagnostic` sends test emails via all 4 templates, returns `sent`, `durationMs`, `provider` per template. No secrets exposed
+- **authService.ts** — All registration/resend flows log structured `EmailSendResult` (sent/fallback/durationMs)
+- **otpStore.ts** — Forgot password uses `forgot_password` template with structured logging
+- **.env.example** — Brevo HTTP API as primary production recommendation; Gmail SMTP as local/dev only
+
+### QA Results (2026-05-24)
+
+| Test | Result | Timing |
+|------|--------|--------|
+| Health (Brevo provider) | ✅ | — |
+| Admin diagnostic — all 4 templates | ✅ sent=true | 138–355ms |
+| Patient signup → OTP received | ✅ | 2.97s |
+| Retry pending signup (no "already registered") | ✅ | — |
+| Login before verify blocked | ✅ 401 | — |
+| Resend OTP → email received | ✅ | 2.64s |
+| Patient OTP verify → login | ✅ | — |
+| Forgot password → OTP received | ✅ | 1.61s |
+| Reset password → login with new password | ✅ | — |
+| Doctor onboarding → OTP received | ✅ | 2.70s |
+| Doctor verify → isApproved=false | ✅ | 4.18s |
+| Admin approve doctor | ✅ | — |
+| Demo admin blocked | ✅ 401 | — |
+
+### Required Railway Environment Variables
+```
+EMAIL_PROVIDER=brevo
+BREVO_API_KEY=<Brevo API key>
+EMAIL_FROM=<Brevo verified sender email>
+EMAIL_FROM_NAME=DocBook
+```
+
+---
+
 ## Next Planned Phase
 
-### Phase 3C — Final QA + Deployment *(Ready — Awaiting Manual Deploy)*
+### Phase 5B — UI/UX Polish *(Next)*
 
-**Status:** All checks pass locally. Runbook and QA checklists are prepared. Awaiting user to execute deployment steps.
+**Status:** Phase 5A (email delivery) is green. Ready to start UI/UX polish.
 
-**Documents created:**
-- `docs/DEPLOYMENT_RUNBOOK.md` — Exact step-by-step deploy instructions for Railway + Vercel
-- `docs/LIVE_QA_CHECKLIST.md` — 50+ item checklist to run against live instance
-
-**Key updates:**
-- Fixed 4 unused import warnings in Flutter (analysis count: 36 → 32)
-- All 14 role flow QA tests passed locally
-- Production build verified from compiled `dist/` output with JSON logs
-
-### Future Feature Phases (After Phase 3)
+### Future Feature Phases
 - **Phase 2F** — Prescriptions & Reviews
-- **Phase 2G** — Chat/Messaging
+- **Phase 2G** — Chat/Messaging enhancements
+- **Phase 6** — Mobile Native (iOS/Android)

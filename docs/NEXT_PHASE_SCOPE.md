@@ -40,31 +40,45 @@ Deployed to Railway (backend) + Vercel (Flutter web) + Neon PostgreSQL.
 
 ---
 
-## Current: Phase 4 — Free Booking + Chat
+## ✅ Phase 4E — Production Launch Safety (Completed)
 
-See detailed scope in:
+- Pending registration with OTP hash, expiry, attempts
+- Demo data flag + demo admin blocked in production
+- Admin bootstrap via `npm run admin:upsert`
+- Forgot/reset password via OTP
+- Doctor onboarding with admin approval
 
-| Document | Description |
-|----------|-------------|
-| [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) | Pakistan free-booking model, monetization later |
-| [PHASE_4_SCOPE.md](PHASE_4_SCOPE.md) | 4A and 4B tasks and acceptance criteria |
-| [CHAT_SYSTEM_PLAN.md](CHAT_SYSTEM_PLAN.md) | Appointment-scoped messaging design |
-| [COST_AND_SCALE_PLAN.md](COST_AND_SCALE_PLAN.md) | Infra costs and scaling triggers |
+## ✅ Phase 5A — Production Email Delivery (Completed)
 
-### Phase 4A — Product stabilization (in progress)
+Production OTP email delivery resolved via **Brevo HTTP API**.
 
-- Free booking UX (no active online payment screen)
-- Profile edit + sign-out for all roles
-- Admin doctor approval before public listing
-- Patient home UX improvements
+| Item | Status |
+|------|--------|
+| Gmail SMTP from Railway | ❌ Times out |
+| Brevo SMTP from Railway | ❌ Times out (port 587/2525 blocked) |
+| **Brevo HTTP API from Railway** | **✅ Works (138–355ms per email)** |
 
-### Phase 4B — Appointment chat
+### Changes
+- `emailService.ts` — Dual-provider: Brevo HTTP API (production) + SMTP (dev fallback)
+- All 4 OTP paths use unified `sendOtpEmail()` with template-specific emails
+- Admin diagnostic endpoint: `POST /admin/email-diagnostic`
+- Health endpoint: shows `email.provider` (brevo/smtp/none)
 
-- Message model linked to `appointmentId`
-- REST + Socket.io with polling fallback
-- Admin metadata-only view
+### Required Production Env Vars
+```
+EMAIL_PROVIDER=brevo
+BREVO_API_KEY=<Brevo API key>
+EMAIL_FROM=<Brevo verified sender email>
+EMAIL_FROM_NAME=DocBook
+```
 
 ---
+
+## Current: Phase 5B — UI/UX Polish
+
+**Status:** Phase 5A is green. Ready to start.
+
+See [UI_UX_POLISH_SCOPE.md](UI_UX_POLISH_SCOPE.md) for detailed scope.
 
 ## Archived: Phase 3C deploy checklist
 

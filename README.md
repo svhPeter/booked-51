@@ -33,7 +33,7 @@ These credentials are for local/demo QA only. Demo admin login is blocked in pro
 
 ## Project Status
 
-**Current Phase: 4E (Production Launch Safety)**
+**Current Phase: 5B (UI/UX Polish) — Next**
 
 - ✅ Phase 1: Project setup, auth, doctor list, booking
 - ✅ Phase 1.5: Booking validation, real errors, cancel flow, routing stability
@@ -48,8 +48,9 @@ These credentials are for local/demo QA only. Demo admin login is blocked in pro
 - ✅ Phase 3C: Deployment preparation and live deployment path (Railway + Vercel + Neon)
 - ✅ **Phase 4A:** Free booking UX, profiles, admin doctor approval — see [PHASE_4_SCOPE.md](docs/PHASE_4_SCOPE.md)
 - ✅ **Phase 4B:** Appointment-scoped chat — see [CHAT_SYSTEM_PLAN.md](docs/CHAT_SYSTEM_PLAN.md)
-- ✅ Phase 4 Post-Deploy QA: Live Railway/Vercel verification completed; credential cleanup required before real public launch
+- ✅ Phase 4 Post-Deploy QA: Live Railway/Vercel verification completed
 - ✅ **Phase 4E:** Production launch safety, real patient signup, pending doctor onboarding, forgot password, demo data separation
+- ✅ **Phase 5A:** Production email delivery — Brevo HTTP API (OTP signup/resend/forgot-password/doctor-onboarding all verified)
 
 ## Documentation
 
@@ -73,7 +74,7 @@ These credentials are for local/demo QA only. Demo admin login is blocked in pro
 
 ## Tech Stack
 
-**Backend:** Node.js, TypeScript, Express, Prisma, PostgreSQL (Neon), JWT, Socket.io, Redis (optional fallback), Nodemailer, Stripe
+**Backend:** Node.js, TypeScript, Express, Prisma, PostgreSQL (Neon), JWT, Socket.io, Redis (optional), Brevo HTTP API (email), Nodemailer (dev fallback), Stripe
 
 **Frontend:** Flutter, Dart, Riverpod, GoRouter, Dio
 
@@ -95,9 +96,19 @@ In-app notifications are created automatically on appointment book, cancel, comp
 
 ## OTP & Email
 
-New users register with an email OTP. In development (no SMTP configured), the 6-digit code prints to the server console. OTP resends are rate-limited to once per 60 seconds, and verification locks after 5 failed attempts.
+New users register with an email OTP. OTP resends are rate-limited to once per 60 seconds, and verification locks after 5 failed attempts.
 
-**Real email:** Set `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` in `server/.env` with valid credentials.
+**Production:** Uses **Brevo HTTP API** (`EMAIL_PROVIDER=brevo`). SMTP times out from Railway — do not use SMTP in production.
+
+**Local dev:** Set `EMAIL_PROVIDER=smtp` with Gmail SMTP credentials. OTP codes also print to the server console when SMTP is unconfigured.
+
+### Required Production Env Vars
+```
+EMAIL_PROVIDER=brevo
+BREVO_API_KEY=<Brevo API key>
+EMAIL_FROM=<Brevo verified sender email>
+EMAIL_FROM_NAME=DocBook
+```
 
 ## Redis (Optional)
 
@@ -238,3 +249,11 @@ See [Production Env Checklist](docs/PRODUCTION_ENV_CHECKLIST.md) for the complet
 - Payment backend remains dormant in the active Phase 4 UX; patients pay doctors directly at the visit
 - Public doctor directory should later use source-based unclaimed profiles; do not scrape or publish private/sensitive data blindly
 - Doctors should be able to claim, update, or request removal of their public profile before broad launch
+
+### Post-Testing Security Rotation
+
+After completing beta testing, rotate all exposed secrets:
+- `ADMIN_PASSWORD` — change via `npm run admin:upsert`
+- `JWT_SECRET` / `JWT_REFRESH_SECRET` — generate new with `openssl rand -hex 32` (invalidates all tokens)
+- `BREVO_API_KEY` — rotate in Brevo dashboard if exposed
+- Database password — rotate in Neon dashboard if exposed

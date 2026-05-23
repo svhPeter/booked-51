@@ -110,3 +110,59 @@ Future directory expansion should follow these rules:
 - Confirm forgot/reset password works.
 - Keep Firebase/Agora optional unless intentionally configured.
 - Keep payment backend dormant in active UX.
+
+## Production Email Delivery (Phase 5A)
+
+Production email uses **Brevo HTTP API** — not SMTP.
+
+Gmail SMTP and Brevo SMTP both time out from Railway due to SMTP port restrictions. The Brevo HTTP API sends transactional emails over standard HTTPS (port 443), which works reliably from Railway.
+
+### Required Railway Environment Variables
+
+```
+EMAIL_PROVIDER=brevo
+BREVO_API_KEY=<Brevo API key — NOT SMTP key>
+EMAIL_FROM=<Brevo verified sender email>
+EMAIL_FROM_NAME=DocBook
+```
+
+### Brevo Security Note
+
+Brevo may block unknown IPs for API keys by default. For Railway (dynamic IPs), either:
+- Disable "Unauthorized IP blocking" in Brevo → Settings → SMTP & API → Security
+- Or add Railway outbound IPs if available
+
+### Admin Diagnostic Endpoint
+
+Test all email templates from production:
+
+```bash
+POST /api/v1/admin/email-diagnostic
+Authorization: Bearer <admin_token>
+Body: {"to": "test@example.com"}
+```
+
+Returns `sent`, `durationMs`, and `provider` per template. No secrets exposed.
+
+### Health Endpoint
+
+The health endpoint shows the active email provider:
+
+```json
+{"email": {"provider": "brevo", "configured": true}}
+```
+
+## Post-Testing Security Rotation
+
+> ⚠️ After completing beta testing, rotate all secrets that were exposed during development:
+
+| Secret | Action |
+|--------|--------|
+| `ADMIN_PASSWORD` | Change via `npm run admin:upsert` with a new secure password |
+| `JWT_SECRET` | Generate new: `openssl rand -hex 32` — all existing tokens will be invalidated |
+| `JWT_REFRESH_SECRET` | Generate new: `openssl rand -hex 32` — all refresh tokens will be invalidated |
+| `BREVO_API_KEY` | Rotate in Brevo dashboard if exposed during testing |
+| `SMTP_PASS` | Rotate Gmail app password if used during dev |
+| Database password | Rotate in Neon dashboard if exposed |
+
+Rotate all secrets in Railway env vars simultaneously, then redeploy. Users will need to log in again.

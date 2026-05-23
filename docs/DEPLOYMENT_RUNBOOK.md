@@ -62,12 +62,15 @@ Railway `FRONTEND_URL` must be set to `https://booked-51.vercel.app` in producti
 
 | Variable | Purpose |
 |---|---|
+| `EMAIL_PROVIDER` | Set to `brevo` for production (Brevo HTTP API) |
+| `BREVO_API_KEY` | Brevo API key for transactional email |
+| `EMAIL_FROM` | Verified sender email in Brevo |
+| `EMAIL_FROM_NAME` | Sender display name (default: `DocBook`) |
 | `REDIS_URL` | Redis for OTP storage (Upstash) |
-| `SMTP_HOST` | Gmail SMTP or SendGrid |
-| `SMTP_PORT` | Usually `587` |
-| `SMTP_USER` | SMTP login email |
-| `SMTP_PASS` | SMTP password / app password |
-| `EMAIL_FROM` | Sender address |
+| `SMTP_HOST` | SMTP host (local/dev only — times out from Railway) |
+| `SMTP_PORT` | SMTP port (local/dev only) |
+| `SMTP_USER` | SMTP login (local/dev only) |
+| `SMTP_PASS` | SMTP password (local/dev only) |
 | `STRIPE_SECRET_KEY` | Stripe live key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook secret |
 | `AGORA_APP_ID` | Agora App ID |
@@ -115,7 +118,7 @@ curl https://booked-51-production.up.railway.app/api/v1/health
 
 Expected:
 ```json
-{"status":"ok","database":"healthy","uptime":123.45}
+{"status":"ok","database":"healthy","uptime":123.45,"email":{"provider":"brevo","configured":true}}
 ```
 
 ---
@@ -253,3 +256,6 @@ Verified on 2026-05-22:
 | 401 on all requests | `JWT_SECRET` changed after deploy | Must use same secret, or all tokens invalidated |
 | Flutter build fails | Missing Flutter SDK on Vercel | Use the Install Command above to clone Flutter stable and run `flutter pub get` |
 | `module not found` | Wrong root directory | Ensure Railway root = `server`, Vercel root = `mobile` |
+| OTP email not received | Email provider not configured | Set `EMAIL_PROVIDER=brevo` + `BREVO_API_KEY` in Railway |
+| Brevo API 401 | Wrong API key | Use Brevo **API key**, not SMTP key |
+| Brevo sender blocked | Sender not verified | Verify `EMAIL_FROM` in Brevo dashboard |
