@@ -74,10 +74,10 @@ class _AppointmentConfirmationScreenState
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.15),
+                color: AppColors.secondarySurface,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle, color: AppColors.secondary, size: 48),
+              child: const Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 48),
             ),
             const SizedBox(height: 24),
             Text(
@@ -139,7 +139,8 @@ class _AppointmentConfirmationScreenState
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: AppShadows.sm,
       ),
       child: Column(children: children),
     );

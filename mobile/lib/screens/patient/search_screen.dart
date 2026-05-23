@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/doctor.dart';
 import '../../providers/doctor_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   final String? initialSpecialty;
@@ -106,18 +107,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: doctorState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : doctorState.doctors.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_off, size: 64, color: AppColors.textHint),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No doctors found',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
+                    : const EmptyStateWidget(
+                        icon: Icons.search_off_rounded,
+                        title: 'No doctors found',
+                        subtitle: 'Try a different name or specialty',
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(16),
@@ -192,7 +185,8 @@ class _DoctorCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: AppColors.border, width: 0.5),
+          boxShadow: AppShadows.sm,
         ),
         child: Row(
           children: [

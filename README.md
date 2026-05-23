@@ -33,7 +33,7 @@ These credentials are for local/demo QA only. Demo admin login is blocked in pro
 
 ## Project Status
 
-**Current Phase: 5B (UI/UX Polish) — Next**
+**Current Phase: Launch / Release Preparation**
 
 - ✅ Phase 1: Project setup, auth, doctor list, booking
 - ✅ Phase 1.5: Booking validation, real errors, cancel flow, routing stability
@@ -51,6 +51,7 @@ These credentials are for local/demo QA only. Demo admin login is blocked in pro
 - ✅ Phase 4 Post-Deploy QA: Live Railway/Vercel verification completed
 - ✅ **Phase 4E:** Production launch safety, real patient signup, pending doctor onboarding, forgot password, demo data separation
 - ✅ **Phase 5A:** Production email delivery — Brevo HTTP API (OTP signup/resend/forgot-password/doctor-onboarding all verified)
+- ✅ **Phase 5B:** UI/UX Polish — Standardized reusable UI components, polished 20+ dashboards/screens, verified mobile-first designs
 
 ## Documentation
 

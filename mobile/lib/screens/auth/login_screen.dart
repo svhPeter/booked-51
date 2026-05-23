@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -53,52 +54,53 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 48),
-                Icon(
-                  Icons.medical_services_outlined,
-                  size: 48,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(height: 24),
-                Text('Welcome Back', style: Theme.of(context).textTheme.displaySmall),
-                const SizedBox(height: 8),
-                Text(
-                  'Sign in to your account',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 32),
-                if (authState.error != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            authState.error!,
-                            style: const TextStyle(color: AppColors.error, fontSize: 13),
-                          ),
+                // Brand header
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.primarySurface,
+                          borderRadius: BorderRadius.circular(18),
                         ),
-                      ],
-                    ),
+                        child: const Icon(
+                          Icons.medical_services_rounded,
+                          size: 32,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Welcome back', style: Theme.of(context).textTheme.displaySmall),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Sign in to manage your appointments',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 36),
+                if (authState.error != null)
+                  MessageBanner(
+                    message: authState.error!,
+                    type: MessageType.error,
                   ),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Email address',
+                    hintText: 'you@example.com',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (v) {
@@ -111,6 +113,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _handleLogin(),
                   decoration: InputDecoration(
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outlined),
@@ -127,26 +131,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 4),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => context.go('/auth/forgot-password'),
-                    child: const Text('Forgot Password?'),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8)),
+                    child: const Text('Forgot password?', style: TextStyle(fontSize: 13)),
                   ),
                 ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: authState.isLoading ? null : _handleLogin,
-                  child: authState.isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        )
-                      : const Text('Sign In'),
+                const SizedBox(height: 20),
+                LoadingButton(
+                  isLoading: authState.isLoading,
+                  onPressed: _handleLogin,
+                  label: 'Sign In',
+                  icon: Icons.login_rounded,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -158,6 +159,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                // Trust indicators
+                Center(
+                  child: Wrap(
+                    spacing: 20,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: const [
+                      TrustBanner(icon: Icons.verified_user_outlined, text: 'Verified doctors'),
+                      TrustBanner(icon: Icons.event_available_outlined, text: 'Free booking'),
+                      TrustBanner(icon: Icons.shield_outlined, text: 'Secure & private'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 32),
               ],
             ),
           ),

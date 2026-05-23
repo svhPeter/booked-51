@@ -5,6 +5,7 @@ import '../../core/network/api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/appointment.dart';
 import '../../providers/appointment_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class AppointmentDetailScreen extends ConsumerStatefulWidget {
   final String appointmentId;
@@ -108,14 +109,22 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
             _card([
               _line('Date', dateStr),
               _line('Time', a.timeSlot),
-              _line('Status', a.status.name),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 140, child: Text('Status', style: TextStyle(color: AppColors.textTertiary))),
+                    StatusBadge.fromStatus(a.status.name),
+                  ],
+                ),
+              ),
               if (a.hospitalName != null) _line('Hospital', a.hospitalName!),
               _line('Consultation fee (pay at clinic)', 'PKR ${a.fee.toStringAsFixed(0)}'),
             ]),
             const SizedBox(height: 8),
             const Text(
               'Payment is made directly to the doctor at your visit. DocBook does not charge you online.',
-              style: TextStyle(fontSize: 13, color: AppColors.textHint),
+              style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
             ),
             const SizedBox(height: 24),
             if (a.status == AppointmentStatus.confirmed) ...[
@@ -161,7 +170,8 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: AppShadows.sm,
       ),
       child: Column(children: children),
     );
@@ -172,7 +182,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(width: 140, child: Text(label, style: const TextStyle(color: AppColors.textHint))),
+          SizedBox(width: 140, child: Text(label, style: const TextStyle(color: AppColors.textTertiary, fontSize: 13))),
           Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600))),
         ],
       ),

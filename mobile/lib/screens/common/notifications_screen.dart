@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/notification.dart';
+import '../../widgets/ui_components.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
@@ -65,36 +66,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
 
     if (state.error != null && state.notifications.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-            const SizedBox(height: 16),
-            Text(state.error!, style: const TextStyle(color: AppColors.textHint)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.read(notificationProvider.notifier).fetchNotifications(),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.error_outline_rounded,
+        title: 'Failed to load notifications',
+        subtitle: state.error,
+        actionLabel: 'Retry',
+        onAction: () => ref.read(notificationProvider.notifier).fetchNotifications(),
       );
     }
 
     if (state.notifications.isEmpty) {
-      return const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.notifications_none, size: 64, color: AppColors.textHint),
-            SizedBox(height: 16),
-            Text('No notifications yet', style: TextStyle(fontSize: 16)),
-            SizedBox(height: 8),
-            Text('We\'ll notify you about your appointments',
-                style: TextStyle(color: AppColors.textHint)),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.notifications_none_rounded,
+        title: 'No notifications yet',
+        subtitle: 'We\'ll notify you about your appointments',
       );
     }
 
@@ -157,11 +142,11 @@ class _NotificationCard extends StatelessWidget {
       case 'appointment_cancelled':
         return AppColors.error;
       case 'appointment_completed':
-        return Colors.green;
+        return AppColors.secondary;
       case 'payment_paid':
-        return Colors.orange;
+        return AppColors.warning;
       default:
-        return AppColors.textHint;
+        return AppColors.textTertiary;
     }
   }
 

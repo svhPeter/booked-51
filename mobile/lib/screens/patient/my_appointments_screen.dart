@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/network/api_client.dart';
 import '../../models/appointment.dart';
 import '../../providers/appointment_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class MyAppointmentsScreen extends ConsumerStatefulWidget {
   final bool embedded;
@@ -133,15 +134,10 @@ class _AppointmentList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (appointments.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calendar_today, size: 48, color: AppColors.textHint),
-            const SizedBox(height: 16),
-            Text(isEmpty, style: Theme.of(context).textTheme.bodyMedium),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.event_busy_rounded,
+        title: isEmpty,
+        subtitle: 'Your appointments will appear here',
       );
     }
 
@@ -161,7 +157,8 @@ class _AppointmentList extends ConsumerWidget {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.border, width: 0.5),
+            boxShadow: AppShadows.sm,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -194,22 +191,7 @@ class _AppointmentList extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _statusColor(appt.status).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      appt.status.name.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor(appt.status),
-                      ),
-                    ),
-                  ),
+                  StatusBadge.fromStatus(appt.status.name),
                 ],
               ),
               const SizedBox(height: 12),
@@ -319,18 +301,5 @@ class _AppointmentList extends ConsumerWidget {
         ],
       ),
     );
-  }
-
-  Color _statusColor(AppointmentStatus status) {
-    switch (status) {
-      case AppointmentStatus.confirmed:
-        return AppColors.secondary;
-      case AppointmentStatus.pending:
-        return AppColors.warning;
-      case AppointmentStatus.completed:
-        return AppColors.primary;
-      case AppointmentStatus.cancelled:
-        return AppColors.error;
-    }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class DoctorOnboardingScreen extends ConsumerStatefulWidget {
   const DoctorOnboardingScreen({super.key});
@@ -76,40 +77,88 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.go('/auth/register'),
         ),
-        title: const Text('Doctor Onboarding'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Request Doctor Account', style: Theme.of(context).textTheme.displaySmall),
                 const SizedBox(height: 8),
-                Text(
-                  'Your profile stays pending until admin approval. Consultation fee is informational only.',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.medical_information_rounded, size: 24, color: AppColors.accent),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Doctor Onboarding', style: Theme.of(context).textTheme.headlineMedium),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Join the DocBook network',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                if (authState.error != null) _ErrorBox(message: authState.error!),
-                _field(_nameController, 'Full Name', Icons.person_outlined),
-                _field(_emailController, 'Email', Icons.email_outlined, keyboardType: TextInputType.emailAddress),
-                _field(_phoneController, 'Phone Number', Icons.phone_outlined, keyboardType: TextInputType.phone),
-                _field(_specialtyController, 'Specialty', Icons.medical_services_outlined),
-                _field(_cityController, 'City', Icons.location_city_outlined),
-                _field(_clinicController, 'Clinic / Hospital Name', Icons.local_hospital_outlined),
-                _field(_feeController, 'Consultation Fee (PKR)', Icons.payments_outlined, keyboardType: TextInputType.number),
-                _field(_pmdcController, 'PMDC Registration Number (optional)', Icons.badge_outlined, required: false),
+                const SizedBox(height: 16),
+                const MessageBanner(
+                  message: 'Your profile will be reviewed by our admin team before patients can see you. This usually takes 1–2 business days.',
+                  type: MessageType.info,
+                ),
+                if (authState.error != null)
+                  MessageBanner(message: authState.error!, type: MessageType.error),
+
+                // Professional info
+                _sectionLabel('Professional Information'),
+                const SizedBox(height: 10),
+                _field(_nameController, 'Full name', Icons.person_outlined, hint: 'Dr. Ahmed Khan'),
+                _field(_emailController, 'Email address', Icons.email_outlined,
+                    hint: 'doctor@example.com', keyboardType: TextInputType.emailAddress,
+                    helper: 'We will send a verification code to this email'),
+                _field(_phoneController, 'Phone number', Icons.phone_outlined,
+                    hint: '0300-1234567', keyboardType: TextInputType.phone),
+                _field(_specialtyController, 'Specialty', Icons.medical_services_outlined,
+                    hint: 'e.g. Cardiologist, Dermatologist'),
+
+                // Practice info
+                _sectionLabel('Practice Details'),
+                const SizedBox(height: 10),
+                _field(_cityController, 'City', Icons.location_on_outlined, hint: 'Karachi'),
+                _field(_clinicController, 'Clinic / Hospital name', Icons.local_hospital_outlined,
+                    hint: 'City Hospital'),
+                _field(_feeController, 'Consultation fee (PKR)', Icons.payments_outlined,
+                    hint: '1500', keyboardType: TextInputType.number,
+                    helper: 'Informational only — patients pay you directly'),
+                _field(_pmdcController, 'PMDC registration number', Icons.badge_outlined,
+                    hint: 'Optional', required: false),
+
+                // Security
+                _sectionLabel('Account Security'),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Password',
+                    helperText: 'At least 8 characters',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -122,12 +171,14 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirm,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
-                    labelText: 'Confirm Password',
+                    labelText: 'Confirm password',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -137,12 +188,27 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                   validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
                 ),
                 const SizedBox(height: 28),
-                ElevatedButton(
-                  onPressed: authState.isLoading ? null : _submit,
-                  child: authState.isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Submit for Approval'),
+                LoadingButton(
+                  isLoading: authState.isLoading,
+                  onPressed: _submit,
+                  label: 'Submit for Approval',
+                  icon: Icons.send_rounded,
+                  backgroundColor: AppColors.accent,
                 ),
+                const SizedBox(height: 16),
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Not a doctor?', style: Theme.of(context).textTheme.bodyMedium),
+                      TextButton(
+                        onPressed: () => context.go('/auth/register'),
+                        child: const Text('Sign up as patient'),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -151,50 +217,45 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
     );
   }
 
+  Widget _sectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Text(text, style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textTertiary,
+        letterSpacing: 0.5,
+      )),
+    );
+  }
+
   Widget _field(
     TextEditingController controller,
     String label,
     IconData icon, {
+    String? hint,
+    String? helper,
     TextInputType keyboardType = TextInputType.text,
     bool required = true,
   }) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 14),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
+        textInputAction: TextInputAction.next,
         textCapitalization: keyboardType == TextInputType.text ? TextCapitalization.words : TextCapitalization.none,
-        decoration: InputDecoration(labelText: label, prefixIcon: Icon(icon)),
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          helperText: helper,
+          prefixIcon: Icon(icon),
+        ),
         validator: (v) {
-          if (required && (v == null || v.trim().isEmpty)) return 'Please enter $label';
-          if (label == 'Email' && v != null && !v.contains('@')) return 'Please enter a valid email';
+          if (required && (v == null || v.trim().isEmpty)) return 'Please enter ${label.toLowerCase()}';
+          if (label.contains('Email') && v != null && v.isNotEmpty && !v.contains('@')) return 'Please enter a valid email';
           return null;
         },
-      ),
-    );
-  }
-}
-
-class _ErrorBox extends StatelessWidget {
-  final String message;
-
-  const _ErrorBox({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          const SizedBox(width: 8),
-          Expanded(child: Text(message, style: const TextStyle(color: AppColors.error, fontSize: 13))),
-        ],
       ),
     );
   }

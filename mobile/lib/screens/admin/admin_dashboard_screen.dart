@@ -6,6 +6,7 @@ import '../../providers/admin_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../models/admin_models.dart';
 import '../../widgets/role_menu_button.dart';
+import '../../widgets/ui_components.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -86,11 +87,22 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(state.error!, style: const TextStyle(color: Colors.red)),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.errorSurface,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 32),
+            ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            Text(state.error!, style: const TextStyle(color: AppColors.error), textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
               onPressed: () => ref.read(adminProvider.notifier).fetchSummary(),
-              child: const Text('Retry'),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Retry'),
             ),
           ],
         ),
@@ -98,36 +110,43 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     }
     final s = state.summary!;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
-        Text('Platform Overview', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 16),
+        const SectionHeader(title: 'Platform Overview'),
+        const SizedBox(height: 14),
         _SummaryCardGrid(summary: s),
-        const SizedBox(height: 24),
-        Text('Management', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 12),
-        _ManagementButton(
-          icon: Icons.medical_services,
-          label: 'Doctors (${s.totalDoctors})',
-          color: Colors.blue,
+        const SizedBox(height: 28),
+        const SectionHeader(title: 'Management'),
+        const SizedBox(height: 14),
+        _ManagementCard(
+          icon: Icons.medical_services_rounded,
+          label: 'Doctors',
+          count: s.totalDoctors,
+          color: AppColors.primary,
           onTap: () => context.push('/admin/doctors'),
         ),
-        _ManagementButton(
-          icon: Icons.people,
-          label: 'Patients (${s.totalPatients})',
-          color: Colors.green,
+        const SizedBox(height: 10),
+        _ManagementCard(
+          icon: Icons.people_rounded,
+          label: 'Patients',
+          count: s.totalPatients,
+          color: AppColors.secondary,
           onTap: () => context.push('/admin/patients'),
         ),
-        _ManagementButton(
-          icon: Icons.calendar_today,
-          label: 'Appointments (${s.totalAppointments})',
-          color: Colors.orange,
+        const SizedBox(height: 10),
+        _ManagementCard(
+          icon: Icons.calendar_month_rounded,
+          label: 'Appointments',
+          count: s.totalAppointments,
+          color: AppColors.warning,
           onTap: () => context.push('/admin/appointments'),
         ),
-        _ManagementButton(
-          icon: Icons.payment,
-          label: 'Payments (${s.paidPaymentsCount + s.pendingPaymentsCount})',
-          color: Colors.purple,
+        const SizedBox(height: 10),
+        _ManagementCard(
+          icon: Icons.receipt_long_rounded,
+          label: 'Payments',
+          count: s.paidPaymentsCount + s.pendingPaymentsCount,
+          color: AppColors.accent,
           onTap: () => context.push('/admin/payments'),
         ),
       ],
@@ -145,21 +164,22 @@ class _SummaryCardGrid extends StatelessWidget {
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.6,
+      mainAxisSpacing: 10,
+      crossAxisSpacing: 10,
+      childAspectRatio: 1.65,
       children: [
-        _SummaryCard(title: 'Total Doctors', value: summary.totalDoctors.toString(), color: Colors.blue),
-        _SummaryCard(title: 'Total Patients', value: summary.totalPatients.toString(), color: Colors.green),
-        _SummaryCard(title: 'Appointments', value: summary.totalAppointments.toString(), color: Colors.orange),
-        _SummaryCard(title: 'Completed', value: summary.completedAppointments.toString(), color: Colors.teal),
-        _SummaryCard(title: 'Cancelled', value: summary.cancelledAppointments.toString(), color: Colors.red.shade300),
-        _SummaryCard(title: 'Paid Payments', value: summary.paidPaymentsCount.toString(), color: Colors.indigo),
-        _SummaryCard(title: 'Pending Paym.', value: summary.pendingPaymentsCount.toString(), color: Colors.amber.shade700),
+        _SummaryCard(title: 'Doctors', value: summary.totalDoctors.toString(), icon: Icons.medical_services_outlined, color: AppColors.primary),
+        _SummaryCard(title: 'Patients', value: summary.totalPatients.toString(), icon: Icons.people_outline, color: AppColors.secondary),
+        _SummaryCard(title: 'Appointments', value: summary.totalAppointments.toString(), icon: Icons.calendar_today_rounded, color: AppColors.warning),
+        _SummaryCard(title: 'Completed', value: summary.completedAppointments.toString(), icon: Icons.task_alt_rounded, color: const Color(0xFF14B8A6)),
+        _SummaryCard(title: 'Cancelled', value: summary.cancelledAppointments.toString(), icon: Icons.cancel_outlined, color: AppColors.error),
+        _SummaryCard(title: 'Paid', value: summary.paidPaymentsCount.toString(), icon: Icons.check_circle_outline, color: const Color(0xFF6366F1)),
+        _SummaryCard(title: 'Pending', value: summary.pendingPaymentsCount.toString(), icon: Icons.schedule_rounded, color: const Color(0xFFD97706)),
         _SummaryCard(
           title: 'Revenue',
-          value: 'Rs. ${summary.totalRevenue.toStringAsFixed(0)}',
-          color: Colors.deepPurple,
+          value: 'Rs ${summary.totalRevenue.toStringAsFixed(0)}',
+          icon: Icons.trending_up_rounded,
+          color: AppColors.accent,
         ),
       ],
     );
@@ -169,45 +189,86 @@ class _SummaryCardGrid extends StatelessWidget {
 class _SummaryCard extends StatelessWidget {
   final String title;
   final String value;
+  final IconData icon;
   final Color color;
-  const _SummaryCard({required this.title, required this.value, required this.color});
+  const _SummaryCard({required this.title, required this.value, required this.icon, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: color.withOpacity(0.1),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(title, style: TextStyle(fontSize: 13, color: color, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 4),
-            Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          ],
-        ),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(title, style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w500)),
+        ],
       ),
     );
   }
 }
 
-class _ManagementButton extends StatelessWidget {
+class _ManagementCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final int count;
   final Color color;
   final VoidCallback onTap;
-  const _ManagementButton({required this.icon, required this.label, required this.color, required this.onTap});
+  const _ManagementCard({required this.icon, required this.label, required this.count, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: Icon(icon, color: color, size: 32),
-        title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 0.5),
+          boxShadow: AppShadows.sm,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  const SizedBox(height: 2),
+                  Text('$count total', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+          ],
+        ),
       ),
     );
   }

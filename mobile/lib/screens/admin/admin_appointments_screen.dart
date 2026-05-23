@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/admin_provider.dart';
 import '../../models/admin_models.dart';
 import '../../providers/doctor_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class AdminAppointmentsScreen extends ConsumerStatefulWidget {
   const AdminAppointmentsScreen({super.key});
@@ -46,8 +48,8 @@ class _AdminAppointmentsScreenState extends ConsumerState<AdminAppointmentsScree
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.grey.shade50,
+            padding: const EdgeInsets.all(12),
+            color: AppColors.surfaceVariant,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -113,22 +115,20 @@ class _AdminAppointmentsScreenState extends ConsumerState<AdminAppointmentsScree
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null && state.appointments.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(state.error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _applyFilters,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.error_outline_rounded,
+        title: 'Failed to load appointments',
+        subtitle: state.error,
+        actionLabel: 'Retry',
+        onAction: _applyFilters,
       );
     }
     if (state.appointments.isEmpty) {
-      return const Center(child: Text('No appointments found.'));
+      return const EmptyStateWidget(
+        icon: Icons.calendar_month_rounded,
+        title: 'No appointments found',
+        subtitle: 'Try adjusting your filters',
+      );
     }
     return RefreshIndicator(
       onRefresh: () async => _applyFilters(),
@@ -167,16 +167,6 @@ class _AppointmentCard extends ConsumerWidget {
   final AdminAppointment appointment;
   const _AppointmentCard({required this.appointment});
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'confirmed': return Colors.green;
-      case 'pending': return Colors.orange;
-      case 'completed': return Colors.blue;
-      case 'cancelled': return Colors.red;
-      default: return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     String dateStr = appointment.date;
@@ -185,29 +175,28 @@ class _AppointmentCard extends ConsumerWidget {
       dateStr = DateFormat('MMM dd, yyyy').format(dt);
     } catch (_) {}
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: AppShadows.sm,
+      ),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         title: Text('${appointment.patientName} → Dr. ${appointment.doctorName}',
             style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        subtitle: Text('$dateStr at ${appointment.timeSlot}'),
+        subtitle: Text('$dateStr at ${appointment.timeSlot}', style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: _statusColor(appointment.status).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(appointment.status.capitalize(),
-                  style: TextStyle(fontSize: 11, color: _statusColor(appointment.status))),
-            ),
+            StatusBadge.fromStatus(appointment.status),
             if (appointment.payment != null) ...[
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text('${appointment.payment!.provider} / ${appointment.payment!.status}',
-                  style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                  style: const TextStyle(fontSize: 10, color: AppColors.textTertiary)),
             ],
           ],
         ),
@@ -274,7 +263,7 @@ Widget _detailRow(String label, String value) {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey))),
+        SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontSize: 13))),
         Expanded(child: Text(value)),
       ],
     ),

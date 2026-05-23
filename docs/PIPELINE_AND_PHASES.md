@@ -291,13 +291,55 @@ EMAIL_FROM_NAME=DocBook
 
 ---
 
+## Phase 5B — UI/UX Polish *(Completed)*
+
+### Design System
+- **app_theme.dart** — Expanded `AppColors` (14 semantic colors including surfaces), `AppShadows` utility (sm/md/lg), polished button/input/card/chip/snackbar/bottomsheet themes, Inter typography via Google Fonts
+- **ui_components.dart** — New reusable widget library: `MessageBanner` (4 variants), `StatusBadge` (10 status factory), `EmptyStateWidget`, `SectionHeader`, `InfoCard`, `TrustBanner`, `LoadingButton`
+
+### Auth Screens (7 screens polished)
+- **splash_screen.dart** — Gradient background, scale+fade animation, rounded logo with shadow
+- **login_screen.dart** — Brand icon header, MessageBanner, LoadingButton, trust badges, keyboard actions
+- **register_screen.dart** — Section labels (Personal/Security), Pakistan-friendly hints, helper text
+- **otp_verification_screen.dart** — Email highlighted badge, 60s countdown timer, resend success banner
+- **forgot_password_screen.dart** — Centered icon header, submit on enter
+- **reset_password_screen.dart** — Pre-filled email badge, section label, success snackbar
+- **doctor_onboarding_screen.dart** — Info banner (admin review timeline), 3 section labels, accent submit
+
+### Patient Screens (7 screens polished)
+- **home_screen.dart** — Gradient next-appointment card, quick action grid, trust banner, specialties grid, pull-to-refresh
+- **search_screen.dart** — EmptyStateWidget, card shadows
+- **my_appointments_screen.dart** — EmptyStateWidget, StatusBadge.fromStatus, removed dead code
+- **appointment_detail_screen.dart** — StatusBadge inline, card shadows
+- **appointment_confirmation_screen.dart** — Rounded icon, semantic surface colors
+- **doctor_profile_screen.dart** — Verified specialty badge pill
+- **patient_profile_screen.dart** — Avatar header, section labels, prefixIcons, LoadingButton
+
+### Doctor & Admin Screens (7 screens polished)
+- **doctor_dashboard_screen.dart** — EmptyStateWidget, StatusBadge.fromStatus, card shadows
+- **doctor_profile_edit_screen.dart** — Section labels, prefixIcons, helper text, LoadingButton
+- **admin_dashboard_screen.dart** — Icon-enriched summary grid, management cards with counts
+- **admin_doctors_screen.dart** — StatusBadge, EmptyStateWidget, drag handle, themed avatars
+- **admin_patients_screen.dart** — StatusBadge, EmptyStateWidget, drag handle
+- **admin_appointments_screen.dart** — StatusBadge.fromStatus, EmptyStateWidget, themed cards
+- **admin_payments_screen.dart** — StatusBadge.fromStatus, EmptyStateWidget, themed cards
+
+### Common Screens
+- **notifications_screen.dart** — EmptyStateWidget, semantic AppColors for notification types
+
+### Code Quality
+- Removed all dead `_statusColor` methods (replaced by StatusBadge)
+- Removed unused imports
+- Zero raw `Colors.grey`/`Colors.red` in screen code (except video_call_screen functional UI)
+- Consistent `AppShadows.sm` on all card containers
+- Consistent `Border.all(color: AppColors.border, width: 0.5)` borders
+
+---
+
 ## Next Planned Phase
-
-### Phase 5B — UI/UX Polish *(Next)*
-
-**Status:** Phase 5A (email delivery) is green. Ready to start UI/UX polish.
 
 ### Future Feature Phases
 - **Phase 2F** — Prescriptions & Reviews
 - **Phase 2G** — Chat/Messaging enhancements
 - **Phase 6** — Mobile Native (iOS/Android)
+

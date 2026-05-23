@@ -74,11 +74,19 @@ EMAIL_FROM_NAME=DocBook
 
 ---
 
-## Current: Phase 5B — UI/UX Polish
+## ✅ Phase 5B — UI/UX Polish (Completed)
 
-**Status:** Phase 5A is green. Ready to start.
+Polished the design across **20+ Flutter screens** to make the patient, doctor, and admin dashboards premium, trust-centric, and mobile-friendly.
 
-See [UI_UX_POLISH_SCOPE.md](UI_UX_POLISH_SCOPE.md) for detailed scope.
+### Key Changes
+- **Design System**: Expanded semantic colors in `AppColors`, developed shadow and radius systems (`AppShadows`), and applied Inter typography.
+- **Shared Components (`ui_components.dart`)**: Standardized global UI using reusable components: `MessageBanner`, `StatusBadge`, `EmptyStateWidget`, `SectionHeader`, `InfoCard`, `TrustBanner`, and `LoadingButton`.
+- **Auth Polish**: Splash animation, brand icon header in login/register, 60s countdown timer in OTP, and section-labeled onboarding.
+- **Patient Dashboard & Search**: Polished layout, quick-action grid, specialties carousel, inline StatusBadges on appointments list and confirmation screens.
+- **Doctor/Admin Dashboards**: Polished tables and detail lists, custom avatar initials, bottom-sheet drag handle, and detailed platform overview summary cards for admin.
+- **Refactoring & Code Quality**: Removed all deprecated color declarations and raw colors, stripped unused imports, and eliminated dead status color helper methods.
+
+---
 
 ## Archived: Phase 3C deploy checklist
 

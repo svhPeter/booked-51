@@ -83,12 +83,27 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                     color: Colors.white,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  doctor.specialty,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white.withValues(alpha: 0.9),
+                                const SizedBox(height: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.verified_rounded, size: 14, color: Colors.white),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        doctor.specialty,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.white.withValues(alpha: 0.95),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -274,8 +289,8 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                             ],
                             const SizedBox(height: 32),
                             const Text(
-                              'Free to book on DocBook. No online payment — pay the doctor at your visit.',
-                              style: TextStyle(fontSize: 13, color: AppColors.textHint),
+                              'Free to book on DocBook. No online payment\u2009—\u2009pay the doctor at your visit.',
+                              style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 12),

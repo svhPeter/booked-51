@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
   final String initialEmail;
@@ -46,7 +47,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           newPassword: _passwordController.text,
         );
     if (ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password reset successfully. Please sign in.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Password reset successfully. Please sign in with your new password.'),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       context.go('/auth/login');
     }
   }
@@ -57,50 +64,106 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.go('/auth/forgot-password'),
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 32),
-                const Icon(Icons.password, size: 48, color: AppColors.primary),
+                const SizedBox(height: 24),
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(Icons.password_rounded, size: 36, color: AppColors.primary),
+                ),
                 const SizedBox(height: 24),
                 Text('Reset Password', style: Theme.of(context).textTheme.displaySmall),
                 const SizedBox(height: 8),
-                Text('Enter the reset code sent to your email and choose a new password.', style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(height: 32),
-                if (authState.error != null) _ErrorBox(message: authState.error!),
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Please enter your email';
-                    if (!v.contains('@')) return 'Please enter a valid email';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
+                if (widget.initialEmail.isNotEmpty) ...[
+                  Text(
+                    'Enter the 6-digit code sent to',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.primarySurface,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      widget.initialEmail,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                ] else
+                  Text(
+                    'Enter the reset code and choose a new password.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                const SizedBox(height: 28),
+                if (authState.error != null)
+                  MessageBanner(message: authState.error!, type: MessageType.error),
+                if (widget.initialEmail.isEmpty) ...[
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Email address',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Please enter your email';
+                      if (!v.contains('@')) return 'Please enter a valid email';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                ],
                 TextFormField(
                   controller: _otpController,
                   maxLength: 6,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Reset Code', prefixIcon: Icon(Icons.pin_outlined), counterText: ''),
+                  textInputAction: TextInputAction.next,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 24, letterSpacing: 10, fontWeight: FontWeight.w600),
+                  decoration: const InputDecoration(
+                    hintText: '••••••',
+                    counterText: '',
+                    contentPadding: EdgeInsets.symmetric(vertical: 16),
+                    helperText: 'Enter the 6-digit reset code from your email',
+                  ),
                   validator: (v) => v == null || v.length != 6 ? 'Please enter the 6-digit code' : null,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
+                Text('New Password', style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: AppColors.textTertiary, fontWeight: FontWeight.w600, letterSpacing: 0.5,
+                )),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
                   obscureText: _obscurePassword,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
-                    labelText: 'New Password',
+                    labelText: 'New password',
+                    helperText: 'At least 8 characters',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -113,12 +176,14 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 TextFormField(
                   controller: _confirmPasswordController,
                   obscureText: _obscureConfirm,
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
+                    labelText: 'Confirm new password',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -128,38 +193,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   validator: (v) => v != _passwordController.text ? 'Passwords do not match' : null,
                 ),
                 const SizedBox(height: 28),
-                ElevatedButton(
-                  onPressed: authState.isLoading ? null : _submit,
-                  child: authState.isLoading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Reset Password'),
+                LoadingButton(
+                  isLoading: authState.isLoading,
+                  onPressed: _submit,
+                  label: 'Reset Password',
+                  icon: Icons.lock_reset_rounded,
                 ),
+                const SizedBox(height: 32),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorBox extends StatelessWidget {
-  final String message;
-
-  const _ErrorBox({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-      child: Row(
-        children: [
-          const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-          const SizedBox(width: 8),
-          Expanded(child: Text(message, style: const TextStyle(color: AppColors.error, fontSize: 13))),
-        ],
       ),
     );
   }

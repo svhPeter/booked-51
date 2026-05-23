@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/admin_provider.dart';
 import '../../models/admin_models.dart';
+import '../../widgets/ui_components.dart';
 
 class AdminPaymentsScreen extends ConsumerStatefulWidget {
   const AdminPaymentsScreen({super.key});
@@ -37,8 +39,8 @@ class _AdminPaymentsScreenState extends ConsumerState<AdminPaymentsScreen> {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
-            color: Colors.grey.shade50,
+            padding: const EdgeInsets.all(12),
+            color: AppColors.surfaceVariant,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -98,22 +100,20 @@ class _AdminPaymentsScreenState extends ConsumerState<AdminPaymentsScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null && state.payments.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(state.error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _applyFilters,
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.error_outline_rounded,
+        title: 'Failed to load payments',
+        subtitle: state.error,
+        actionLabel: 'Retry',
+        onAction: _applyFilters,
       );
     }
     if (state.payments.isEmpty) {
-      return const Center(child: Text('No payments found.'));
+      return const EmptyStateWidget(
+        icon: Icons.receipt_long_rounded,
+        title: 'No payments found',
+        subtitle: 'Try adjusting your filters',
+      );
     }
     return RefreshIndicator(
       onRefresh: () async => _applyFilters(),
@@ -152,16 +152,6 @@ class _PaymentCard extends StatelessWidget {
   final AdminPayment payment;
   const _PaymentCard({required this.payment});
 
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'paid': return Colors.green;
-      case 'pending': return Colors.orange;
-      case 'failed': return Colors.red;
-      case 'refunded': return Colors.purple;
-      default: return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     String dateStr = payment.createdAt;
@@ -170,38 +160,34 @@ class _PaymentCard extends StatelessWidget {
       dateStr = DateFormat('MMM dd, yyyy').format(dt);
     } catch (_) {}
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Rs. ${payment.amount.toStringAsFixed(0)}  •  ${payment.provider.toUpperCase()}',
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                  const SizedBox(height: 4),
-                  Text(payment.userName, style: const TextStyle(fontSize: 13)),
-                  Text('$dateStr${payment.appointmentTimeSlot.isNotEmpty ? " at ${payment.appointmentTimeSlot}" : ""}',
-                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                  if (payment.providerTxnId != null)
-                    Text('Txn: ${payment.providerTxnId}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                ],
-              ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: AppShadows.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Rs ${payment.amount.toStringAsFixed(0)}  •  ${payment.provider.toUpperCase()}',
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(height: 4),
+                Text(payment.userName, style: const TextStyle(fontSize: 13)),
+                Text('$dateStr${payment.appointmentTimeSlot.isNotEmpty ? " at ${payment.appointmentTimeSlot}" : ""}',
+                    style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                if (payment.providerTxnId != null)
+                  Text('Txn: ${payment.providerTxnId}', style: const TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+              ],
             ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: _statusColor(payment.status).withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(payment.status.capitalize(),
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _statusColor(payment.status))),
-            ),
-          ],
-        ),
+          ),
+          StatusBadge.fromStatus(payment.status),
+        ],
       ),
     );
   }

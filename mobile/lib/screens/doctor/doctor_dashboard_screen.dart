@@ -8,6 +8,7 @@ import '../../models/doctor_appointment.dart';
 import '../../providers/doctor_dashboard_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../widgets/role_menu_button.dart';
+import '../../widgets/ui_components.dart';
 
 class DoctorDashboardScreen extends ConsumerStatefulWidget {
   const DoctorDashboardScreen({super.key});
@@ -223,24 +224,18 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
     final items = _filtered(state, tab);
 
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.event_busy, size: 48, color: AppColors.textHint),
-            const SizedBox(height: 12),
-            Text(
-              tab == 'today'
-                  ? 'No appointments today'
-                  : tab == 'upcoming'
-                      ? 'No upcoming appointments'
-                      : tab == 'completed'
-                          ? 'No completed appointments'
-                          : 'No cancelled appointments',
-              style: const TextStyle(color: AppColors.textHint),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.event_busy_rounded,
+        title: tab == 'today'
+            ? 'No appointments today'
+            : tab == 'upcoming'
+                ? 'No upcoming appointments'
+                : tab == 'completed'
+                    ? 'No completed appointments'
+                    : 'No cancelled appointments',
+        subtitle: tab == 'today'
+            ? 'Your scheduled patients will appear here'
+            : null,
       );
     }
 
@@ -322,7 +317,8 @@ class _AppointmentCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.border, width: 0.5),
+        boxShadow: AppShadows.sm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,36 +439,7 @@ class _AppointmentCard extends StatelessWidget {
   }
 
   Widget _buildStatusBadge(String status) {
-    Color color;
-    String label;
-    switch (status) {
-      case 'confirmed':
-        color = AppColors.primary;
-        label = 'Confirmed';
-        break;
-      case 'completed':
-        color = AppColors.secondary;
-        label = 'Completed';
-        break;
-      case 'cancelled':
-        color = AppColors.error;
-        label = 'Cancelled';
-        break;
-      default:
-        color = AppColors.warning;
-        label = status;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600),
-      ),
-    );
+    return StatusBadge.fromStatus(status);
   }
 
   Widget _buildPaymentBadge(String status) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class DoctorProfileEditScreen extends ConsumerStatefulWidget {
   const DoctorProfileEditScreen({super.key});
@@ -67,9 +68,10 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated. Fee is shown to patients as pay-at-clinic.'),
+        SnackBar(
+          content: const Text('Profile updated. Fee is shown to patients as pay-at-clinic.'),
           backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -92,60 +94,111 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
       body: state.isLoading && state.profile == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Professional info
+                  _sectionLabel('Professional Information'),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Display name'),
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Display name',
+                      prefixIcon: Icon(Icons.person_outlined),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(labelText: 'Phone'),
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Phone number',
+                      hintText: '0300-1234567',
+                      prefixIcon: Icon(Icons.phone_outlined),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _specialtyController,
-                    decoration: const InputDecoration(labelText: 'Specialty'),
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Specialty',
+                      hintText: 'e.g. Cardiologist',
+                      prefixIcon: Icon(Icons.medical_services_outlined),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _qualificationController,
-                    decoration: const InputDecoration(labelText: 'Qualification'),
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Qualification',
+                      hintText: 'e.g. MBBS, FCPS',
+                      prefixIcon: Icon(Icons.school_outlined),
+                    ),
                   ),
+
+                  const SizedBox(height: 24),
+                  _sectionLabel('Practice Details'),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _feeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Consultation fee (PKR, pay at clinic)',
-                    ),
                     keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Consultation fee (PKR)',
+                      helperText: 'Patients pay you directly at the clinic',
+                      prefixIcon: Icon(Icons.payments_outlined),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _daysController,
                     decoration: const InputDecoration(
-                      labelText: 'Available days (Mon, Tue, ...)',
+                      labelText: 'Available days',
+                      hintText: 'Mon, Tue, Wed, Thu, Fri',
+                      helperText: 'Comma-separated day abbreviations',
+                      prefixIcon: Icon(Icons.calendar_today_rounded),
                     ),
                   ),
+
+                  const SizedBox(height: 24),
+                  _sectionLabel('About You'),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _bioController,
-                    decoration: const InputDecoration(labelText: 'Bio'),
+                    decoration: const InputDecoration(
+                      labelText: 'Bio',
+                      hintText: 'Tell patients about yourself...',
+                      alignLabelWithHint: true,
+                      prefixIcon: Padding(
+                        padding: EdgeInsets.only(bottom: 60),
+                        child: Icon(Icons.description_outlined),
+                      ),
+                    ),
                     maxLines: 4,
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: state.isLoading ? null : _save,
-                      child: const Text('Save'),
-                    ),
+                  const SizedBox(height: 28),
+                  LoadingButton(
+                    isLoading: state.isLoading,
+                    onPressed: _save,
+                    label: 'Save Profile',
+                    icon: Icons.save_rounded,
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
     );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Text(text, style: const TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w600,
+      color: AppColors.textTertiary,
+      letterSpacing: 0.5,
+    ));
   }
 }

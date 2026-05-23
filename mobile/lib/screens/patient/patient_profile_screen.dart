@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class PatientProfileScreen extends ConsumerStatefulWidget {
   const PatientProfileScreen({super.key});
@@ -57,7 +58,11 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated'), backgroundColor: AppColors.secondary),
+        SnackBar(
+          content: const Text('Profile updated successfully'),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -65,6 +70,9 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
+    final authState = ref.watch(authProvider);
+    final email = authState.user?.email ?? '';
+    final initials = (authState.user?.name ?? '?')[0].toUpperCase();
 
     ref.listen<ProfileState>(profileProvider, (prev, next) {
       if (prev?.profile == null && next.profile != null) {
@@ -81,34 +89,51 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
       body: profileState.isLoading && profileState.profile == null
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Column(
                 children: [
+                  // Avatar header
+                  CircleAvatar(
+                    radius: 44,
+                    backgroundColor: AppColors.primary,
+                    child: Text(
+                      initials,
+                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (email.isNotEmpty)
+                    Text(email, style: Theme.of(context).textTheme.bodySmall),
+                  const SizedBox(height: 24),
+
+                  // Personal information section
+                  _sectionLabel(context, 'Personal Information'),
+                  const SizedBox(height: 12),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(labelText: 'Full name'),
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'Full name',
+                      prefixIcon: Icon(Icons.person_outlined),
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   TextFormField(
                     controller: _phoneController,
-                    decoration: const InputDecoration(labelText: 'Phone'),
+                    decoration: const InputDecoration(
+                      labelText: 'Phone number',
+                      hintText: '0300-1234567',
+                      prefixIcon: Icon(Icons.phone_outlined),
+                    ),
                     keyboardType: TextInputType.phone,
                   ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _cityController,
-                    decoration: const InputDecoration(labelText: 'City'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: const InputDecoration(labelText: 'Address'),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     value: _gender,
-                    decoration: const InputDecoration(labelText: 'Gender'),
+                    decoration: const InputDecoration(
+                      labelText: 'Gender',
+                      prefixIcon: Icon(Icons.wc_outlined),
+                    ),
                     items: const [
                       DropdownMenuItem(value: 'male', child: Text('Male')),
                       DropdownMenuItem(value: 'female', child: Text('Female')),
@@ -116,23 +141,52 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                     ],
                     onChanged: (v) => setState(() => _gender = v),
                   ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: profileState.isLoading ? null : _save,
-                      child: profileState.isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Text('Save Profile'),
+
+                  const SizedBox(height: 24),
+                  _sectionLabel(context, 'Location'),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _cityController,
+                    textCapitalization: TextCapitalization.words,
+                    decoration: const InputDecoration(
+                      labelText: 'City',
+                      hintText: 'Karachi',
+                      prefixIcon: Icon(Icons.location_on_outlined),
                     ),
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _addressController,
+                    decoration: const InputDecoration(
+                      labelText: 'Address',
+                      hintText: 'Your full address',
+                      prefixIcon: Icon(Icons.home_outlined),
+                      alignLabelWithHint: true,
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 32),
+                  LoadingButton(
+                    isLoading: profileState.isLoading,
+                    onPressed: _save,
+                    label: 'Save Profile',
+                    icon: Icons.save_rounded,
                   ),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _sectionLabel(BuildContext context, String text) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(text, style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textTertiary,
+        letterSpacing: 0.5,
+      )),
     );
   }
 }

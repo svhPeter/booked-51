@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/theme/app_theme.dart';
 import '../../providers/admin_provider.dart';
 import '../../models/admin_models.dart';
+import '../../widgets/ui_components.dart';
 
 class AdminPatientsScreen extends ConsumerStatefulWidget {
   const AdminPatientsScreen({super.key});
@@ -35,26 +37,25 @@ class _AdminPatientsScreenState extends ConsumerState<AdminPatientsScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null && state.patients.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(state.error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => ref.read(adminProvider.notifier).fetchPatients(),
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.error_outline_rounded,
+        title: 'Failed to load patients',
+        subtitle: state.error,
+        actionLabel: 'Retry',
+        onAction: () => ref.read(adminProvider.notifier).fetchPatients(),
       );
     }
     if (state.patients.isEmpty) {
-      return const Center(child: Text('No patients found.'));
+      return const EmptyStateWidget(
+        icon: Icons.people_outline,
+        title: 'No patients found',
+        subtitle: 'Patients who sign up will appear here',
+      );
     }
-    return ListView.builder(
-      padding: const EdgeInsets.all(8),
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
       itemCount: state.patients.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final pat = state.patients[index];
         return _PatientCard(patient: pat);
@@ -69,29 +70,45 @@ class _PatientCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.green.shade100,
-          child: Text(patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?'),
+    return GestureDetector(
+      onTap: () => _showPatientDetail(context, ref, patient),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 0.5),
+          boxShadow: AppShadows.sm,
         ),
-        title: Text(patient.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Text(patient.email),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            if (!patient.isActive)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(8)),
-                child: const Text('Inactive', style: TextStyle(fontSize: 11, color: Colors.red)),
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: AppColors.secondarySurface,
+              child: Text(
+                patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
+                style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w600, fontSize: 16),
               ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(patient.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  const SizedBox(height: 2),
+                  Text(patient.email, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                ],
+              ),
+            ),
+            if (!patient.isActive)
+              const StatusBadge(label: 'Inactive', color: AppColors.error, icon: Icons.block)
+            else if (patient.isVerified)
+              const StatusBadge(label: 'Verified', color: AppColors.secondary, icon: Icons.verified_user),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
           ],
         ),
-        onTap: () => _showPatientDetail(context, ref, patient),
       ),
     );
   }
@@ -101,7 +118,7 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.7,
@@ -110,28 +127,59 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
       builder: (context, scrollController) {
         return SingleChildScrollView(
           controller: scrollController,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: AppColors.border,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Center(
                 child: CircleAvatar(
                   radius: 36,
-                  backgroundColor: Colors.green.shade100,
-                  child: Text(patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
-                      style: const TextStyle(fontSize: 28)),
+                  backgroundColor: AppColors.secondarySurface,
+                  child: Text(
+                    patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
+                    style: const TextStyle(fontSize: 28, color: AppColors.secondary, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
-              Center(child: Text(patient.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
-              Center(child: Text(patient.email, style: const TextStyle(color: Colors.grey))),
-              Center(child: Text(patient.phone)),
+              Center(child: Text(patient.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+              const SizedBox(height: 4),
+              Center(child: Text(patient.email, style: const TextStyle(color: AppColors.textTertiary, fontSize: 13))),
+              Center(child: Text(patient.phone, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13))),
+              const SizedBox(height: 12),
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    StatusBadge(
+                      label: patient.isActive ? 'Active' : 'Inactive',
+                      color: patient.isActive ? AppColors.online : AppColors.error,
+                      icon: patient.isActive ? Icons.check_circle : Icons.block,
+                    ),
+                    const SizedBox(width: 8),
+                    StatusBadge(
+                      label: patient.isVerified ? 'Verified' : 'Unverified',
+                      color: patient.isVerified ? AppColors.secondary : AppColors.warning,
+                      icon: patient.isVerified ? Icons.verified_user : Icons.schedule,
+                    ),
+                  ],
+                ),
+              ),
               const Divider(height: 32),
               _detailRow('Gender', patient.gender.isNotEmpty ? patient.gender : 'N/A'),
               _detailRow('Blood Group', patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'N/A'),
               _detailRow('DOB', patient.dob ?? 'N/A'),
-              _detailRow('Status', patient.isActive ? 'Active' : 'Inactive'),
-              _detailRow('Verified', patient.isVerified ? 'Yes' : 'No'),
             ],
           ),
         );
@@ -142,12 +190,15 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
 
 Widget _detailRow(String label, String value) {
   return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
+    padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.grey))),
-        Expanded(child: Text(value)),
+        SizedBox(
+          width: 120,
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontSize: 13)),
+        ),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
       ],
     ),
   );
