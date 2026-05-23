@@ -139,7 +139,16 @@ export { io };
 async function start() {
   await connectDatabase();
   logger.info('server_start', { port: env.port, nodeEnv: env.nodeEnv });
-  logger.info('smtp_configured', { configured: isSmtpConfigured() });
+  logger.info('smtp_configured', {
+    configured: isSmtpConfigured(),
+    host: env.smtpHost || '(none)',
+    port: env.smtpPort,
+  });
+  if (env.nodeEnv === 'production' && env.smtpHost === 'smtp.gmail.com') {
+    logger.warn('smtp_gmail_in_production', {
+      message: 'Gmail SMTP is unreliable from Railway/cloud. Switch to Brevo (smtp-relay.brevo.com).',
+    });
+  }
 
   httpServer.listen(env.port, () => {
     logger.info('server_listening', { port: env.port, nodeEnv: env.nodeEnv });
