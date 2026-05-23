@@ -92,6 +92,11 @@ app.get('/api/v1/health', async (_req, res) => {
     timestamp: new Date().toISOString(),
     database: dbStatus,
     uptime: process.uptime(),
+    smtp: {
+      configured: isSmtpConfigured(),
+      host: env.smtpHost || '(none)',
+      port: env.smtpPort,
+    },
   });
 });
 
