@@ -17,7 +17,7 @@ import adminRoutes from './routes/admin';
 import agoraRoutes from './routes/agora';
 import notificationRoutes from './routes/notification';
 import profileRoutes from './routes/profile';
-import { isSmtpConfigured } from './services/emailService';
+import { isSmtpConfigured, getEmailProvider } from './services/emailService';
 
 const app = express();
 const httpServer = createServer(app);
@@ -87,15 +87,15 @@ app.get('/api/v1/health', async (_req, res) => {
   } catch {
     dbStatus = 'unhealthy';
   }
+  const provider = getEmailProvider();
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
     database: dbStatus,
     uptime: process.uptime(),
-    smtp: {
-      configured: isSmtpConfigured(),
-      host: env.smtpHost || '(none)',
-      port: env.smtpPort,
+    email: {
+      provider,
+      configured: provider !== 'none',
     },
   });
 });
@@ -143,15 +143,12 @@ export { io };
 
 async function start() {
   await connectDatabase();
+  const provider = getEmailProvider();
   logger.info('server_start', { port: env.port, nodeEnv: env.nodeEnv });
-  logger.info('smtp_configured', {
-    configured: isSmtpConfigured(),
-    host: env.smtpHost || '(none)',
-    port: env.smtpPort,
-  });
-  if (env.nodeEnv === 'production' && env.smtpHost === 'smtp.gmail.com') {
-    logger.warn('smtp_gmail_in_production', {
-      message: 'Gmail SMTP is unreliable from Railway/cloud. Switch to Brevo (smtp-relay.brevo.com).',
+  logger.info('email_provider', { provider });
+  if (env.nodeEnv === 'production' && provider === 'none') {
+    logger.warn('email_not_configured', {
+      message: 'No email provider configured. Set EMAIL_PROVIDER=brevo + BREVO_API_KEY for production.',
     });
   }
 

@@ -69,6 +69,9 @@ export const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   emailFrom: process.env.EMAIL_FROM || 'noreply@docbook.com',
+  emailFromName: process.env.EMAIL_FROM_NAME || 'DocBook',
+  emailProvider: (process.env.EMAIL_PROVIDER || 'smtp').toLowerCase(),
+  brevoApiKey: process.env.BREVO_API_KEY || '',
 
   stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',

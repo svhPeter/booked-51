@@ -4,6 +4,7 @@ import { env } from '../config/env';
 import { logger } from '../config/logger';
 
 const SMTP_TIMEOUT_MS = 15_000;
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -14,13 +15,6 @@ export function maskEmail(email: string): string {
   if (!local || !domain) return '***';
   const visible = local.length <= 2 ? local[0] : local.slice(0, 2);
   return `${visible}***@${domain}`;
-}
-
-export function isSmtpConfigured(): boolean {
-  if (!env.smtpHost || !env.smtpUser || !env.smtpPass) return false;
-  if (env.smtpUser.startsWith('your-') || env.smtpUser.startsWith('placeholder')) return false;
-  if (env.smtpPass.startsWith('your-') || env.smtpPass.startsWith('placeholder')) return false;
-  return true;
 }
 
 export function safeEmailError(error: unknown): Record<string, string> {
@@ -35,7 +29,30 @@ export function safeEmailError(error: unknown): Record<string, string> {
 }
 
 // ---------------------------------------------------------------------------
-// Singleton transporter — reuses TCP/TLS connections across calls
+// Provider detection
+// ---------------------------------------------------------------------------
+
+export type EmailProvider = 'brevo' | 'smtp' | 'none';
+
+export function getEmailProvider(): EmailProvider {
+  if (env.emailProvider === 'brevo' && env.brevoApiKey) return 'brevo';
+  if (isSmtpConfigured()) return 'smtp';
+  return 'none';
+}
+
+export function isSmtpConfigured(): boolean {
+  if (!env.smtpHost || !env.smtpUser || !env.smtpPass) return false;
+  if (env.smtpUser.startsWith('your-') || env.smtpUser.startsWith('placeholder')) return false;
+  if (env.smtpPass.startsWith('your-') || env.smtpPass.startsWith('placeholder')) return false;
+  return true;
+}
+
+function isEmailConfigured(): boolean {
+  return getEmailProvider() !== 'none';
+}
+
+// ---------------------------------------------------------------------------
+// SMTP transporter (local/dev fallback)
 // ---------------------------------------------------------------------------
 
 let _transporter: Mail | null = null;
@@ -47,7 +64,7 @@ function getTransporter(): Mail {
     port: env.smtpPort,
     secure: env.smtpPort === 465,
     auth: { user: env.smtpUser, pass: env.smtpPass },
-    pool: true,              // keep connections alive
+    pool: true,
     maxConnections: 3,
     maxMessages: 100,
     connectionTimeout: SMTP_TIMEOUT_MS,
@@ -57,10 +74,65 @@ function getTransporter(): Mail {
 
   _transporter.on('error', (err) => {
     logger.warn('smtp_transporter_error', safeEmailError(err));
-    _transporter = null;     // force reconnect next time
+    _transporter = null;
   });
 
   return _transporter;
+}
+
+// ---------------------------------------------------------------------------
+// Brevo HTTP API sender
+// ---------------------------------------------------------------------------
+
+async function sendViaBrevo(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> {
+  const body = {
+    sender: { name: env.emailFromName, email: env.emailFrom },
+    to: [{ email: to }],
+    subject,
+    htmlContent: html,
+  };
+
+  const res = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'content-type': 'application/json',
+      'api-key': env.brevoApiKey,
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(15_000),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    // Parse Brevo error — never log the API key
+    let message = `Brevo API ${res.status}`;
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed.message) message = parsed.message;
+      if (parsed.code) message = `${parsed.code}: ${message}`;
+    } catch {
+      // text wasn't JSON
+    }
+    throw new Error(message);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SMTP sender
+// ---------------------------------------------------------------------------
+
+async function sendViaSmtp(
+  to: string,
+  subject: string,
+  html: string,
+): Promise<void> {
+  const transporter = getTransporter();
+  await transporter.sendMail({ from: env.emailFrom, to, subject, html });
 }
 
 // ---------------------------------------------------------------------------
@@ -71,6 +143,7 @@ export interface EmailSendResult {
   sent: boolean;
   fallback: boolean;
   durationMs: number;
+  provider: EmailProvider;
   error?: Record<string, string>;
 }
 
@@ -128,36 +201,39 @@ export async function sendOtpEmail(
 ): Promise<EmailSendResult> {
   const startMs = Date.now();
   const masked = maskEmail(to);
+  const provider = getEmailProvider();
 
-  if (!isSmtpConfigured()) {
+  if (provider === 'none') {
     const durationMs = Date.now() - startMs;
     logger.warn('otp_email_fallback', {
       event: 'OTP_FALLBACK',
-      reason: 'SMTP not configured',
+      reason: 'No email provider configured',
       template,
       email: masked,
       durationMs,
     });
-    return { sent: false, fallback: true, durationMs };
+    return { sent: false, fallback: true, durationMs, provider };
   }
 
   try {
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: env.emailFrom,
-      to,
-      subject: otpSubject(template),
-      html: otpHtml(otp, template),
-    });
+    const subject = otpSubject(template);
+    const html = otpHtml(otp, template);
+
+    if (provider === 'brevo') {
+      await sendViaBrevo(to, subject, html);
+    } else {
+      await sendViaSmtp(to, subject, html);
+    }
 
     const durationMs = Date.now() - startMs;
     logger.info('otp_email_sent', {
+      provider,
       template,
       email: masked,
       sent: true,
       durationMs,
     });
-    return { sent: true, fallback: false, durationMs };
+    return { sent: true, fallback: false, durationMs, provider };
 
   } catch (error) {
     const durationMs = Date.now() - startMs;
@@ -165,7 +241,8 @@ export async function sendOtpEmail(
 
     logger.warn('otp_email_failed', {
       event: 'OTP_FALLBACK',
-      reason: 'SMTP send failed',
+      reason: `${provider} send failed`,
+      provider,
       template,
       email: masked,
       sent: false,
@@ -173,47 +250,50 @@ export async function sendOtpEmail(
       ...safeErr,
     });
 
-    // Force transporter reconnect on next attempt
-    _transporter = null;
+    if (provider === 'smtp') {
+      _transporter = null;
+    }
 
-    return { sent: false, fallback: true, durationMs, error: safeErr };
+    return { sent: false, fallback: true, durationMs, provider, error: safeErr };
   }
 }
 
 // ---------------------------------------------------------------------------
-// SMTP test email (used by smtp:test script and admin diagnostic endpoint)
+// SMTP test email (used by smtp:test script)
 // ---------------------------------------------------------------------------
 
 export async function sendSmtpTestEmail(to: string): Promise<EmailSendResult> {
   const startMs = Date.now();
+  const provider = getEmailProvider();
 
-  if (!isSmtpConfigured()) {
-    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.');
+  if (provider === 'none') {
+    throw new Error('No email provider configured. Set EMAIL_PROVIDER=brevo + BREVO_API_KEY, or configure SMTP.');
   }
   if (!to || !to.includes('@')) {
     throw new Error('Recipient must be a valid email address.');
   }
 
+  const subject = 'DocBook Email Test';
+  const html = `
+    <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+      <h2 style="color: #2563eb;">DocBook Email Test</h2>
+      <p>This confirms email delivery is working via <strong>${provider}</strong>.</p>
+      <p style="color: #6b7280; font-size: 12px;">Sent at ${new Date().toISOString()}</p>
+    </div>
+  `;
+
   try {
-    const transporter = getTransporter();
-    await transporter.sendMail({
-      from: env.emailFrom,
-      to,
-      subject: 'DocBook SMTP Test',
-      html: `
-        <div style="font-family: 'Segoe UI', sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
-          <h2 style="color: #2563eb;">DocBook SMTP Test</h2>
-          <p>This confirms production SMTP is configured and can send email.</p>
-          <p style="color: #6b7280; font-size: 12px;">Sent at ${new Date().toISOString()}</p>
-        </div>
-      `,
-    });
+    if (provider === 'brevo') {
+      await sendViaBrevo(to, subject, html);
+    } else {
+      await sendViaSmtp(to, subject, html);
+    }
     const durationMs = Date.now() - startMs;
-    return { sent: true, fallback: false, durationMs };
+    return { sent: true, fallback: false, durationMs, provider };
   } catch (error) {
     const durationMs = Date.now() - startMs;
-    _transporter = null;
-    return { sent: false, fallback: false, durationMs, error: safeEmailError(error) };
+    if (provider === 'smtp') _transporter = null;
+    return { sent: false, fallback: false, durationMs, provider, error: safeEmailError(error) };
   }
 }
 

@@ -119,7 +119,7 @@ export const getAppointmentChatMeta = async (req: AuthRequest, res: Response, ne
 
 export const emailDiagnostic = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { sendDiagnosticEmails, isSmtpConfigured, maskEmail } = await import('../services/emailService');
+    const { sendDiagnosticEmails, getEmailProvider, maskEmail } = await import('../services/emailService');
     const to = (req.body.to as string)?.trim();
 
     if (!to || !to.includes('@')) {
@@ -127,29 +127,33 @@ export const emailDiagnostic = async (req: AuthRequest, res: Response, next: Nex
       return;
     }
 
-    if (!isSmtpConfigured()) {
+    const provider = getEmailProvider();
+    if (provider === 'none') {
       res.json({
         success: false,
-        smtpConfigured: false,
-        message: 'SMTP is not configured on this server.',
+        provider,
+        configured: false,
+        message: 'No email provider configured. Set EMAIL_PROVIDER=brevo + BREVO_API_KEY, or configure SMTP.',
       });
       return;
     }
 
     const results = await sendDiagnosticEmails(to);
-    // Only return sent/durationMs per template — never expose OTP or SMTP creds
-    const safe: Record<string, { sent: boolean; durationMs: number; error?: string }> = {};
+    // Only return sent/durationMs/provider per template — never expose secrets
+    const safe: Record<string, { sent: boolean; durationMs: number; provider: string; error?: string }> = {};
     for (const [tpl, r] of Object.entries(results)) {
       safe[tpl] = {
         sent: r.sent,
         durationMs: r.durationMs,
+        provider: r.provider,
         ...(r.error ? { error: r.error.message } : {}),
       };
     }
 
     res.json({
       success: true,
-      smtpConfigured: true,
+      provider,
+      configured: true,
       recipientMasked: maskEmail(to),
       templates: safe,
     });

@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { isSmtpConfigured, maskEmail, sendSmtpTestEmail } from '../src/services/emailService';
+import { getEmailProvider, maskEmail, sendSmtpTestEmail } from '../src/services/emailService';
 
 dotenv.config();
 
@@ -8,17 +8,20 @@ async function main() {
   if (!to) {
     throw new Error('SMTP_TEST_TO is required. Example: SMTP_TEST_TO=you@example.com npm run smtp:test');
   }
-  if (!isSmtpConfigured()) {
-    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and EMAIL_FROM.');
+
+  const provider = getEmailProvider();
+  if (provider === 'none') {
+    throw new Error('No email provider configured. Set EMAIL_PROVIDER=brevo + BREVO_API_KEY, or configure SMTP.');
   }
 
-  console.log(`Sending SMTP test email to ${maskEmail(to)}...`);
+  console.log(`Provider: ${provider}`);
+  console.log(`Sending test email to ${maskEmail(to)}...`);
   const result = await sendSmtpTestEmail(to);
 
   if (result.sent) {
-    console.log(`✅ SMTP test email sent to ${maskEmail(to)} in ${result.durationMs}ms`);
+    console.log(`✅ Test email sent via ${result.provider} to ${maskEmail(to)} in ${result.durationMs}ms`);
   } else {
-    console.error(`❌ SMTP test email FAILED for ${maskEmail(to)} in ${result.durationMs}ms`);
+    console.error(`❌ Test email FAILED via ${result.provider} for ${maskEmail(to)} in ${result.durationMs}ms`);
     if (result.error) {
       console.error('Error:', result.error);
     }
@@ -27,6 +30,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('SMTP test failed:', error instanceof Error ? error.message : String(error));
+  console.error('Email test failed:', error instanceof Error ? error.message : String(error));
   process.exit(1);
 });
