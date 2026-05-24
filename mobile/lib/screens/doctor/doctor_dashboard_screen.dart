@@ -242,7 +242,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
                         ? 'No completed appointments'
                         : 'No cancelled appointments',
         subtitle: tab == 'pending'
-            ? 'New appointment requests from patients will show here'
+            ? 'New patient appointment requests will show here. You control the final confirmed date and time.'
             : tab == 'today'
                 ? 'Your scheduled patients will appear here'
                 : null,

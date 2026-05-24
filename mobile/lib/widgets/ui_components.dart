@@ -111,7 +111,7 @@ class StatusBadge extends StatelessWidget {
       case 'cancelled':
         return const StatusBadge(label: 'Cancelled', color: AppColors.error, icon: Icons.cancel_outlined);
       case 'pending':
-        return const StatusBadge(label: 'Pending', color: AppColors.warning, icon: Icons.schedule);
+        return const StatusBadge(label: 'Awaiting Confirmation', color: AppColors.warning, icon: Icons.hourglass_top_rounded);
       case 'approved':
         return const StatusBadge(label: 'Approved', color: AppColors.secondary, icon: Icons.verified);
       case 'rejected':

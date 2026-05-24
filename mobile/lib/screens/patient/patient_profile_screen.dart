@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
@@ -172,6 +173,71 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                     label: 'Save Profile',
                     icon: Icons.save_rounded,
                   ),
+                  const SizedBox(height: 32),
+                  const Divider(),
+                  const SizedBox(height: 16),
+
+                  // Support section
+                  _sectionLabel(context, 'Support & Help'),
+                  const SizedBox(height: 12),
+                  _SupportTile(
+                    icon: Icons.email_outlined,
+                    title: 'Email Support',
+                    subtitle: 'support@docbook.pk',
+                    onTap: () {},
+                  ),
+                  _SupportTile(
+                    icon: Icons.chat_outlined,
+                    title: 'WhatsApp Support',
+                    subtitle: 'Chat with us on WhatsApp',
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+
+                  // Legal section
+                  _sectionLabel(context, 'Legal'),
+                  const SizedBox(height: 12),
+                  _SupportTile(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Privacy Policy',
+                    onTap: () => context.push('/support'),
+                  ),
+                  _SupportTile(
+                    icon: Icons.description_outlined,
+                    title: 'Terms of Service',
+                    onTap: () => context.push('/support'),
+                  ),
+                  _SupportTile(
+                    icon: Icons.medical_information_outlined,
+                    title: 'Medical Disclaimer',
+                    onTap: () => context.push('/support'),
+                  ),
+                  const SizedBox(height: 16),
+                  // Disclaimer banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningSurface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.warning),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'DocBook is a booking platform, not a medical emergency service. For emergencies, contact your nearest hospital.',
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -187,6 +253,35 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
         color: AppColors.textTertiary,
         letterSpacing: 0.5,
       )),
+    );
+  }
+}
+
+class _SupportTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  const _SupportTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      dense: true,
+      leading: Icon(icon, color: AppColors.primary, size: 22),
+      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+      subtitle: subtitle != null
+          ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.textHint))
+          : null,
+      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textHint),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 }

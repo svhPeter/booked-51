@@ -26,6 +26,7 @@ import 'screens/common/splash_screen.dart';
 import 'screens/common/notifications_screen.dart';
 import 'screens/common/video_call_screen.dart';
 import 'screens/common/chat_screen.dart';
+import 'screens/common/support_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
@@ -155,6 +156,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/support',
+        builder: (context, state) => const SupportScreen(),
       ),
       GoRoute(
         path: '/admin/dashboard',

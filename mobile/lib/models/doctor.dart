@@ -18,6 +18,7 @@ class DoctorModel {
   final List<String> availableDays;
   final bool isAvailable;
   final int yearsOfExperience;
+  final String? pmdcRegistrationNumber;
 
   DoctorModel({
     required this.id,
@@ -39,6 +40,7 @@ class DoctorModel {
     this.availableDays = const [],
     this.isAvailable = true,
     this.yearsOfExperience = 0,
+    this.pmdcRegistrationNumber,
   });
 
   factory DoctorModel.fromJson(Map<String, dynamic> json) {
@@ -64,6 +66,7 @@ class DoctorModel {
           : [],
       isAvailable: json['isAvailable'] ?? true,
       yearsOfExperience: json['yearsOfExperience'] ?? 0,
+      pmdcRegistrationNumber: json['pmdcRegistrationNumber'],
     );
   }
 

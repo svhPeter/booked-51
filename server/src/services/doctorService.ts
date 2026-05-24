@@ -61,6 +61,7 @@ export class DoctorService {
               },
               availableDays: true,
               isAvailable: true,
+              pmdcRegistrationNumber: true,
             },
           },
         },
@@ -91,6 +92,7 @@ export class DoctorService {
       longitude: doc.doctor?.hospital?.longitude,
       availableDays: doc.doctor?.availableDays || [],
       isAvailable: doc.doctor?.isAvailable ?? true,
+      pmdcRegistrationNumber: doc.doctor?.pmdcRegistrationNumber ?? null,
     }));
 
     return {
@@ -125,6 +127,7 @@ export class DoctorService {
             totalReviews: true,
             availableDays: true,
             isAvailable: true,
+            pmdcRegistrationNumber: true,
             hospital: {
               select: {
                 id: true,
@@ -163,6 +166,7 @@ export class DoctorService {
       longitude: doc.doctor?.hospital?.longitude,
       availableDays: doc.doctor?.availableDays || [],
       isAvailable: doc.doctor?.isAvailable ?? true,
+      pmdcRegistrationNumber: doc.doctor?.pmdcRegistrationNumber ?? null,
     };
   }
 

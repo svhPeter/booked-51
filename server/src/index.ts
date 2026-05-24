@@ -17,6 +17,7 @@ import adminRoutes from './routes/admin';
 import agoraRoutes from './routes/agora';
 import notificationRoutes from './routes/notification';
 import profileRoutes from './routes/profile';
+import reportRoutes from './routes/report';
 import { isSmtpConfigured, getEmailProvider } from './services/emailService';
 
 const app = express();
@@ -109,6 +110,7 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1', agoraRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1', profileRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

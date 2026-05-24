@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/network/api_client.dart';
 import '../../providers/doctor_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class DoctorProfileScreen extends ConsumerStatefulWidget {
   final String doctorId;
@@ -23,6 +26,107 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
     });
   }
 
+  void _shareProfile() {
+    final url = 'https://docbook.pk/doctor/${widget.doctorId}';
+    Clipboard.setData(ClipboardData(text: url));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Doctor profile link copied to clipboard!'),
+        backgroundColor: AppColors.secondary,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showReportDialog() {
+    String? selectedReason;
+    final descController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Report an Issue'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('What would you like to report?',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                const SizedBox(height: 12),
+                ...['wrong_doctor_info', 'wrong_clinic_address', 'doctor_unavailable', 'other'].map((reason) {
+                  final label = {
+                    'wrong_doctor_info': 'Wrong doctor information',
+                    'wrong_clinic_address': 'Wrong clinic address',
+                    'doctor_unavailable': 'Doctor unavailable',
+                    'other': 'Other',
+                  }[reason]!;
+                  return RadioListTile<String>(
+                    title: Text(label, style: const TextStyle(fontSize: 14)),
+                    value: reason,
+                    groupValue: selectedReason,
+                    dense: true,
+                    onChanged: (v) => setDialogState(() => selectedReason = v),
+                  );
+                }),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: descController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    hintText: 'Describe the issue...',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: selectedReason == null || descController.text.trim().length < 5
+                  ? null
+                  : () async {
+                      Navigator.pop(ctx);
+                      try {
+                        final apiClient = ref.read(apiClientProvider);
+                        await apiClient.post('/reports', data: {
+                          'reason': selectedReason,
+                          'description': descController.text.trim(),
+                          'doctorId': widget.doctorId,
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Report submitted. Thank you!'),
+                              backgroundColor: AppColors.secondary,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to submit report: $e'),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: const Text('Submit Report'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final doctorState = ref.watch(doctorProvider);
@@ -39,6 +143,18 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                       expandedHeight: 280,
                       floating: false,
                       pinned: true,
+                      actions: [
+                        IconButton(
+                          icon: const Icon(Icons.share_rounded, color: Colors.white),
+                          tooltip: 'Share profile',
+                          onPressed: _shareProfile,
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.flag_outlined, color: Colors.white70),
+                          tooltip: 'Report issue',
+                          onPressed: _showReportDialog,
+                        ),
+                      ],
                       flexibleSpace: FlexibleSpaceBar(
                         background: Container(
                           decoration: BoxDecoration(
@@ -118,6 +234,36 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            // Trust badges row
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _TrustChip(
+                                  icon: Icons.verified_user_rounded,
+                                  label: 'Verified & Approved',
+                                  color: AppColors.verified,
+                                ),
+                                if (doctor.pmdcRegistrationNumber != null &&
+                                    doctor.pmdcRegistrationNumber!.isNotEmpty)
+                                  _TrustChip(
+                                    icon: Icons.badge_rounded,
+                                    label: 'PMDC: ${doctor.pmdcRegistrationNumber}',
+                                    color: AppColors.primary,
+                                  ),
+                                _TrustChip(
+                                  icon: Icons.schedule_rounded,
+                                  label: 'Doctor confirms timing',
+                                  color: AppColors.info,
+                                ),
+                                _TrustChip(
+                                  icon: Icons.money_off_rounded,
+                                  label: 'No platform fee',
+                                  color: AppColors.secondary,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
                             Row(
                               children: [
                                 _InfoChip(
@@ -242,7 +388,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                             ),
                             const SizedBox(height: 20),
                             if (doctor.consultationFee > 0) ...[
-                              _SectionTitle(title: 'Consultation fee (pay at clinic)'),
+                              _SectionTitle(title: 'Consultation Fee'),
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.all(16),
@@ -287,9 +433,29 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                 ),
                               ),
                             ],
-                            const SizedBox(height: 32),
+                            const SizedBox(height: 24),
+                            // Share booking link
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                final url = 'https://docbook.pk/book/${doctor.id}';
+                                Clipboard.setData(ClipboardData(text: url));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Booking link copied!'),
+                                    backgroundColor: AppColors.secondary,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.link_rounded, size: 18),
+                              label: const Text('Copy Booking Link'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 44),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             const Text(
-                              'Free to book on DocBook. No online payment\u2009—\u2009pay the doctor at your visit.',
+                              'Free to request on DocBook. No platform fee\u2009—\u2009pay the doctor/clinic directly at your visit.',
                               style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
                               textAlign: TextAlign.center,
                             ),
@@ -302,7 +468,14 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                   context.push('/patient/book/${doctor.id}');
                                 },
                                 icon: const Icon(Icons.calendar_month),
-                                label: const Text('Confirm Appointment'),
+                                label: const Text('Request Appointment'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Center(
+                              child: Text(
+                                'Doctor/clinic will confirm your final appointment time.',
+                                style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -312,6 +485,37 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                     ),
                   ],
                 ),
+    );
+  }
+}
+
+class _TrustChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _TrustChip({required this.icon, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 }

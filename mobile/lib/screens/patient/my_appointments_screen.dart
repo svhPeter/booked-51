@@ -60,9 +60,9 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
           controller: _tabController,
           isScrollable: true,
           tabs: [
-            Tab(text: 'Upcoming (${upcoming.length})'),
-            Tab(text: 'Pending (${pending.length})'),
-            Tab(text: 'Past (${past.length})'),
+            Tab(text: 'Confirmed (${upcoming.length})'),
+            Tab(text: 'Requests (${pending.length})'),
+            Tab(text: 'Completed (${past.length})'),
             Tab(text: 'Cancelled (${cancelled.length})'),
           ],
         ),
@@ -95,17 +95,19 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
                     children: [
                       _AppointmentList(
                         appointments: upcoming,
-                        isEmpty: 'No upcoming appointments',
+                        isEmpty: 'No confirmed appointments',
+                        emptySubtitle: 'Appointments confirmed by your doctor will appear here',
                         allowCancel: true,
                       ),
                       _AppointmentList(
                         appointments: pending,
-                        isEmpty: 'No pending appointments',
+                        isEmpty: 'No pending requests',
+                        emptySubtitle: 'Appointment requests awaiting doctor confirmation',
                         allowCancel: true,
                       ),
                       _AppointmentList(
                         appointments: past,
-                        isEmpty: 'No past appointments',
+                        isEmpty: 'No completed appointments',
                       ),
                       _AppointmentList(
                         appointments: cancelled,
@@ -123,11 +125,13 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
 class _AppointmentList extends ConsumerWidget {
   final List<AppointmentModel> appointments;
   final String isEmpty;
+  final String? emptySubtitle;
   final bool allowCancel;
 
   const _AppointmentList({
     required this.appointments,
     required this.isEmpty,
+    this.emptySubtitle,
     this.allowCancel = false,
   });
 
@@ -137,7 +141,7 @@ class _AppointmentList extends ConsumerWidget {
       return EmptyStateWidget(
         icon: Icons.event_busy_rounded,
         title: isEmpty,
-        subtitle: 'Your appointments will appear here',
+        subtitle: emptySubtitle ?? 'Your appointments will appear here',
       );
     }
 

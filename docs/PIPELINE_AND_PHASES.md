@@ -336,10 +336,32 @@ EMAIL_FROM_NAME=DocBook
 
 ---
 
+## Phase 5B.1 — Doctor-Controlled Appointment Confirmation Workflow *(Completed)*
+
+### Backend
+- **Prisma Schema** — Added `preferredDate` (DateTime) and `preferredTimeSlot` (String) fields to the `Appointment` model.
+- **Workflow Architecture** — Separated preferred request slots from final confirmed slots. Booking starts as `pending` with preferred details, which the doctor verifies and updates to finalized details upon confirmation.
+- **Security Enforcements** — Restructured Chat & Video Agora endpoints so that only appointments in `confirmed` or `completed` status can initialize chat rooms or generate call tokens.
+
+---
+
+## Phase 5B.2 — Beta Readiness, Support & Trust Polish *(Completed)*
+
+### Backend
+- **Report System** — Added `POST /api/v1/reports` endpoint for users to submit data/service complaints (e.g. wrong clinic info, doctor unavailable). Reports are saved and broadcasted to admin users as notifications of type `user_report`.
+- **Admin Verification** — Enhanced the doctor list and getById controllers to include `pmdcRegistrationNumber` for patient public verification.
+
+### Flutter UI/UX Polish
+- **Doctor Profile Screen** — Integrated trust badges: Verified Doctor, PMDC registration number, doctor-controlled final timing confirmation, and "No Platform Fee" (Pay at Clinic). Added CTA actions: Copy Booking Link, Share Profile, and Report Issue dialog.
+- **Support & Legal Screens** — Created tabbed `SupportScreen` under `/support` featuring Email support, WhatsApp helper card, Privacy Policy, Terms of Service, and a localized Medical Disclaimer highlighting Karachi/Pakistan emergency rescue numbers (1122, 115).
+- **Patient Profile Screen** — Integrated Support & Help tiles, Legal Policy shortcuts, and clear disclaimer info.
+- **Tab Layout & Empty States** — Renamed my appointments tabs to `Confirmed` and `Requests` (Awaiting Confirmation), and updated descriptive empty state subtitles across patient and doctor views to ensure total process transparency.
+
+---
+
 ## Next Planned Phase
 
 ### Future Feature Phases
-- **Phase 2F** — Prescriptions & Reviews
-- **Phase 2G** — Chat/Messaging enhancements
-- **Phase 6** — Mobile Native (iOS/Android)
+- **Phase 5C** — Production Release, Secrets Rotation, and Launch Security Verification
+- **Phase 6** — Mobile Native (iOS/Android) Testing and Deployment
 
