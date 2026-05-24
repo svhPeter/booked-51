@@ -107,7 +107,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: doctorState.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : doctorState.doctors.isEmpty
-                    : const EmptyStateWidget(
+                    ? const EmptyStateWidget(
                         icon: Icons.search_off_rounded,
                         title: 'No doctors found',
                         subtitle: 'Try a different name or specialty',
