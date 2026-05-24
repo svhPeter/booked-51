@@ -145,4 +145,70 @@ export class MessageService {
       ],
     };
   }
+
+  async listConversations(userId: string, role: string) {
+    const where: any = {
+      status: { in: ['confirmed', 'completed'] },
+    };
+    if (role === 'doctor') {
+      where.doctorId = userId;
+    } else {
+      where.patientId = userId;
+    }
+
+    const appointments = await prisma.appointment.findMany({
+      where,
+      include: {
+        patient: { select: { id: true, name: true, avatarUrl: true } },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            doctor: { select: { specialty: true } },
+          },
+        },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          select: { content: true, createdAt: true },
+        },
+      },
+    });
+
+    const conversations = await Promise.all(
+      appointments.map(async (appt) => {
+        const otherUser = role === 'doctor' ? appt.patient : appt.doctor;
+        const otherSpecialty = role === 'patient' ? appt.doctor.doctor?.specialty ?? '' : '';
+
+        // Unread messages count
+        const unreadCount = await prisma.message.count({
+          where: {
+            appointmentId: appt.id,
+            receiverId: userId,
+            isRead: false,
+          },
+        });
+
+        const latestMsg = appt.messages[0];
+
+        return {
+          appointmentId: appt.id,
+          otherParticipantId: otherUser.id,
+          otherParticipantName: otherUser.name,
+          otherParticipantAvatar: otherUser.avatarUrl ?? null,
+          otherParticipantSpecialty: otherSpecialty,
+          latestMessage: latestMsg?.content ?? 'No messages yet',
+          latestMessageTime: latestMsg?.createdAt ?? appt.createdAt,
+          unreadCount,
+          status: appt.status,
+        };
+      })
+    );
+
+    // Sort by latest message time descending
+    conversations.sort((a, b) => new Date(b.latestMessageTime).getTime() - new Date(a.latestMessageTime).getTime());
+
+    return conversations;
+  }
 }

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/ui_components.dart';
+import '../../widgets/docbook_logo.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -65,25 +66,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySurface,
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: const Icon(
-                          Icons.medical_services_rounded,
-                          size: 32,
-                          color: AppColors.primary,
+                      const DocBookLogo(size: 64, showText: false),
+                      const SizedBox(height: 16),
+                      RichText(
+                        text: const TextSpan(
+                          style: TextStyle(
+                            fontFamily: 'Inter',
+                            fontSize: 32,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1,
+                          ),
+                          children: [
+                            TextSpan(text: 'Doc', style: TextStyle(color: AppColors.textPrimary)),
+                            TextSpan(text: 'Book', style: TextStyle(color: AppColors.primary)),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Text('Welcome back', style: Theme.of(context).textTheme.displaySmall),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        'Sign in to manage your appointments',
-                        style: Theme.of(context).textTheme.bodyMedium,
+                        'Pakistan\'s free doctor appointment platform',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),

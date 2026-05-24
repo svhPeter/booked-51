@@ -3,6 +3,7 @@ class ApiConstants {
     'API_BASE_URL',
     defaultValue: 'http://localhost:3000/api/v1',
   );
+  static const bool enableVoiceNotes = false;
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String verifyOtp = '/auth/verify-otp';

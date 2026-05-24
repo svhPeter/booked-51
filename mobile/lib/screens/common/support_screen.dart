@@ -11,6 +11,10 @@ class SupportScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Help & Legal'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, size: 20),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           bottom: const TabBar(
             isScrollable: true,
             tabs: [

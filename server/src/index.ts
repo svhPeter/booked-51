@@ -18,7 +18,9 @@ import agoraRoutes from './routes/agora';
 import notificationRoutes from './routes/notification';
 import profileRoutes from './routes/profile';
 import reportRoutes from './routes/report';
+import uploadRoutes from './routes/upload';
 import { isSmtpConfigured, getEmailProvider } from './services/emailService';
+import path from 'path';
 
 const app = express();
 const httpServer = createServer(app);
@@ -43,6 +45,7 @@ app.use(cors({
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -111,6 +114,7 @@ app.use('/api/v1', agoraRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1', profileRoutes);
 app.use('/api/v1/reports', reportRoutes);
+app.use('/api/v1/uploads', uploadRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

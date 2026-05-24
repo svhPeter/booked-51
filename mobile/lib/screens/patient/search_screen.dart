@@ -212,9 +212,17 @@ class _DoctorCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Dr. ${doctor.name}',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  Row(
+                    children: [
+                      Text(
+                        'Dr. ${doctor.name}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      if (doctor.pmdcRegistrationNumber != null && doctor.pmdcRegistrationNumber!.isNotEmpty) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.verified_rounded, color: AppColors.secondary, size: 16),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(

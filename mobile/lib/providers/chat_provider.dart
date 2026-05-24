@@ -157,6 +157,19 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
   }
 
+  Future<String?> uploadVoiceBytes(List<int> bytes) async {
+    try {
+      final res = await _apiClient.post(
+        '/uploads/audio',
+        data: bytes,
+      );
+      return res.data['url'] as String?;
+    } catch (e) {
+      state = state.copyWith(error: _extractError(e));
+      return null;
+    }
+  }
+
   Future<void> markRead(String appointmentId) async {
     try {
       await _apiClient.put('/appointments/$appointmentId/messages/read');

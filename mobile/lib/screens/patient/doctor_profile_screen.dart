@@ -143,6 +143,10 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                       expandedHeight: 280,
                       floating: false,
                       pinned: true,
+                      leading: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
                       actions: [
                         IconButton(
                           icon: const Icon(Icons.share_rounded, color: Colors.white),

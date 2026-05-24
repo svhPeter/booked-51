@@ -107,6 +107,10 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                         ],
                       ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.chat_bubble_outline),
+                      onPressed: () => context.push('/inbox'),
+                    ),
                     Stack(
                       children: [
                         IconButton(

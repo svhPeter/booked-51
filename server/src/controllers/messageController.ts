@@ -59,4 +59,16 @@ export class MessageController {
       next(error);
     }
   }
+
+  async conversations(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const list = await messageService.listConversations(
+        req.userId!,
+        req.userRole!
+      );
+      res.json({ conversations: list });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

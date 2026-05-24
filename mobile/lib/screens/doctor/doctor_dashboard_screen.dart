@@ -67,7 +67,10 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
       appBar: AppBar(
         title: const Text('Doctor Dashboard'),
         actions: [
-          const RoleMenuButton(profileRoute: '/doctor/profile/edit'),
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            onPressed: () => context.push('/inbox'),
+          ),
           Consumer(
             builder: (context, ref, _) {
               final notifState = ref.watch(notificationProvider);
@@ -103,6 +106,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
               );
             },
           ),
+          const RoleMenuButton(profileRoute: '/doctor/profile/edit'),
         ],
         bottom: TabBar(
           controller: _tabController,
@@ -174,23 +178,23 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
       child: Row(
         children: [
           _StatCard(
-            icon: Icons.schedule,
+            icon: Icons.schedule_rounded,
             value: '${summary.todayCount}',
             label: 'Today',
             color: AppColors.primary,
           ),
           const SizedBox(width: 10),
           _StatCard(
-            icon: Icons.people,
-            value: '${summary.totalPatients}',
-            label: 'Patients',
+            icon: Icons.check_circle_outline_rounded,
+            value: '${summary.completedCount}',
+            label: 'Completed',
             color: AppColors.secondary,
           ),
           const SizedBox(width: 10),
           _StatCard(
-            icon: Icons.attach_money,
-            value: 'Rs ${summary.totalRevenue.toStringAsFixed(0)}',
-            label: 'Earnings',
+            icon: Icons.people_outline_rounded,
+            value: '${summary.totalPatients}',
+            label: 'Patients',
             color: AppColors.accent,
           ),
         ],
@@ -508,18 +512,11 @@ class _AppointmentCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.credit_card, size: 14, color: AppColors.textHint),
+                const Icon(Icons.wallet_outlined, size: 14, color: AppColors.secondary),
                 const SizedBox(width: 6),
                 Text(
-                  'PKR ${appointment.payment!.amount.toStringAsFixed(0)}',
-                  style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                ),
-                const SizedBox(width: 8),
-                _buildPaymentBadge(appointment.payment!.status),
-                const SizedBox(width: 8),
-                Text(
-                  appointment.payment!.provider.toUpperCase(),
-                  style: TextStyle(fontSize: 11, color: AppColors.textHint),
+                  'PKR ${appointment.payment!.amount.toStringAsFixed(0)} • Pay at Clinic',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                 ),
               ],
             ),
