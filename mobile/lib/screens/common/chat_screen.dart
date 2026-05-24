@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/api_constants.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/utils/audio_helper.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 
@@ -24,12 +23,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _isRecording = false;
   int _recordSeconds = 0;
   Timer? _recordTimer;
-  late final AudioHelper _audioHelper;
 
   @override
   void initState() {
     super.initState();
-    _audioHelper = AudioHelper.create()..init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final userId = ref.read(authProvider).user?.id;
       if (userId != null) {
@@ -41,7 +38,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void dispose() {
     _recordTimer?.cancel();
-    _audioHelper.dispose();
     ref.read(chatProvider.notifier).closeChat();
     _controller.dispose();
     _scrollController.dispose();
@@ -73,30 +69,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _startRecording() async {
-    final hasPerm = await _audioHelper.hasPermission();
-    if (!hasPerm) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Microphone permission is required to record voice notes.')),
-      );
-      return;
-    }
-
-    setState(() {
-      _isRecording = true;
-      _recordSeconds = 0;
-    });
-    _recordTimer?.cancel();
-    _recordTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _recordSeconds++;
-      });
-    });
-    await _audioHelper.startRecording();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Voice recording is currently unavailable in this build.')),
+    );
   }
 
   void _cancelRecording() {
     _recordTimer?.cancel();
-    _audioHelper.cancelRecording();
     setState(() {
       _isRecording = false;
       _recordSeconds = 0;
@@ -105,31 +84,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void _sendVoiceNote() async {
     _recordTimer?.cancel();
-    final duration = _recordSeconds > 0 ? _recordSeconds : 3;
     setState(() {
       _isRecording = false;
       _recordSeconds = 0;
     });
-
-    try {
-      final bytes = await _audioHelper.stopRecording();
-      if (bytes == null || bytes.isEmpty) return;
-
-      final url = await ref.read(chatProvider.notifier).uploadVoiceBytes(bytes);
-      if (url == null) throw Exception("Failed to upload audio file");
-
-      final voicePayload = jsonEncode({
-        'type': 'voice',
-        'audioUrl': url,
-        'duration': duration.toDouble(),
-      });
-
-      _sendMessage(voicePayload);
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error uploading voice note: $e')),
-      );
-    }
   }
 
   String _formatDuration(int seconds) {
@@ -436,66 +394,16 @@ class _PulsingRedDotState extends State<_PulsingRedDot> with SingleTickerProvide
   }
 }
 
-class _VoicePlayerBubble extends StatefulWidget {
+class _VoicePlayerBubble extends StatelessWidget {
   final String audioUrl;
   final double duration;
   final bool isMine;
 
-  const _VoicePlayerBubble({required this.audioUrl, required this.duration, required this.isMine});
-
-  @override
-  State<_VoicePlayerBubble> createState() => _VoicePlayerBubbleState();
-}
-
-class _VoicePlayerBubbleState extends State<_VoicePlayerBubble> {
-  bool _isPlaying = false;
-  double _progress = 0.0;
-  double _displayDuration = 0.0;
-  late final AudioHelper _audioHelper;
-
-  @override
-  void initState() {
-    super.initState();
-    _displayDuration = widget.duration;
-    _audioHelper = AudioHelper.create()..init();
-  }
-
-  @override
-  void dispose() {
-    _audioHelper.dispose();
-    super.dispose();
-  }
-
-  void _togglePlay() {
-    if (_isPlaying) {
-      _audioHelper.stop();
-      setState(() {
-        _isPlaying = false;
-      });
-    } else {
-      setState(() {
-        _isPlaying = true;
-      });
-
-      _audioHelper.play(
-        widget.audioUrl,
-        onComplete: () {
-          setState(() {
-            _isPlaying = false;
-            _progress = 0.0;
-          });
-        },
-        onProgress: (progress, duration) {
-          setState(() {
-            _progress = progress;
-            if (duration > 0) {
-              _displayDuration = duration;
-            }
-          });
-        },
-      );
-    }
-  }
+  const _VoicePlayerBubble({
+    required this.audioUrl,
+    required this.duration,
+    required this.isMine,
+  });
 
   String _formatDisplay(double seconds) {
     final s = seconds.toInt();
@@ -506,70 +414,38 @@ class _VoicePlayerBubbleState extends State<_VoicePlayerBubble> {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = widget.isMine ? Colors.white : AppColors.primary;
-    final trackColor = widget.isMine ? Colors.white24 : AppColors.border;
+    final activeColor = isMine ? Colors.white : AppColors.primary;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          icon: Icon(
-            _isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
-            color: activeColor,
-            size: 36,
-          ),
-          onPressed: _togglePlay,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
+        Icon(
+          Icons.mic_none_outlined,
+          color: activeColor.withValues(alpha: 0.6),
+          size: 28,
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: 12,
-                child: SliderTheme(
-                  data: SliderTheme.of(context).copyWith(
-                    trackHeight: 3,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
-                    activeTrackColor: activeColor,
-                    inactiveTrackColor: trackColor,
-                    thumbColor: activeColor,
-                  ),
-                  child: Slider(
-                    value: _progress,
-                    onChanged: (val) {
-                      setState(() {
-                        _progress = val;
-                      });
-                    },
-                  ),
-                ),
+        const SizedBox(width: 10),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Voice Message',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isMine ? Colors.white : AppColors.textPrimary,
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _formatDisplay(_progress * _displayDuration),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: widget.isMine ? Colors.white70 : AppColors.textSecondary,
-                    ),
-                  ),
-                  Text(
-                    _formatDisplay(_displayDuration),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: widget.isMine ? Colors.white70 : AppColors.textSecondary,
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${_formatDisplay(duration)} • Playback unavailable in web',
+              style: TextStyle(
+                fontSize: 10,
+                color: isMine ? Colors.white70 : AppColors.textSecondary,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/network/api_client.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../widgets/ui_components.dart';
@@ -31,7 +32,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
     });
 
     try {
-      final apiClient = ref.read(authProvider.notifier).apiClient;
+      final apiClient = ref.read(apiClientProvider);
       final res = await apiClient.get('/appointments/conversations/active');
       setState(() {
         _conversations = res.data['conversations'] ?? [];
@@ -119,11 +120,9 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
 
                           // Parse JSON message (for audio/voice preview)
                           String previewText = rawMessage;
-                          bool isVoice = false;
                           if (rawMessage.startsWith('{') && rawMessage.endsWith('}')) {
                             try {
                               if (rawMessage.contains('"type":"voice"') || rawMessage.contains('"type": "voice"')) {
-                                isVoice = true;
                                 previewText = '🎤 Voice note';
                               }
                             } catch (_) {}
