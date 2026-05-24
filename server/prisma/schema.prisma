@@ -163,13 +163,15 @@ model Appointment {
   patientId   String
   doctorId    String
   hospitalId  String?
-  date        DateTime
-  timeSlot    String
-  status      AppointmentStatus @default(pending)
-  meetingLink String?
-  notes       String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  date              DateTime
+  timeSlot          String
+  preferredDate     DateTime?
+  preferredTimeSlot String?
+  status            AppointmentStatus @default(pending)
+  meetingLink       String?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   patient      User      @relation("PatientAppointments", fields: [patientId], references: [id])
   doctor       User      @relation("DoctorAppointments", fields: [doctorId], references: [id])

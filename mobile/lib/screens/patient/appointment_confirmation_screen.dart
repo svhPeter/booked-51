@@ -64,7 +64,7 @@ class _AppointmentConfirmationScreenState
         '${appointment.date.day}/${appointment.date.month}/${appointment.date.year}';
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appointment Confirmed')),
+      appBar: AppBar(title: const Text('Appointment Requested')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -81,13 +81,13 @@ class _AppointmentConfirmationScreenState
             ),
             const SizedBox(height: 24),
             Text(
-              'Your appointment is confirmed',
+              'Your appointment request has been sent',
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
-              'No online payment required. Pay the doctor directly at your visit.',
+              'The doctor/clinic will confirm the final time. No online payment required—pay the doctor directly at the clinic.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textHint,
                   ),

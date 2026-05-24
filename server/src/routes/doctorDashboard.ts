@@ -6,6 +6,7 @@ import {
   getAppointmentById,
   completeAppointment,
   cancelAppointment,
+  confirmAppointment,
 } from '../controllers/doctorDashboardController';
 
 const router = Router();
@@ -18,5 +19,6 @@ router.get('/appointments', getMyAppointments);
 router.get('/appointments/:id', getAppointmentById);
 router.put('/appointments/:id/complete', completeAppointment);
 router.put('/appointments/:id/cancel', cancelAppointment);
+router.put('/appointments/:id/confirm', confirmAppointment);
 
 export default router;

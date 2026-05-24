@@ -158,7 +158,7 @@ class _BookAppointmentScreenState
                       ),
                     ),
                   const SizedBox(height: 28),
-                  Text('Select Date', style: Theme.of(context).textTheme.titleLarge),
+                  Text('Select Preferred Date', style: Theme.of(context).textTheme.titleLarge),
                   if (doctor != null && doctor.availableDays.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
@@ -284,7 +284,7 @@ class _BookAppointmentScreenState
                     ),
                   ),
                   const SizedBox(height: 28),
-                  Text('Available Slots', style: Theme.of(context).textTheme.titleLarge),
+                  Text('Preferred Time Slot', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 16),
                   appointmentState.availableSlots.isEmpty
                       ? Container(
@@ -351,8 +351,8 @@ class _BookAppointmentScreenState
                           : const Icon(Icons.check_circle_outline),
                       label: Text(
                         appointmentState.isLoading
-                            ? 'Booking...'
-                            : 'Confirm Booking',
+                            ? 'Sending Request...'
+                            : 'Request Appointment',
                       ),
                     ),
                   ),

@@ -10,6 +10,8 @@ class AppointmentModel {
   final String? hospitalName;
   final DateTime date;
   final String timeSlot;
+  final DateTime? preferredDate;
+  final String? preferredTimeSlot;
   final AppointmentStatus status;
   final double fee;
   final String? meetingLink;
@@ -26,6 +28,8 @@ class AppointmentModel {
     this.hospitalName,
     required this.date,
     required this.timeSlot,
+    this.preferredDate,
+    this.preferredTimeSlot,
     required this.status,
     this.fee = 0,
     this.meetingLink,
@@ -44,6 +48,10 @@ class AppointmentModel {
       hospitalName: json['hospitalName'],
       date: DateTime.parse(json['date']),
       timeSlot: json['timeSlot'] ?? '',
+      preferredDate: json['preferredDate'] != null
+          ? DateTime.parse(json['preferredDate'])
+          : null,
+      preferredTimeSlot: json['preferredTimeSlot'],
       status: AppointmentStatus.values.firstWhere(
         (s) => s.name == json['status'],
         orElse: () => AppointmentStatus.pending,
@@ -67,6 +75,8 @@ class AppointmentModel {
         'hospitalName': hospitalName,
         'date': date.toIso8601String(),
         'timeSlot': timeSlot,
+        'preferredDate': preferredDate?.toIso8601String(),
+        'preferredTimeSlot': preferredTimeSlot,
         'status': status.name,
         'fee': fee,
         'meetingLink': meetingLink,

@@ -107,8 +107,14 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
             Text(a.specialty, style: const TextStyle(color: AppColors.primary)),
             const SizedBox(height: 16),
             _card([
-              _line('Date', dateStr),
-              _line('Time', a.timeSlot),
+              _line(
+                a.status == AppointmentStatus.pending ? 'Preferred Date' : 'Date',
+                dateStr,
+              ),
+              _line(
+                a.status == AppointmentStatus.pending ? 'Preferred Time' : 'Time',
+                a.timeSlot,
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
@@ -126,6 +132,46 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
               'Payment is made directly to the doctor at your visit. DocBook does not charge you online.',
               style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
             ),
+            if (a.status == AppointmentStatus.pending) ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: AppColors.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Waiting for doctor/clinic confirmation.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'You will be notified when the final time is confirmed.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             if (a.status == AppointmentStatus.confirmed) ...[
               SizedBox(
@@ -147,13 +193,18 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                   label: const Text('Message Doctor'),
                 ),
               ),
-            if (a.status == AppointmentStatus.confirmed) ...[
+            if (a.status == AppointmentStatus.confirmed || a.status == AppointmentStatus.pending) ...[
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
                   onPressed: _cancel,
-                  child: const Text('Cancel Appointment', style: TextStyle(color: AppColors.error)),
+                  child: Text(
+                    a.status == AppointmentStatus.pending
+                        ? 'Cancel Request'
+                        : 'Cancel Appointment',
+                    style: const TextStyle(color: AppColors.error),
+                  ),
                 ),
               ),
             ],

@@ -48,7 +48,7 @@ export class AppointmentService {
         doctorId: data.doctorId,
         date: appointmentDate,
         timeSlot: data.timeSlot,
-        status: { in: ['pending', 'confirmed'] },
+        status: 'confirmed',
       },
     });
 
@@ -62,8 +62,10 @@ export class AppointmentService {
         doctorId: data.doctorId,
         date: appointmentDate,
         timeSlot: data.timeSlot,
+        preferredDate: appointmentDate,
+        preferredTimeSlot: data.timeSlot,
         hospitalId: data.hospitalId,
-        status: 'confirmed',
+        status: 'pending',
       },
       include: {
         patient: {
@@ -108,16 +110,9 @@ export class AppointmentService {
     const patientName = appointment.patient?.name ?? 'Patient';
     createNotification({
       userId: data.doctorId,
-      title: 'New Appointment',
-      body: `New appointment booked with ${patientName} on ${appointmentDate.toLocaleDateString()} at ${data.timeSlot}`,
-      type: 'appointment_booked',
-      data: { appointmentId: appointment.id },
-    }).catch(() => {});
-    createNotification({
-      userId: data.patientId,
-      title: 'Appointment Confirmed',
-      body: `Your appointment with ${doctorName} on ${appointmentDate.toLocaleDateString()} at ${data.timeSlot} has been confirmed`,
-      type: 'appointment_booked',
+      title: 'New Appointment Request',
+      body: `New appointment request from ${patientName} on ${appointmentDate.toLocaleDateString()} at ${data.timeSlot}`,
+      type: 'appointment_requested',
       data: { appointmentId: appointment.id },
     }).catch(() => {});
 
@@ -199,6 +194,8 @@ export class AppointmentService {
     doctorId: string;
     date: Date;
     timeSlot: string;
+    preferredDate?: Date | null;
+    preferredTimeSlot?: string | null;
     status: string;
     meetingLink: string | null;
     notes: string | null;
@@ -217,6 +214,8 @@ export class AppointmentService {
       doctorId: a.doctorId,
       date: a.date,
       timeSlot: a.timeSlot,
+      preferredDate: a.preferredDate,
+      preferredTimeSlot: a.preferredTimeSlot,
       status: a.status,
       meetingLink: a.meetingLink,
       notes: a.notes,
@@ -279,6 +278,8 @@ export class AppointmentService {
       doctorId: a.doctorId,
       date: a.date,
       timeSlot: a.timeSlot,
+      preferredDate: a.preferredDate,
+      preferredTimeSlot: a.preferredTimeSlot,
       status: a.status,
       meetingLink: a.meetingLink,
       notes: a.notes,
@@ -334,6 +335,8 @@ export class AppointmentService {
       doctorId: row.doctorId,
       date: row.date,
       timeSlot: row.timeSlot,
+      preferredDate: row.preferredDate,
+      preferredTimeSlot: row.preferredTimeSlot,
       status: row.status,
       meetingLink: row.meetingLink,
       notes: row.notes,
@@ -444,10 +447,13 @@ export class AppointmentService {
       },
     });
 
+    const isPending = appointment.status === 'pending';
     createNotification({
       userId: appointment.patientId,
-      title: 'Appointment Cancelled',
-      body: `Your appointment with ${updated.doctor?.name ?? 'Doctor'} on ${appointment.date.toLocaleDateString()} at ${appointment.timeSlot} has been cancelled`,
+      title: isPending ? 'Appointment Request Cancelled' : 'Appointment Cancelled',
+      body: isPending
+        ? `Your appointment request was not confirmed/cancelled.`
+        : `Your appointment with ${updated.doctor?.name ?? 'Doctor'} on ${appointment.date.toLocaleDateString()} at ${appointment.timeSlot} has been cancelled`,
       type: 'appointment_cancelled',
       data: { appointmentId: appointment.id },
     }).catch(() => {});
@@ -486,6 +492,73 @@ export class AppointmentService {
       fee: updated.doctor?.doctor?.consultationFee ?? 0,
       hospitalName: updated.hospital?.name,
     };
+  }
+
+  async confirm(appointmentId: string, doctorUserId: string, data: { date: string; timeSlot: string }) {
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: {
+        doctor: { select: { name: true } },
+      },
+    });
+
+    if (!appointment) {
+      throw new AppError('Appointment not found', 404);
+    }
+
+    if (appointment.doctorId !== doctorUserId) {
+      throw new AppError('Not authorized to confirm this appointment', 403);
+    }
+
+    const finalDate = new Date(data.date);
+    this.validateTimeSlot(data.timeSlot);
+
+    // Conflict check
+    const existing = await prisma.appointment.findFirst({
+      where: {
+        doctorId: appointment.doctorId,
+        date: finalDate,
+        timeSlot: data.timeSlot,
+        status: 'confirmed',
+        NOT: { id: appointmentId },
+      },
+    });
+
+    if (existing) {
+      throw new AppError('This time slot is already booked for a confirmed appointment', 409);
+    }
+
+    const updated = await prisma.appointment.update({
+      where: { id: appointmentId },
+      data: {
+        status: 'confirmed',
+        date: finalDate,
+        timeSlot: data.timeSlot,
+      },
+    });
+
+    // Notify patient
+    const doctorName = appointment.doctor?.name ?? 'Doctor';
+    createNotification({
+      userId: appointment.patientId,
+      title: 'Appointment Confirmed',
+      body: `Dr. ${doctorName} confirmed your appointment for ${finalDate.toLocaleDateString()} at ${data.timeSlot}`,
+      type: 'appointment_confirmed',
+      data: { appointmentId: appointment.id },
+    }).catch(() => {});
+
+    logger.info('appointment_confirmed', {
+      appointmentId: appointment.id,
+      patientId: appointment.patientId,
+      doctorId: appointment.doctorId,
+      finalDate: data.date,
+      finalTimeSlot: data.timeSlot,
+    });
+
+    io.to(`user:${appointment.patientId}`).emit('appointment-confirmed', updated);
+    io.to(`user:${appointment.doctorId}`).emit('appointment-confirmed', updated);
+
+    return updated;
   }
 
   async complete(appointmentId: string) {

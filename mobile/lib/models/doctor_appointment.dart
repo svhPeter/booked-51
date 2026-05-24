@@ -8,6 +8,8 @@ class DoctorAppointmentModel {
   final String? patientAvatar;
   final DateTime date;
   final String timeSlot;
+  final DateTime? preferredDate;
+  final String? preferredTimeSlot;
   final String status;
   final String? meetingLink;
   final String? notes;
@@ -25,6 +27,8 @@ class DoctorAppointmentModel {
     this.patientAvatar,
     required this.date,
     required this.timeSlot,
+    this.preferredDate,
+    this.preferredTimeSlot,
     required this.status,
     this.meetingLink,
     this.notes,
@@ -48,6 +52,10 @@ class DoctorAppointmentModel {
       patientAvatar: json['patientAvatar'],
       date: DateTime.parse(json['date']),
       timeSlot: json['timeSlot'] ?? '',
+      preferredDate: json['preferredDate'] != null
+          ? DateTime.parse(json['preferredDate'])
+          : null,
+      preferredTimeSlot: json['preferredTimeSlot'],
       status: json['status'] ?? '',
       meetingLink: json['meetingLink'],
       notes: json['notes'],

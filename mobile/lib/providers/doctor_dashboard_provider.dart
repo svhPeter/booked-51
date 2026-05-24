@@ -97,6 +97,24 @@ class DoctorDashboardNotifier extends StateNotifier<DoctorDashboardState> {
     }
   }
 
+  Future<void> confirmAppointment(String appointmentId, DateTime date, String timeSlot) async {
+    state = state.copyWith(isLoading: true, error: null, actionSuccess: false);
+    try {
+      await _apiClient.put(
+        '/doctor/appointments/$appointmentId/confirm',
+        data: {
+          'date': date.toIso8601String(),
+          'timeSlot': timeSlot,
+        },
+      );
+      state = state.copyWith(isLoading: false, actionSuccess: true);
+      await fetchAppointments();
+      await fetchSummary();
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _extractError(e));
+    }
+  }
+
   void resetActionState() {
     state = state.copyWith(actionSuccess: false, error: null);
   }

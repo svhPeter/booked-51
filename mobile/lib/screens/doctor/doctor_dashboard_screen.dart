@@ -24,7 +24,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     Future.microtask(() {
       ref.read(doctorDashboardProvider.notifier).fetchSummary();
       ref.read(doctorDashboardProvider.notifier).fetchAppointments();
@@ -109,7 +109,9 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textHint,
+          isScrollable: true,
           tabs: const [
+            Tab(text: 'Requests'),
             Tab(text: 'Today'),
             Tab(text: 'Upcoming'),
             Tab(text: 'Completed'),
@@ -128,6 +130,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
                       child: TabBarView(
                         controller: _tabController,
                         children: [
+                          _buildAppointmentList(state, 'pending'),
                           _buildAppointmentList(state, 'today'),
                           _buildAppointmentList(state, 'upcoming'),
                           _buildAppointmentList(state, 'completed'),
@@ -201,15 +204,18 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
     final todayEnd = todayStart.add(const Duration(days: 1));
 
     switch (tab) {
+      case 'pending':
+        return state.appointments.where((a) => a.status == 'pending').toList();
       case 'today':
         return state.appointments.where((a) {
-          return !a.date.isBefore(todayStart) && a.date.isBefore(todayEnd);
+          return a.status == 'confirmed' &&
+              !a.date.isBefore(todayStart) &&
+              a.date.isBefore(todayEnd);
         }).toList();
       case 'upcoming':
         return state.appointments.where((a) {
-          return !a.date.isBefore(todayEnd) &&
-              a.status != 'cancelled' &&
-              a.status != 'completed';
+          return a.status == 'confirmed' &&
+              !a.date.isBefore(todayEnd);
         }).toList();
       case 'completed':
         return state.appointments.where((a) => a.status == 'completed').toList();
@@ -226,16 +232,20 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
     if (items.isEmpty) {
       return EmptyStateWidget(
         icon: Icons.event_busy_rounded,
-        title: tab == 'today'
-            ? 'No appointments today'
-            : tab == 'upcoming'
-                ? 'No upcoming appointments'
-                : tab == 'completed'
-                    ? 'No completed appointments'
-                    : 'No cancelled appointments',
-        subtitle: tab == 'today'
-            ? 'Your scheduled patients will appear here'
-            : null,
+        title: tab == 'pending'
+            ? 'No pending requests'
+            : tab == 'today'
+                ? 'No appointments today'
+                : tab == 'upcoming'
+                    ? 'No upcoming appointments'
+                    : tab == 'completed'
+                        ? 'No completed appointments'
+                        : 'No cancelled appointments',
+        subtitle: tab == 'pending'
+            ? 'New appointment requests from patients will show here'
+            : tab == 'today'
+                ? 'Your scheduled patients will appear here'
+                : null,
       );
     }
 
@@ -251,6 +261,9 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
           final appt = items[index];
           return _AppointmentCard(
             appointment: appt,
+            onConfirm: appt.status == 'pending'
+                ? () => _showConfirmAppointmentDialog(context, appt)
+                : null,
             onMessage: appt.status == 'confirmed' || appt.status == 'completed'
                 ? () => context.push('/doctor/appointment/${appt.id}/chat')
                 : null,
@@ -266,6 +279,118 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
           );
         },
       ),
+    );
+  }
+
+  Future<void> _showConfirmAppointmentDialog(BuildContext context, DoctorAppointmentModel appointment) async {
+    DateTime selectedDate = appointment.preferredDate ?? appointment.date;
+    String selectedSlot = appointment.preferredTimeSlot ?? appointment.timeSlot;
+
+    final dateController = TextEditingController(
+      text: DateFormat('yyyy-MM-dd').format(selectedDate),
+    );
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Confirm Appointment'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Patient: ${appointment.patientName}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  if (appointment.preferredDate != null && appointment.preferredTimeSlot != null) ...[
+                    Text(
+                      'Preferred: ${DateFormat('MMM dd, yyyy').format(appointment.preferredDate!)} at ${appointment.preferredTimeSlot}',
+                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  const Text('Set Confirmed Date:', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: dateController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Select Date',
+                      suffixIcon: Icon(Icons.calendar_today, size: 20),
+                    ),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          selectedDate = picked;
+                          dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Set Confirmed Time Slot:', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+                  const SizedBox(height: 6),
+                  DropdownButtonFormField<String>(
+                    value: selectedSlot,
+                    items: const [
+                      DropdownMenuItem(value: '09:00', child: Text('09:00 AM')),
+                      DropdownMenuItem(value: '09:30', child: Text('09:30 AM')),
+                      DropdownMenuItem(value: '10:00', child: Text('10:00 AM')),
+                      DropdownMenuItem(value: '10:30', child: Text('10:30 AM')),
+                      DropdownMenuItem(value: '11:00', child: Text('11:00 AM')),
+                      DropdownMenuItem(value: '11:30', child: Text('11:30 AM')),
+                      DropdownMenuItem(value: '12:00', child: Text('12:00 PM')),
+                      DropdownMenuItem(value: '12:30', child: Text('12:30 PM')),
+                      DropdownMenuItem(value: '13:00', child: Text('01:00 PM')),
+                      DropdownMenuItem(value: '13:30', child: Text('01:30 PM')),
+                      DropdownMenuItem(value: '14:00', child: Text('02:00 PM')),
+                      DropdownMenuItem(value: '14:30', child: Text('02:30 PM')),
+                      DropdownMenuItem(value: '15:00', child: Text('03:00 PM')),
+                      DropdownMenuItem(value: '15:30', child: Text('03:30 PM')),
+                      DropdownMenuItem(value: '16:00', child: Text('04:00 PM')),
+                      DropdownMenuItem(value: '16:30', child: Text('04:30 PM')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setDialogState(() {
+                          selectedSlot = val;
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    ref.read(doctorDashboardProvider.notifier).confirmAppointment(
+                          appointment.id,
+                          selectedDate,
+                          selectedSlot,
+                        );
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Confirm'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -295,6 +420,7 @@ class _AppointmentCard extends StatelessWidget {
   final DoctorAppointmentModel appointment;
   final VoidCallback? onComplete;
   final VoidCallback? onCancel;
+  final VoidCallback? onConfirm;
   final VoidCallback? onJoinCall;
   final VoidCallback? onMessage;
 
@@ -302,6 +428,7 @@ class _AppointmentCard extends StatelessWidget {
     required this.appointment,
     this.onComplete,
     this.onCancel,
+    this.onConfirm,
     this.onJoinCall,
     this.onMessage,
   });
@@ -364,11 +491,17 @@ class _AppointmentCard extends StatelessWidget {
             children: [
               const Icon(Icons.calendar_today, size: 14, color: AppColors.textHint),
               const SizedBox(width: 6),
-              Text(dateStr, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              Text(
+                appointment.status == 'pending' ? 'Preferred: $dateStr' : dateStr,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
               const SizedBox(width: 16),
               const Icon(Icons.access_time, size: 14, color: AppColors.textHint),
               const SizedBox(width: 6),
-              Text(timeStr, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              Text(
+                appointment.status == 'pending' ? 'Preferred: $timeStr' : timeStr,
+                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+              ),
             ],
           ),
           if (appointment.payment != null) ...[
@@ -391,11 +524,20 @@ class _AppointmentCard extends StatelessWidget {
               ],
             ),
           ],
-          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null) ...[
+          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null || onConfirm != null) ...[
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (onConfirm != null) ...[
+                  _ActionButton(
+                    label: 'Confirm',
+                    icon: Icons.check_circle_outline,
+                    color: AppColors.secondary,
+                    onTap: onConfirm!,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (onMessage != null) ...[
                   _ActionButton(
                     label: 'Message',
@@ -424,7 +566,7 @@ class _AppointmentCard extends StatelessWidget {
                 if (onCancel != null) ...[
                   const SizedBox(width: 8),
                   _ActionButton(
-                    label: 'Cancel',
+                    label: appointment.status == 'pending' ? 'Reject' : 'Cancel',
                     icon: Icons.cancel_outlined,
                     color: AppColors.error,
                     onTap: onCancel!,

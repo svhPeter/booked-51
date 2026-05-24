@@ -62,3 +62,17 @@ export const cancelAppointment = async (req: AuthRequest, res: Response, next: N
     next(error);
   }
 };
+
+export const confirmAppointment = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const doctorId = req.userId!;
+    const { date, timeSlot } = req.body;
+    if (!date || !timeSlot) {
+      throw new AppError('Date and time slot are required', 400);
+    }
+    const updated = await appointmentService.confirm(req.params.id, doctorId, { date, timeSlot });
+    res.json({ success: true, appointment: updated });
+  } catch (error) {
+    next(error);
+  }
+};
