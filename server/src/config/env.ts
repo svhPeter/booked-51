@@ -81,7 +81,7 @@ export const env = {
   payfastBaseUrl: process.env.PAYFAST_BASE_URL || '',
 
   agoraAppId: process.env.AGORA_APP_ID || '',
-  agoraCertificate: process.env.AGORA_APP_CERTIFICATE || '',
+  agoraCertificate: process.env.AGORA_APP_CERTIFICATE || process.env.AGORA_CERTIFICATE || '',
 
   firebaseServerKey: process.env.FIREBASE_SERVER_KEY || '',
 

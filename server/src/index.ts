@@ -92,6 +92,10 @@ app.get('/api/v1/health', async (_req, res) => {
     dbStatus = 'unhealthy';
   }
   const provider = getEmailProvider();
+  const isAgoraConfigured = env.agoraAppId && 
+                            !env.agoraAppId.startsWith('your-') && 
+                            env.agoraCertificate && 
+                            !env.agoraCertificate.startsWith('your-');
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -100,6 +104,10 @@ app.get('/api/v1/health', async (_req, res) => {
     email: {
       provider,
       configured: provider !== 'none',
+    },
+    agora: {
+      configured: !!isAgoraConfigured,
+      mode: isAgoraConfigured ? 'real' : 'mock',
     },
   });
 });
