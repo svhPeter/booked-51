@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/appointment.dart';
-import '../../providers/payment_provider.dart';
 
 class PaymentScreen extends ConsumerStatefulWidget {
   final AppointmentModel appointment;
@@ -15,38 +13,8 @@ class PaymentScreen extends ConsumerStatefulWidget {
 }
 
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
-  String _selectedProvider = 'mock';
-
-  final _providers = [
-    {'key': 'mock', 'label': 'Mock Payment (Dev)', 'icon': Icons.developer_mode, 'desc': 'Test payment without real charges'},
-    {'key': 'stripe', 'label': 'Stripe (International)', 'icon': Icons.credit_card, 'desc': 'Visa, Mastercard, etc.'},
-    {'key': 'payfast', 'label': 'PayFast (Pakistan)', 'icon': Icons.account_balance, 'desc': 'Local payment methods'},
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final paymentState = ref.watch(paymentProvider);
-
-    ref.listen<PaymentState>(paymentProvider, (previous, next) {
-      if (next.paymentSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Payment successful!'),
-            backgroundColor: AppColors.secondary,
-          ),
-        );
-        context.go('/patient/appointments');
-      }
-      if (next.error != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    });
-
     return Scaffold(
       appBar: AppBar(title: const Text('Payment')),
       body: SingleChildScrollView(
@@ -138,92 +106,62 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ),
             ),
             const SizedBox(height: 28),
-            const Text('Select Payment Method', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 16),
-            ..._providers.map((p) => Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: GestureDetector(
-                onTap: () {
-                  setState(() => _selectedProvider = p['key'] as String);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: _selectedProvider == p['key'] ? AppColors.primary : AppColors.border,
-                      width: _selectedProvider == p['key'] ? 2 : 1,
-                    ),
-                  ),
-                  child: Row(
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primarySurface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Icon(
-                        p['icon'] as IconData,
-                        color: _selectedProvider == p['key'] ? AppColors.primary : AppColors.textHint,
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              p['label'] as String,
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                color: _selectedProvider == p['key'] ? AppColors.primary : AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              p['desc'] as String,
-                              style: const TextStyle(fontSize: 12, color: AppColors.textHint),
-                            ),
-                          ],
+                      Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'How payment works',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                      if (_selectedProvider == p['key'])
-                        const Icon(Icons.check_circle, color: AppColors.primary),
                     ],
                   ),
-                ),
-              ),
-            )),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton.icon(
-                onPressed: paymentState.isLoading ? null : _handlePayment,
-                icon: paymentState.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Icon(Icons.lock_outline),
-                label: Text(
-                  paymentState.isLoading
-                      ? 'Processing...'
-                      : 'Pay PKR ${widget.appointment.fee.toStringAsFixed(0)}',
-                ),
+                  const SizedBox(height: 16),
+                  _infoRow(
+                    Icons.store_rounded,
+                    'Pay the doctor/clinic directly at your visit.',
+                  ),
+                  const SizedBox(height: 12),
+                  _infoRow(
+                    Icons.money_off_rounded,
+                    'DocBook does not charge any platform or online fees.',
+                  ),
+                  const SizedBox(height: 12),
+                  _infoRow(
+                    Icons.shield_rounded,
+                    'Only pay verified doctor/clinic details after confirmation.',
+                  ),
+                  const SizedBox(height: 12),
+                  _infoRow(
+                    Icons.warning_amber_rounded,
+                    'Never send money to unverified phone numbers or accounts.',
+                  ),
+                ],
               ),
             ),
-            if (_selectedProvider == 'mock')
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.info_outline, size: 14, color: AppColors.textHint),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'Mock mode — no real charge will be made',
-                      style: TextStyle(fontSize: 12, color: AppColors.textHint),
-                    ),
-                  ],
-                ),
+            const SizedBox(height: 24),
+            const Center(
+              child: Text(
+                'DocBook does not collect consultation fees. All payments are handled directly between you and the doctor/clinic.',
+                style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.4),
+                textAlign: TextAlign.center,
               ),
+            ),
             const SizedBox(height: 24),
           ],
         ),
@@ -231,15 +169,19 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
     );
   }
 
-  void _handlePayment() async {
-    await ref.read(paymentProvider.notifier).createPayment(
-      appointmentId: widget.appointment.id,
-      provider: _selectedProvider,
+  Widget _infoRow(IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: AppColors.primary),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.3),
+          ),
+        ),
+      ],
     );
-
-    final state = ref.read(paymentProvider);
-    if (state.payment != null && _selectedProvider == 'mock') {
-      await ref.read(paymentProvider.notifier).mockPaymentSuccess(state.payment!.id);
-    }
   }
 }

@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/network/api_client.dart';
 import '../../providers/doctor_provider.dart';
-import '../../widgets/ui_components.dart';
 
 class DoctorProfileScreen extends ConsumerStatefulWidget {
   final String doctorId;
@@ -245,24 +244,24 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               children: [
                                 _TrustChip(
                                   icon: Icons.verified_user_rounded,
-                                  label: 'Verified & Approved',
+                                  label: 'Verified',
                                   color: AppColors.verified,
                                 ),
                                 if (doctor.pmdcRegistrationNumber != null &&
                                     doctor.pmdcRegistrationNumber!.isNotEmpty)
                                   _TrustChip(
                                     icon: Icons.badge_rounded,
-                                    label: 'PMDC: ${doctor.pmdcRegistrationNumber}',
+                                    label: 'PMDC Reg.',
                                     color: AppColors.primary,
                                   ),
                                 _TrustChip(
                                   icon: Icons.schedule_rounded,
-                                  label: 'Doctor confirms timing',
+                                  label: 'Confirmed timing',
                                   color: AppColors.info,
                                 ),
                                 _TrustChip(
                                   icon: Icons.money_off_rounded,
-                                  label: 'No platform fee',
+                                  label: 'Direct payment',
                                   color: AppColors.secondary,
                                 ),
                               ],
@@ -272,7 +271,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               children: [
                                 _InfoChip(
                                   icon: Icons.star,
-                                  value: '${doctor.averageRating.toStringAsFixed(1)}',
+                                  value: doctor.averageRating.toStringAsFixed(1),
                                   label: 'Rating',
                                   color: AppColors.rating,
                                 ),
@@ -425,7 +424,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                       child: const Text(
-                                        'Pay at clinic',
+                                        'Direct payment',
                                         style: TextStyle(
                                           color: AppColors.secondary,
                                           fontSize: 12,
@@ -458,12 +457,32 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               ),
                             ),
                             const SizedBox(height: 12),
-                            const Text(
-                              'Free to request on DocBook. No platform fee\u2009—\u2009pay the doctor/clinic directly at your visit.',
-                              style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
-                              textAlign: TextAlign.center,
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.warningSurface,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: AppColors.warning.withValues(alpha: 0.15)),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.shield_rounded, size: 16, color: AppColors.warning),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'DocBook does not collect fees. Pay the doctor/clinic directly only after your appointment is confirmed. Do not send money to unverified numbers.',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: AppColors.warning.withValues(alpha: 0.85),
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
                               height: 54,
@@ -478,7 +497,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                             const SizedBox(height: 8),
                             const Center(
                               child: Text(
-                                'Doctor/clinic will confirm your final appointment time.',
+                                'Doctor will confirm your final appointment time.',
                                 style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
                               ),
                             ),

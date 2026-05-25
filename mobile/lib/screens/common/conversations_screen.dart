@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/network/api_client.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/chat_provider.dart';
 import '../../widgets/ui_components.dart';
 
 class ConversationsScreen extends ConsumerStatefulWidget {
@@ -64,7 +63,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final isDoctor = authState.user?.role == 'doctor';
+    final isDoctor = authState.user?.role.name == 'doctor';
 
     return Scaffold(
       appBar: AppBar(

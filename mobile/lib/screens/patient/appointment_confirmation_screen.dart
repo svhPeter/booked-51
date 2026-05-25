@@ -87,7 +87,7 @@ class _AppointmentConfirmationScreenState
             ),
             const SizedBox(height: 12),
             Text(
-              'The doctor/clinic will confirm the final time. No online payment required—pay the doctor directly at the clinic.',
+              'The doctor/clinic will review and confirm your appointment. DocBook does not charge any fees.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: AppColors.textHint,
                   ),
@@ -104,7 +104,7 @@ class _AppointmentConfirmationScreenState
                 if (appointment.hospitalName != null)
                   _row('Location', appointment.hospitalName!),
                 _row(
-                  'Consultation fee (pay at clinic)',
+                  'Consultation fee',
                   'PKR ${appointment.fee.toStringAsFixed(0)}',
                   highlight: true,
                 ),

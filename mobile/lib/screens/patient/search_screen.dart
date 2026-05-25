@@ -197,7 +197,6 @@ class _DoctorCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Avatar with offline/online indicator overlay
             Stack(
               children: [
                 CircleAvatar(
@@ -232,8 +231,7 @@ class _DoctorCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(width: 16),
-            // Info Column
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -252,13 +250,21 @@ class _DoctorCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (doctor.pmdcRegistrationNumber != null && doctor.pmdcRegistrationNumber!.isNotEmpty) ...[
-                        const SizedBox(width: 4),
-                        const Icon(Icons.verified_rounded, color: AppColors.secondary, size: 16),
-                      ],
+                      if (doctor.pmdcRegistrationNumber != null &&
+                          doctor.pmdcRegistrationNumber!.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: AppColors.secondary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Icon(Icons.verified_rounded,
+                              color: AppColors.secondary, size: 14),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   Text(
                     doctor.specialty,
                     style: const TextStyle(
@@ -276,85 +282,96 @@ class _DoctorCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         doctor.averageRating.toStringAsFixed(1),
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                       Text(
-                        ' (${doctor.totalReviews} reviews)',
+                        ' (${doctor.totalReviews})',
                         style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                      ),
+                      const SizedBox(width: 12),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: doctor.isAvailable ? AppColors.online : AppColors.offline,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        doctor.isAvailable ? 'Available' : 'Unavailable',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: doctor.isAvailable ? AppColors.online : AppColors.offline,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Consultation Mode Badges
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
+                  Row(
                     children: [
-                      _buildModeBadge(
+                      _ModeLabel(
                         icon: Icons.videocam_rounded,
-                        label: 'Video Consultation',
-                        color: Colors.teal,
+                        label: 'Video',
+                        color: const Color(0xFF0D9488),
                       ),
-                      _buildModeBadge(
+                      const SizedBox(width: 8),
+                      _ModeLabel(
                         icon: Icons.business_rounded,
-                        label: 'Clinic Visit',
+                        label: 'Clinic',
                         color: AppColors.primary,
                       ),
+                      const Spacer(),
+                      if (doctor.consultationFee > 0)
+                        Text(
+                          'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        )
+                      else
+                        const Text(
+                          'Free',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.secondary,
+                          ),
+                        ),
                     ],
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 12),
-            // Fee Badge
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'FEE',
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildModeBadge({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
+class _ModeLabel extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _ModeLabel({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(6),
@@ -368,7 +385,7 @@ class _DoctorCard extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 9,
+              fontSize: 10,
               fontWeight: FontWeight.w600,
               color: color,
             ),

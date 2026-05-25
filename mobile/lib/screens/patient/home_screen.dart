@@ -258,37 +258,32 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   crossAxisCount: 2,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1.4,
+                  childAspectRatio: 1.2,
                   children: [
-                    _buildServiceCard(
-                      context,
+                    _ServiceCard(
                       title: 'Book Appointment',
-                      subtitle: 'Free requests',
+                      subtitle: 'Request a visit',
                       icon: Icons.calendar_month_rounded,
                       color: AppColors.primary,
                       onTap: () => context.push('/patient/search'),
                     ),
-                    _buildServiceCard(
-                      context,
+                    _ServiceCard(
                       title: 'Video Consultation',
-                      subtitle: 'Agora secure call',
+                      subtitle: 'Secure online call',
                       icon: Icons.videocam_rounded,
-                      color: Colors.teal,
-                      isNew: true,
+                      color: Color(0xFF0D9488),
                       onTap: () => context.push('/patient/search'),
                     ),
-                    _buildServiceCard(
-                      context,
+                    _ServiceCard(
                       title: 'Find Specialists',
-                      subtitle: '6+ specialties',
+                      subtitle: 'Search by expertise',
                       icon: Icons.people_rounded,
-                      color: Colors.indigo,
+                      color: Color(0xFF6366F1),
                       onTap: () => context.push('/patient/search'),
                     ),
-                    _buildServiceCard(
-                      context,
+                    _ServiceCard(
                       title: 'My Appointments',
-                      subtitle: 'Manage & join',
+                      subtitle: 'View & manage',
                       icon: Icons.assignment_rounded,
                       color: AppColors.secondary,
                       onTap: () => context.push('/patient/appointments'),
@@ -296,7 +291,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   ],
                 ),
 
-                // Trust banner
+                // Trust & safety banner
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(14),
@@ -306,17 +301,32 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                     border: Border.all(color: AppColors.secondary.withValues(alpha: 0.15)),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.verified_rounded, color: AppColors.secondary, size: 20),
+                      Icon(Icons.shield_rounded, color: AppColors.secondary, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          'All doctors are verified. Pay at the clinic directly.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondary.withValues(alpha: 0.85),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Safe & Verified',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.secondary.withValues(alpha: 0.9),
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'DocBook does not collect any fees. Pay the doctor/clinic directly only after your appointment is confirmed. Do not send money to unverified numbers.',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.secondary.withValues(alpha: 0.7),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -381,91 +391,68 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
         ),
       ),
     );
-  Widget _buildServiceCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    bool isNew = false,
-    required VoidCallback onTap,
-  }) {
+  }
+}
+
+class _ServiceCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ServiceCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border, width: 0.5),
           boxShadow: AppShadows.sm,
         ),
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, color: color, size: 24),
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                        height: 1.2,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppColors.textTertiary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            if (isNew)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'AGORA',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textTertiary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ],
         ),
       ),

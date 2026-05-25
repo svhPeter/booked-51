@@ -100,6 +100,16 @@ class PaymentInfo {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'amount': amount,
+        'currency': currency,
+        'provider': provider,
+        'status': status,
+        'providerTxnId': providerTxnId,
+        'createdAt': createdAt?.toIso8601String(),
+      };
 }
 
 class DashboardSummary {
