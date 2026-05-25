@@ -147,6 +147,16 @@ export class AppointmentService {
         hospital: {
           select: { name: true, address: true },
         },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            provider: true,
+            status: true,
+            providerTxnId: true,
+          },
+        },
       },
     });
 
@@ -207,6 +217,14 @@ export class AppointmentService {
       doctor?: { specialty: string | null; consultationFee: number } | null;
     } | null;
     hospital?: { name: string | null; address: string | null } | null;
+    payment?: {
+      id: string;
+      amount: number;
+      currency: string;
+      provider: string;
+      status: string;
+      providerTxnId: string | null;
+    } | null;
   }) {
     return {
       id: a.id,
@@ -226,6 +244,14 @@ export class AppointmentService {
       specialty: a.doctor?.doctor?.specialty ?? '',
       fee: a.doctor?.doctor?.consultationFee ?? 0,
       hospitalName: a.hospital?.name,
+      payment: a.payment ? {
+        id: a.payment.id,
+        amount: a.payment.amount,
+        currency: a.payment.currency,
+        provider: a.payment.provider,
+        status: a.payment.status,
+        providerTxnId: a.payment.providerTxnId,
+      } : null,
     };
   }
 
@@ -242,6 +268,16 @@ export class AppointmentService {
         },
         hospital: {
           select: { name: true, address: true },
+        },
+        payment: {
+          select: {
+            id: true,
+            amount: true,
+            currency: true,
+            provider: true,
+            status: true,
+            providerTxnId: true,
+          },
         },
       },
       orderBy: { date: 'desc' },
