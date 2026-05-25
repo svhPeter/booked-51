@@ -1,3 +1,5 @@
+import 'doctor_appointment.dart';
+
 enum AppointmentStatus { pending, confirmed, cancelled, completed }
 
 class AppointmentModel {
@@ -16,6 +18,7 @@ class AppointmentModel {
   final double fee;
   final String? meetingLink;
   final String? prescriptionUrl;
+  final PaymentInfo? payment;
   final DateTime createdAt;
 
   AppointmentModel({
@@ -34,10 +37,15 @@ class AppointmentModel {
     this.fee = 0,
     this.meetingLink,
     this.prescriptionUrl,
+    this.payment,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
   factory AppointmentModel.fromJson(Map<String, dynamic> json) {
+    PaymentInfo? payment;
+    if (json['payment'] != null) {
+      payment = PaymentInfo.fromJson(json['payment']);
+    }
     return AppointmentModel(
       id: json['id'],
       patientId: json['patientId'],
@@ -59,6 +67,7 @@ class AppointmentModel {
       fee: (json['fee'] ?? 0).toDouble(),
       meetingLink: json['meetingLink'],
       prescriptionUrl: json['prescriptionUrl'],
+      payment: payment,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -81,6 +90,7 @@ class AppointmentModel {
         'fee': fee,
         'meetingLink': meetingLink,
         'prescriptionUrl': prescriptionUrl,
+        'payment': payment?.toJson(),
         'createdAt': createdAt.toIso8601String(),
       };
 }

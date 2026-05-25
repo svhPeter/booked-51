@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,7 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
   }
@@ -68,11 +71,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               onChanged: (value) {
                 setState(() {});
-                if (value.length >= 2) {
-                  ref.read(doctorProvider.notifier).searchDoctors(value);
-                } else if (value.isEmpty) {
-                  ref.read(doctorProvider.notifier).fetchDoctors();
-                }
+                if (_debounce?.isActive ?? false) _debounce!.cancel();
+                _debounce = Timer(const Duration(milliseconds: 350), () {
+                  if (value.length >= 2) {
+                    ref.read(doctorProvider.notifier).searchDoctors(value);
+                  } else if (value.isEmpty) {
+                    ref.read(doctorProvider.notifier).fetchDoctors();
+                  }
+                });
               },
             ),
           ),
@@ -189,34 +195,62 @@ class _DoctorCard extends StatelessWidget {
           boxShadow: AppShadows.sm,
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
-              backgroundImage: doctor.avatarUrl != null
-                  ? NetworkImage(doctor.avatarUrl!)
-                  : null,
-              child: doctor.avatarUrl == null
-                  ? Text(
-                      doctor.name[0].toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    )
-                  : null,
+            // Avatar with offline/online indicator overlay
+            Stack(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                  backgroundImage: doctor.avatarUrl != null
+                      ? NetworkImage(doctor.avatarUrl!)
+                      : null,
+                  child: doctor.avatarUrl == null
+                      ? Text(
+                          doctor.name[0].toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
+                      : null,
+                ),
+                Positioned(
+                  bottom: 2,
+                  right: 2,
+                  child: Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: doctor.isAvailable ? AppColors.online : AppColors.offline,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 16),
+            // Info Column
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Text(
-                        'Dr. ${doctor.name}',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Expanded(
+                        child: Text(
+                          'Dr. ${doctor.name}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       if (doctor.pmdcRegistrationNumber != null && doctor.pmdcRegistrationNumber!.isNotEmpty) ...[
                         const SizedBox(width: 4),
@@ -224,75 +258,122 @@ class _DoctorCard extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 3),
                   Text(
                     doctor.specialty,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 16, color: AppColors.rating),
+                      const Icon(Icons.star, size: 14, color: AppColors.rating),
                       const SizedBox(width: 4),
                       Text(
                         doctor.averageRating.toStringAsFixed(1),
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
                       ),
                       Text(
-                        ' (${doctor.totalReviews})',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textHint),
+                        ' (${doctor.totalReviews} reviews)',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
                       ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: const BoxDecoration(
-                          color: AppColors.textHint,
-                          shape: BoxShape.circle,
-                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // Consultation Mode Badges
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      _buildModeBadge(
+                        icon: Icons.videocam_rounded,
+                        label: 'Video Consultation',
+                        color: Colors.teal,
                       ),
-                      const SizedBox(width: 12),
-                      Icon(
-                        Icons.circle,
-                        size: 8,
-                        color: doctor.isAvailable ? AppColors.online : AppColors.offline,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        doctor.isAvailable ? 'Available' : 'Unavailable',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: doctor.isAvailable ? AppColors.online : AppColors.offline,
-                        ),
+                      _buildModeBadge(
+                        icon: Icons.business_rounded,
+                        label: 'Clinic Visit',
+                        color: AppColors.primary,
                       ),
                     ],
                   ),
                 ],
               ),
             ),
+            const SizedBox(width: 12),
+            // Fee Badge
             Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.primarySurface,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Fee',
-                  style: TextStyle(fontSize: 11, color: AppColors.textHint),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'FEE',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildModeBadge({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

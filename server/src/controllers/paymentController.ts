@@ -193,3 +193,51 @@ export const getPaymentStatus = async (req: AuthRequest, res: Response, next: Ne
     next(error);
   }
 };
+
+export const verifyPayment = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const { appointmentId } = req.body;
+    const userId = req.userId!;
+
+    if (!appointmentId) {
+      throw new AppError('appointmentId is required', 400);
+    }
+
+    const appointment = await prisma.appointment.findUnique({
+      where: { id: appointmentId },
+      include: { payment: true },
+    });
+
+    if (!appointment) {
+      throw new AppError('Appointment not found', 404);
+    }
+
+    if (appointment.doctorId !== userId) {
+      throw new AppError('Unauthorized. Only the doctor can verify payment.', 403);
+    }
+
+    if (!appointment.payment) {
+      throw new AppError('No payment record found to verify', 400);
+    }
+
+    const updatedPayment = await prisma.payment.update({
+      where: { appointmentId },
+      data: { status: 'paid' },
+    });
+
+    createNotification({
+      userId: appointment.patientId,
+      title: 'Payment Verified',
+      body: `Your payment of PKR ${appointment.payment.amount} has been verified by the doctor.`,
+      type: 'payment_paid',
+      data: { appointmentId: appointment.id, paymentId: appointment.payment.id },
+    }).catch(() => {});
+
+    res.json({
+      success: true,
+      payment: updatedPayment,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

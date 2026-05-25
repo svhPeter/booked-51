@@ -28,12 +28,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
     });
   }
 
-  final List<Map<String, String>> _quickActions = [
-    {'icon': 'search', 'label': 'Find Doctor', 'route': '/patient/search'},
-    {'icon': 'calendar', 'label': 'Appointments', 'route': '/patient/appointments'},
-    {'icon': 'medical', 'label': 'Specialists', 'route': '/patient/search'},
-    {'icon': 'profile', 'label': 'My Profile', 'route': '/patient/profile'},
-  ];
+
 
   final List<Map<String, dynamic>> _specialties = [
     {'name': 'Cardiologist', 'icon': Icons.favorite_border, 'color': const Color(0xFFEF4444)},
@@ -253,51 +248,52 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   ),
                 ),
 
-                // Quick actions
-                const SizedBox(height: 28),
-                const SectionHeader(title: 'Quick Actions'),
+                // Service Action Grid (2x2)
+                const SizedBox(height: 24),
+                const SectionHeader(title: 'Our Services'),
                 const SizedBox(height: 12),
-                Row(
-                  children: _quickActions.map((action) {
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () => context.push(action['route']!),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: AppColors.border, width: 0.5),
-                            boxShadow: AppShadows.sm,
-                          ),
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primarySurface,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(
-                                  _getIcon(action['icon']!),
-                                  color: AppColors.primary,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                action['label']!,
-                                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1.4,
+                  children: [
+                    _buildServiceCard(
+                      context,
+                      title: 'Book Appointment',
+                      subtitle: 'Free requests',
+                      icon: Icons.calendar_month_rounded,
+                      color: AppColors.primary,
+                      onTap: () => context.push('/patient/search'),
+                    ),
+                    _buildServiceCard(
+                      context,
+                      title: 'Video Consultation',
+                      subtitle: 'Agora secure call',
+                      icon: Icons.videocam_rounded,
+                      color: Colors.teal,
+                      isNew: true,
+                      onTap: () => context.push('/patient/search'),
+                    ),
+                    _buildServiceCard(
+                      context,
+                      title: 'Find Specialists',
+                      subtitle: '6+ specialties',
+                      icon: Icons.people_rounded,
+                      color: Colors.indigo,
+                      onTap: () => context.push('/patient/search'),
+                    ),
+                    _buildServiceCard(
+                      context,
+                      title: 'My Appointments',
+                      subtitle: 'Manage & join',
+                      icon: Icons.assignment_rounded,
+                      color: AppColors.secondary,
+                      onTap: () => context.push('/patient/appointments'),
+                    ),
+                  ],
                 ),
 
                 // Trust banner
@@ -385,22 +381,94 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
         ),
       ),
     );
-  }
-
-  IconData _getIcon(String name) {
-    switch (name) {
-      case 'search':
-        return Icons.search_rounded;
-      case 'calendar':
-        return Icons.calendar_today_rounded;
-      case 'medical':
-        return Icons.medical_services_outlined;
-      case 'history':
-        return Icons.history_rounded;
-      case 'profile':
-        return Icons.person_outline_rounded;
-      default:
-        return Icons.circle;
-    }
+  Widget _buildServiceCard(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    bool isNew = false,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border, width: 0.5),
+          boxShadow: AppShadows.sm,
+        ),
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Align(
+                  alignment: Alignment.topLeft,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: color, size: 24),
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textTertiary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            if (isNew)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'AGORA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 }
