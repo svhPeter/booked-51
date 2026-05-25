@@ -280,6 +280,9 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
             onCancel: appt.status != 'cancelled' && appt.status != 'completed'
                 ? () => ref.read(doctorDashboardProvider.notifier).cancelAppointment(appt.id)
                 : null,
+            onVerifyPayment: appt.payment != null && appt.payment!.status == 'pending'
+                ? () => _showVerifyPaymentDialog(context, ref, appt)
+                : null,
           );
         },
       ),
@@ -398,6 +401,60 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
     );
   }
 
+  Future<void> _showVerifyPaymentDialog(
+    BuildContext context,
+    WidgetRef ref,
+    DoctorAppointmentModel appointment,
+  ) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Verify Payment Transfer'),
+        content: Text(
+          'Please ensure you received the JazzCash/EasyPaisa transfer of PKR ${appointment.payment!.amount.toStringAsFixed(0)} with Trx ID:\n\n"${appointment.payment!.providerTxnId}"\n\nbefore confirming.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Verify & Confirm', style: TextStyle(color: AppColors.secondary)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      await apiClient.post('/payments/verify', data: {
+        'appointmentId': appointment.id,
+      });
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment verified successfully!'),
+          backgroundColor: AppColors.secondary,
+        ),
+      );
+
+      ref.read(doctorDashboardProvider.notifier).fetchAppointments();
+      ref.read(doctorDashboardProvider.notifier).fetchSummary();
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not verify payment: $e'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
   Future<void> _joinVideoCall(BuildContext context, WidgetRef ref, String appointmentId) async {
     try {
       final apiClient = ref.read(apiClientProvider);
@@ -427,6 +484,7 @@ class _AppointmentCard extends StatelessWidget {
   final VoidCallback? onConfirm;
   final VoidCallback? onJoinCall;
   final VoidCallback? onMessage;
+  final VoidCallback? onVerifyPayment;
 
   const _AppointmentCard({
     required this.appointment,
@@ -435,6 +493,7 @@ class _AppointmentCard extends StatelessWidget {
     this.onConfirm,
     this.onJoinCall,
     this.onMessage,
+    this.onVerifyPayment,
   });
 
   @override
@@ -514,18 +573,36 @@ class _AppointmentCard extends StatelessWidget {
               children: [
                 const Icon(Icons.wallet_outlined, size: 14, color: AppColors.secondary),
                 const SizedBox(width: 6),
-                Text(
-                  'PKR ${appointment.payment!.amount.toStringAsFixed(0)} • Pay at Clinic',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(
+                        appointment.hospitalName == null
+                            ? 'JazzCash/EasyPaisa (Trx: ${appointment.payment!.providerTxnId}) • '
+                            : 'PKR ${appointment.payment!.amount.toStringAsFixed(0)} • Pay at Clinic ',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                      ),
+                      _buildPaymentBadge(appointment.payment!.status),
+                    ],
+                  ),
                 ),
               ],
             ),
           ],
-          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null || onConfirm != null) ...[
+          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null || onConfirm != null || onVerifyPayment != null) ...[
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                if (onVerifyPayment != null) ...[
+                  _ActionButton(
+                    label: 'Verify Payment',
+                    icon: Icons.verified_user_outlined,
+                    color: Colors.teal,
+                    onTap: onVerifyPayment!,
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 if (onConfirm != null) ...[
                   _ActionButton(
                     label: 'Confirm',
