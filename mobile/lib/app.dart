@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'models/appointment.dart';
@@ -65,138 +66,408 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/auth/login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const LoginScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/auth/register',
-        builder: (context, state) => const RegisterScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const RegisterScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/auth/doctor-onboarding',
-        builder: (context, state) => const DoctorOnboardingScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const DoctorOnboardingScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/auth/forgot-password',
-        builder: (context, state) => const ForgotPasswordScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ForgotPasswordScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/auth/reset-password',
-        builder: (context, state) => ResetPasswordScreen(
-          initialEmail: state.uri.queryParameters['email'] ?? '',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: ResetPasswordScreen(
+            initialEmail: state.uri.queryParameters['email'] ?? '',
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/auth/otp-verification',
-        builder: (context, state) => const OtpVerificationScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const OtpVerificationScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/patient/home',
-        builder: (context, state) => const PatientShellScreen(initialIndex: 0),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const PatientShellScreen(initialIndex: 0),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/patient/search',
-        builder: (context, state) => SearchScreen(
-          initialSpecialty: state.uri.queryParameters['specialty'],
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: SearchScreen(
+            initialSpecialty: state.uri.queryParameters['specialty'],
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/patient/doctor/:id',
-        builder: (context, state) => DoctorProfileScreen(
-          doctorId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: DoctorProfileScreen(
+            doctorId: state.pathParameters['id']!,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/patient/book/:doctorId',
-        builder: (context, state) => BookAppointmentScreen(
-          doctorId: state.pathParameters['doctorId']!,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: BookAppointmentScreen(
+            doctorId: state.pathParameters['doctorId']!,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/patient/appointments',
-        builder: (context, state) => const PatientShellScreen(initialIndex: 2),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const PatientShellScreen(initialIndex: 2),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/patient/profile',
-        builder: (context, state) => const PatientProfileScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const PatientProfileScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/patient/appointment/:id/confirmed',
-        builder: (context, state) => AppointmentConfirmationScreen(
-          appointmentId: state.pathParameters['id']!,
-          appointment: state.extra is AppointmentModel ? state.extra as AppointmentModel : null,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: AppointmentConfirmationScreen(
+            appointmentId: state.pathParameters['id']!,
+            appointment: state.extra is AppointmentModel ? state.extra as AppointmentModel : null,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/patient/appointment/:id',
-        builder: (context, state) => AppointmentDetailScreen(
-          appointmentId: state.pathParameters['id']!,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: AppointmentDetailScreen(
+            appointmentId: state.pathParameters['id']!,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/patient/appointment/:id/chat',
-        builder: (context, state) => ChatScreen(
-          appointmentId: state.pathParameters['id']!,
-          title: 'Appointment Chat',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: ChatScreen(
+            appointmentId: state.pathParameters['id']!,
+            title: 'Appointment Chat',
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/doctor/dashboard',
-        builder: (context, state) => const DoctorDashboardScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const DoctorDashboardScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/doctor/profile/edit',
-        builder: (context, state) => const DoctorProfileEditScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const DoctorProfileEditScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/doctor/appointment/:id/chat',
-        builder: (context, state) => ChatScreen(
-          appointmentId: state.pathParameters['id']!,
-          title: 'Patient Chat',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: ChatScreen(
+            appointmentId: state.pathParameters['id']!,
+            title: 'Patient Chat',
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
         ),
       ),
       GoRoute(
         path: '/notifications',
-        builder: (context, state) => const NotificationsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const NotificationsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/support',
-        builder: (context, state) => const SupportScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const SupportScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/inbox',
-        builder: (context, state) => const ConversationsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const ConversationsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/admin/dashboard',
-        builder: (context, state) => const AdminDashboardScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AdminDashboardScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/admin/doctors',
-        builder: (context, state) => const AdminDoctorsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AdminDoctorsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/admin/patients',
-        builder: (context, state) => const AdminPatientsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AdminPatientsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/admin/appointments',
-        builder: (context, state) => const AdminAppointmentsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AdminAppointmentsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/admin/payments',
-        builder: (context, state) => const AdminPaymentsScreen(),
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const AdminPaymentsScreen(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+            CupertinoPageTransition(
+              primaryRouteAnimation: animation,
+              secondaryRouteAnimation: secondaryAnimation,
+              linearTransition: false,
+              child: child,
+            ),
+        ),
       ),
       GoRoute(
         path: '/call/:appointmentId',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
-          return VideoCallScreen(
-            appId: extra['appId'] as String? ?? '',
-            channelName: extra['channelName'] as String? ?? '',
-            token: extra['token'] as String? ?? '',
-            uid: extra['uid'] as int? ?? 0,
-            isMock: extra['isMock'] as bool? ?? true,
-            appointmentId: state.pathParameters['appointmentId']!,
+          return CustomTransitionPage(
+            key: state.pageKey,
+            child: VideoCallScreen(
+              appId: extra['appId'] as String? ?? '',
+              channelName: extra['channelName'] as String? ?? '',
+              token: extra['token'] as String? ?? '',
+              uid: extra['uid'] as int? ?? 0,
+              isMock: extra['isMock'] as bool? ?? true,
+              appointmentId: state.pathParameters['appointmentId']!,
+            ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+              CupertinoPageTransition(
+                primaryRouteAnimation: animation,
+                secondaryRouteAnimation: secondaryAnimation,
+                linearTransition: false,
+                child: child,
+              ),
           );
         },
       ),

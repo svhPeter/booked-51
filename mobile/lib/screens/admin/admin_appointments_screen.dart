@@ -49,7 +49,7 @@ class _AdminAppointmentsScreenState extends ConsumerState<AdminAppointmentsScree
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            color: AppColors.surfaceVariant,
+            color: context.surfaceVariantColor,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -169,6 +169,7 @@ class _AppointmentCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     String dateStr = appointment.date;
     try {
       final dt = DateTime.parse(appointment.date);
@@ -178,16 +179,16 @@ class _AppointmentCard extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         title: Text('${appointment.patientName} → Dr. ${appointment.doctorName}',
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        subtitle: Text('$dateStr at ${appointment.timeSlot}', style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface)),
+        subtitle: Text('$dateStr at ${appointment.timeSlot}', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -196,7 +197,7 @@ class _AppointmentCard extends ConsumerWidget {
             if (appointment.payment != null) ...[
               const SizedBox(height: 4),
               Text('${appointment.payment!.provider} / ${appointment.payment!.status}',
-                  style: const TextStyle(fontSize: 10, color: AppColors.textTertiary)),
+                  style: TextStyle(fontSize: 10, color: scheme.onSurfaceVariant)),
             ],
           ],
         ),
@@ -207,10 +208,11 @@ class _AppointmentCard extends ConsumerWidget {
 }
 
 void _showAppointmentDetail(BuildContext context, WidgetRef ref, AdminAppointment appt) {
+  final scheme = Theme.of(context).colorScheme;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.7,
@@ -229,25 +231,25 @@ void _showAppointmentDetail(BuildContext context, WidgetRef ref, AdminAppointmen
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(child: Text('Appointment Details', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
-              const Divider(height: 32),
-              _detailRow('Patient', appt.patientName),
-              _detailRow('Patient Email', appt.patientEmail),
-              _detailRow('Patient Phone', appt.patientPhone),
-              _detailRow('Doctor', appt.doctorName),
-              _detailRow('Doctor Email', appt.doctorEmail),
-              _detailRow('Date', dateStr),
-              _detailRow('Time', appt.timeSlot),
-              _detailRow('Status', appt.status),
-              _detailRow('Hospital', appt.hospitalName),
-              if (appt.notes != null) _detailRow('Notes', appt.notes!),
+              Center(child: Text('Appointment Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: scheme.onSurface))),
+              Divider(height: 32, color: context.dividerColor),
+              _detailRow(context, 'Patient', appt.patientName),
+              _detailRow(context, 'Patient Email', appt.patientEmail),
+              _detailRow(context, 'Patient Phone', appt.patientPhone),
+              _detailRow(context, 'Doctor', appt.doctorName),
+              _detailRow(context, 'Doctor Email', appt.doctorEmail),
+              _detailRow(context, 'Date', dateStr),
+              _detailRow(context, 'Time', appt.timeSlot),
+              _detailRow(context, 'Status', appt.status),
+              _detailRow(context, 'Hospital', appt.hospitalName),
+              if (appt.notes != null) _detailRow(context, 'Notes', appt.notes!),
               if (appt.payment != null) ...[
-                const Divider(),
-                const Text('Payment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Divider(color: context.dividerColor),
+                Text('Payment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: scheme.onSurface)),
                 const SizedBox(height: 8),
-                _detailRow('Amount', 'Rs. ${appt.payment!.amount.toStringAsFixed(0)}'),
-                _detailRow('Provider', appt.payment!.provider),
-                _detailRow('Status', appt.payment!.status),
+                _detailRow(context, 'Amount', 'Rs. ${appt.payment!.amount.toStringAsFixed(0)}'),
+                _detailRow(context, 'Provider', appt.payment!.provider),
+                _detailRow(context, 'Status', appt.payment!.status),
               ],
             ],
           ),
@@ -257,14 +259,15 @@ void _showAppointmentDetail(BuildContext context, WidgetRef ref, AdminAppointmen
   );
 }
 
-Widget _detailRow(String label, String value) {
+Widget _detailRow(BuildContext context, String label, String value) {
+  final scheme = Theme.of(context).colorScheme;
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 120, child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontSize: 13))),
-        Expanded(child: Text(value)),
+        SizedBox(width: 120, child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13))),
+        Expanded(child: Text(value, style: TextStyle(color: scheme.onSurface))),
       ],
     ),
   );

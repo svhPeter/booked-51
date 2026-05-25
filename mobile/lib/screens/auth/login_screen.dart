@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/ui_components.dart';
 import '../../widgets/docbook_logo.dart';
@@ -38,6 +37,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.isAuthenticated) {
@@ -69,7 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const DocBookLogo(size: 64, showText: false),
                       const SizedBox(height: 16),
                       RichText(
-                        text: const TextSpan(
+                        text: TextSpan(
                           style: TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 32,
@@ -77,8 +77,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             letterSpacing: -1,
                           ),
                           children: [
-                            TextSpan(text: 'Doc', style: TextStyle(color: AppColors.textPrimary)),
-                            TextSpan(text: 'Book', style: TextStyle(color: AppColors.primary)),
+                            TextSpan(text: 'Doc', style: TextStyle(color: scheme.onSurface)),
+                            TextSpan(text: 'Book', style: TextStyle(color: scheme.primary)),
                           ],
                         ),
                       ),
@@ -86,7 +86,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Text(
                         'Pakistan\'s free doctor appointment platform',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                          color: scheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
                         textAlign: TextAlign.center,

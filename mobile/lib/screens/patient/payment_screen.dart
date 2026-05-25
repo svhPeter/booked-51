@@ -15,6 +15,7 @@ class PaymentScreen extends ConsumerStatefulWidget {
 class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: const Text('Payment')),
       body: SingleChildScrollView(
@@ -26,9 +27,9 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: scheme.surface,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: scheme.outlineVariant),
               ),
               child: Column(
                 children: [
@@ -36,12 +37,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                     children: [
                       CircleAvatar(
                         radius: 24,
-                        backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                        backgroundColor: scheme.primary.withValues(alpha: 0.2),
                         child: Text(
                           widget.appointment.doctorName[0].toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
-                            color: AppColors.primary,
+                            color: scheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -58,7 +59,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                             const SizedBox(height: 2),
                             Text(
                               widget.appointment.specialty,
-                              style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
                             ),
                           ],
                         ),
@@ -69,7 +70,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Date', style: TextStyle(color: AppColors.textSecondary)),
+                      Text('Date', style: TextStyle(color: scheme.onSurfaceVariant)),
                       Text(
                         '${widget.appointment.date.day}/${widget.appointment.date.month}/${widget.appointment.date.year}',
                         style: const TextStyle(fontWeight: FontWeight.w500),
@@ -80,7 +81,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Time', style: TextStyle(color: AppColors.textSecondary)),
+                      Text('Time', style: TextStyle(color: scheme.onSurfaceVariant)),
                       Text(
                         widget.appointment.timeSlot,
                         style: const TextStyle(fontWeight: FontWeight.w500),
@@ -94,10 +95,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
                       const Text('Consultation Fee', style: TextStyle(fontSize: 16)),
                       Text(
                         'PKR ${widget.appointment.fee.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: scheme.primary,
                         ),
                       ),
                     ],
@@ -110,23 +111,23 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: context.primarySurfaceColor,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                border: Border.all(color: scheme.primary.withValues(alpha: 0.15)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.info_outline, color: AppColors.primary, size: 20),
+                      Icon(Icons.info_outline, color: scheme.primary, size: 20),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         'How payment works',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: scheme.onSurface,
                         ),
                       ),
                     ],
@@ -155,10 +156,10 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Center(
+            Center(
               child: Text(
                 'DocBook does not collect consultation fees. All payments are handled directly between you and the doctor/clinic.',
-                style: TextStyle(fontSize: 12, color: AppColors.textTertiary, height: 1.4),
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -170,15 +171,16 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   }
 
   Widget _infoRow(IconData icon, String text) {
+    final scheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 16, color: AppColors.primary),
+        Icon(icon, size: 16, color: scheme.primary),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.3),
+            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant, height: 1.3),
           ),
         ),
       ],

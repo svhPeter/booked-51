@@ -28,15 +28,15 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
     });
   }
 
-
-
   final List<Map<String, dynamic>> _specialties = [
+    {'name': 'Gynecologist', 'icon': Icons.female, 'color': const Color(0xFFE91E63)},
     {'name': 'Cardiologist', 'icon': Icons.favorite_border, 'color': const Color(0xFFEF4444)},
     {'name': 'Dermatologist', 'icon': Icons.face, 'color': const Color(0xFF8B5CF6)},
     {'name': 'Pediatrician', 'icon': Icons.child_care, 'color': const Color(0xFF10B981)},
     {'name': 'Neurologist', 'icon': Icons.psychology, 'color': const Color(0xFFF59E0B)},
     {'name': 'Orthopedic', 'icon': Icons.accessibility_new, 'color': const Color(0xFF2563EB)},
     {'name': 'Dentist', 'icon': Icons.health_and_safety, 'color': const Color(0xFF14B8A6)},
+    {'name': 'General Physician', 'icon': Icons.medical_services, 'color': const Color(0xFF7C3AED)},
   ];
 
   @override
@@ -45,6 +45,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
     final userName = authState.user?.name ?? 'User';
     final notifState = ref.watch(notificationProvider);
     final apptState = ref.watch(appointmentProvider);
+    final scheme = Theme.of(context).colorScheme;
     final now = DateTime.now();
     final upcoming = apptState.appointments
         .where((a) =>
@@ -74,7 +75,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                       onTap: () => context.push('/patient/profile'),
                       child: CircleAvatar(
                         radius: 24,
-                        backgroundColor: AppColors.primary,
+                        backgroundColor: scheme.primary,
                         child: Text(
                           userName.isNotEmpty ? userName[0].toUpperCase() : '?',
                           style: const TextStyle(
@@ -95,21 +96,21 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 2),
-                          const Text(
+                          Text(
                             'Book appointments for free',
-                            style: TextStyle(fontSize: 13, color: AppColors.textTertiary),
+                            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.chat_bubble_outline),
+                      icon: Icon(Icons.chat_bubble_outline, color: scheme.onSurfaceVariant),
                       onPressed: () => context.push('/inbox'),
                     ),
                     Stack(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.notifications_outlined),
+                          icon: Icon(Icons.notifications_outlined, color: scheme.onSurfaceVariant),
                           onPressed: () => context.push('/notifications'),
                         ),
                         if (notifState.unreadCount > 0)
@@ -159,7 +160,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.25),
+                            color: scheme.primary.withValues(alpha: 0.25),
                             blurRadius: 16,
                             offset: const Offset(0, 6),
                           ),
@@ -230,18 +231,18 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: scheme.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.border),
-                      boxShadow: AppShadows.sm,
+                      border: Border.all(color: scheme.outlineVariant),
+                      boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.search_rounded, color: AppColors.textTertiary, size: 22),
+                        Icon(Icons.search_rounded, color: scheme.onSurfaceVariant, size: 22),
                         const SizedBox(width: 12),
                         Text(
                           'Search doctors, specialties...',
-                          style: TextStyle(color: AppColors.textTertiary, fontSize: 14),
+                          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
                         ),
                       ],
                     ),
@@ -271,14 +272,14 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                       title: 'Video Consultation',
                       subtitle: 'Secure online call',
                       icon: Icons.videocam_rounded,
-                      color: Color(0xFF0D9488),
+                      color: const Color(0xFF0D9488),
                       onTap: () => context.push('/patient/search'),
                     ),
                     _ServiceCard(
                       title: 'Find Specialists',
                       subtitle: 'Search by expertise',
                       icon: Icons.people_rounded,
-                      color: Color(0xFF6366F1),
+                      color: const Color(0xFF6366F1),
                       onTap: () => context.push('/patient/search'),
                     ),
                     _ServiceCard(
@@ -296,14 +297,14 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.secondarySurface,
+                    color: context.secondarySurfaceColor,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.secondary.withValues(alpha: 0.15)),
+                    border: Border.all(color: scheme.secondary.withValues(alpha: 0.15)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.shield_rounded, color: AppColors.secondary, size: 20),
+                      Icon(Icons.shield_rounded, color: scheme.secondary, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Column(
@@ -314,7 +315,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
-                                color: AppColors.secondary.withValues(alpha: 0.9),
+                                color: scheme.secondary.withValues(alpha: 0.9),
                               ),
                             ),
                             const SizedBox(height: 2),
@@ -322,7 +323,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                               'DocBook does not collect any fees. Pay the doctor/clinic directly only after your appointment is confirmed. Do not send money to unverified numbers.',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: AppColors.secondary.withValues(alpha: 0.7),
+                                color: scheme.secondary.withValues(alpha: 0.7),
                                 height: 1.4,
                               ),
                             ),
@@ -357,10 +358,10 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                       ),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: AppColors.surface,
+                          color: scheme.surface,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.border, width: 0.5),
-                          boxShadow: AppShadows.sm,
+                          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+                          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -376,7 +377,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                             const SizedBox(height: 8),
                             Text(
                               specName,
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary),
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -411,15 +412,16 @@ class _ServiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: AppShadows.sm,
+          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,10 +437,10 @@ class _ServiceCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
+                color: scheme.onSurface,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -446,9 +448,9 @@ class _ServiceCard extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               subtitle,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 11,
-                color: AppColors.textTertiary,
+                color: scheme.onSurfaceVariant,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

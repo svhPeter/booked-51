@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/network/api_client.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/ui_components.dart';
@@ -62,6 +61,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final authState = ref.watch(authProvider);
     final isDoctor = authState.user?.role.name == 'doctor';
 
@@ -82,7 +82,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                      Icon(Icons.error_outline, size: 48, color: scheme.error),
                       const SizedBox(height: 16),
                       Text(_error!, style: const TextStyle(fontWeight: FontWeight.w600)),
                       const SizedBox(height: 12),
@@ -106,7 +106,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                       child: ListView.separated(
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                         itemCount: _conversations.length,
-                        separatorBuilder: (context, index) => const Divider(height: 1, color: AppColors.border),
+                        separatorBuilder: (context, index) => Divider(height: 1, color: scheme.outlineVariant),
                         itemBuilder: (context, index) {
                           final conv = _conversations[index];
                           final appointmentId = conv['appointmentId'];
@@ -142,12 +142,12 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 26,
-                                    backgroundColor: AppColors.primaryLight.withValues(alpha: 0.15),
+                                    backgroundColor: scheme.primary.withValues(alpha: 0.15),
                                     child: Text(
                                       name.isNotEmpty ? name[0].toUpperCase() : '?',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 20,
-                                        color: AppColors.primary,
+                                        color: scheme.primary,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -160,13 +160,13 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                         Row(
                                           children: [
                                             Expanded(
-                                              child: Text(
-                                                name,
-                                                style: TextStyle(
-                                                  fontWeight: unreadCount > 0 ? FontWeight.w700 : FontWeight.w600,
-                                                  fontSize: 15,
-                                                  color: AppColors.textPrimary,
-                                                ),
+                                                child: Text(
+                                                  name,
+                                                  style: TextStyle(
+                                                    fontWeight: unreadCount > 0 ? FontWeight.w700 : FontWeight.w600,
+                                                    fontSize: 15,
+                                                    color: scheme.onSurface,
+                                                  ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                               ),
@@ -174,9 +174,9 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                             const SizedBox(width: 8),
                                             Text(
                                               timeText,
-                                              style: const TextStyle(
+                                              style: TextStyle(
                                                 fontSize: 11,
-                                                color: AppColors.textHint,
+                                                color: scheme.onSurfaceVariant,
                                               ),
                                             ),
                                           ],
@@ -185,9 +185,9 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                         if (specialty.isNotEmpty) ...[
                                           Text(
                                             specialty,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 12,
-                                              color: AppColors.primary,
+                                              color: scheme.primary,
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -201,7 +201,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                                 style: TextStyle(
                                                   fontSize: 13,
                                                   fontWeight: unreadCount > 0 ? FontWeight.w600 : FontWeight.w400,
-                                                  color: unreadCount > 0 ? AppColors.textPrimary : AppColors.textSecondary,
+                                                  color: unreadCount > 0 ? scheme.onSurface : scheme.onSurfaceVariant,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
@@ -212,12 +212,12 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                               Container(
                                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                                 decoration: BoxDecoration(
-                                                  color: AppColors.border,
+                                                  color: scheme.outlineVariant,
                                                   borderRadius: BorderRadius.circular(4),
                                                 ),
-                                                child: const Text(
-                                                  'Ended',
-                                                  style: TextStyle(fontSize: 9, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                                                  child: Text(
+                                                    'Ended',
+                                                    style: TextStyle(fontSize: 9, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500),
                                                 ),
                                               ),
                                             ],
@@ -225,8 +225,8 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
                                               const SizedBox(width: 8),
                                               Container(
                                                 padding: const EdgeInsets.all(6),
-                                                decoration: const BoxDecoration(
-                                                  color: AppColors.primary,
+                                                decoration: BoxDecoration(
+                                                  color: scheme.primary,
                                                   shape: BoxShape.circle,
                                                 ),
                                                 constraints: const BoxConstraints(minWidth: 20, minHeight: 20),

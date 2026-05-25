@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../widgets/ui_components.dart';
 
 class PatientProfileScreen extends ConsumerStatefulWidget {
@@ -54,14 +55,13 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
     });
     final authUser = ref.read(authProvider).user;
     if (authUser != null && mounted) {
-      // refresh display name on home
       await ref.read(authProvider.notifier).checkAuth();
     }
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Profile updated successfully'),
-          backgroundColor: AppColors.secondary,
+          backgroundColor: context.successColor,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -72,6 +72,7 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileProvider);
     final authState = ref.watch(authProvider);
+    final currentTheme = ref.watch(themeModeProvider);
     final email = authState.user?.email ?? '';
     final initials = (authState.user?.name ?? '?')[0].toUpperCase();
 
@@ -85,6 +86,8 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
       _fillFromProfile(profileState.profile);
     }
 
+    final scheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(title: const Text('My Profile')),
       body: profileState.isLoading && profileState.profile == null
@@ -96,10 +99,10 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                   // Avatar header
                   CircleAvatar(
                     radius: 44,
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: scheme.primary,
                     child: Text(
                       initials,
-                      style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: Colors.white),
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: scheme.onPrimary),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -108,7 +111,7 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                   const SizedBox(height: 24),
 
                   // Personal information section
-                  _sectionLabel(context, 'Personal Information'),
+                  _sectionLabel('Personal Information'),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _nameController,
@@ -144,7 +147,7 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                   ),
 
                   const SizedBox(height: 24),
-                  _sectionLabel(context, 'Location'),
+                  _sectionLabel('Location'),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _cityController,
@@ -174,11 +177,39 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                     icon: Icons.save_rounded,
                   ),
                   const SizedBox(height: 32),
-                  const Divider(),
+                  Divider(color: context.dividerColor),
+                  const SizedBox(height: 16),
+
+                  // Appearance section
+                  _sectionLabel('Appearance'),
+                  const SizedBox(height: 12),
+                  _ThemeOption(
+                    title: 'System default',
+                    subtitle: 'Follow your device theme',
+                    icon: Icons.settings_suggest_outlined,
+                    selected: currentTheme == ThemeMode.system,
+                    onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.system),
+                  ),
+                  _ThemeOption(
+                    title: 'Light',
+                    subtitle: 'Always use light mode',
+                    icon: Icons.light_mode_outlined,
+                    selected: currentTheme == ThemeMode.light,
+                    onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.light),
+                  ),
+                  _ThemeOption(
+                    title: 'Dark',
+                    subtitle: 'Always use dark mode',
+                    icon: Icons.dark_mode_outlined,
+                    selected: currentTheme == ThemeMode.dark,
+                    onTap: () => ref.read(themeModeProvider.notifier).setThemeMode(ThemeMode.dark),
+                  ),
+                  const SizedBox(height: 24),
+                  Divider(color: context.dividerColor),
                   const SizedBox(height: 16),
 
                   // Support section
-                  _sectionLabel(context, 'Support & Help'),
+                  _sectionLabel('Support & Help'),
                   const SizedBox(height: 12),
                   _SupportTile(
                     icon: Icons.email_outlined,
@@ -193,11 +224,11 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                     onTap: () {},
                   ),
                   const SizedBox(height: 16),
-                  const Divider(),
+                  Divider(color: context.dividerColor),
                   const SizedBox(height: 16),
 
                   // Legal section
-                  _sectionLabel(context, 'Legal'),
+                  _sectionLabel('Legal'),
                   const SizedBox(height: 12),
                   _SupportTile(
                     icon: Icons.privacy_tip_outlined,
@@ -220,18 +251,18 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.warningSurface,
+                      color: context.warningSurfaceColor,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
+                      border: Border.all(color: context.warningColor.withValues(alpha: 0.2)),
                     ),
-                    child: const Row(
+                    child: Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, size: 18, color: AppColors.warning),
-                        SizedBox(width: 8),
+                        Icon(Icons.warning_amber_rounded, size: 18, color: context.warningColor),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'DocBook is a booking platform, not a medical emergency service. For emergencies, contact your nearest hospital.',
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary, height: 1.4),
+                            style: TextStyle(fontSize: 11, color: context.textSecondaryColor, height: 1.4),
                           ),
                         ),
                       ],
@@ -244,15 +275,90 @@ class _PatientProfileScreenState extends ConsumerState<PatientProfileScreen> {
     );
   }
 
-  Widget _sectionLabel(BuildContext context, String text) {
+  Widget _sectionLabel(String text) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(text, style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppColors.textTertiary,
+        color: context.textTertiaryColor,
         letterSpacing: 0.5,
       )),
+    );
+  }
+}
+
+class _ThemeOption extends ConsumerWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? scheme.primary.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 22,
+              color: selected ? scheme.primary : scheme.onSurfaceVariant,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: scheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selected)
+              Icon(Icons.check_circle_rounded, color: scheme.primary, size: 20)
+            else
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: scheme.outlineVariant, width: 1.5),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -272,14 +378,15 @@ class _SupportTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return ListTile(
       dense: true,
-      leading: Icon(icon, color: AppColors.primary, size: 22),
-      title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+      leading: Icon(icon, color: scheme.primary, size: 22),
+      title: Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: scheme.onSurface)),
       subtitle: subtitle != null
-          ? Text(subtitle!, style: const TextStyle(fontSize: 12, color: AppColors.textHint))
+          ? Text(subtitle!, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant))
           : null,
-      trailing: const Icon(Icons.chevron_right, size: 20, color: AppColors.textHint),
+      trailing: Icon(Icons.chevron_right, size: 20, color: scheme.onSurfaceVariant),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4),
     );

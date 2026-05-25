@@ -70,24 +70,25 @@ class _DoctorCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _showDoctorDetail(context, ref, doc),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: AppShadows.sm,
+          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
         ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor: AppColors.primarySurface,
+              backgroundColor: context.primarySurfaceColor,
               child: Text(
                 doc.name.isNotEmpty ? doc.name[0].toUpperCase() : '?',
-                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 16),
+                style: TextStyle(color: scheme.primary, fontWeight: FontWeight.w600, fontSize: 16),
               ),
             ),
             const SizedBox(width: 12),
@@ -95,24 +96,24 @@ class _DoctorCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(doc.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  Text(doc.name, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: scheme.onSurface)),
                   const SizedBox(height: 2),
                   Text(
                     '${doc.specialty}  •  Rs ${doc.consultationFee.toStringAsFixed(0)}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
             if (!doc.isApproved)
-              const StatusBadge(label: 'Pending', color: AppColors.warning, icon: Icons.schedule)
+              StatusBadge(label: 'Pending', color: context.warningColor, icon: Icons.schedule)
             else if (!doc.isActive)
-              const StatusBadge(label: 'Inactive', color: AppColors.error, icon: Icons.block)
+              StatusBadge(label: 'Inactive', color: scheme.error, icon: Icons.block)
             else
-              const StatusBadge(label: 'Approved', color: AppColors.secondary, icon: Icons.verified),
+              StatusBadge(label: 'Approved', color: scheme.secondary, icon: Icons.verified),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
+            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant, size: 20),
           ],
         ),
       ),
@@ -121,10 +122,11 @@ class _DoctorCard extends ConsumerWidget {
 }
 
 void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
+  final scheme = Theme.of(context).colorScheme;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.8,
@@ -143,7 +145,7 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.borderColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -151,45 +153,45 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
               Center(
                 child: CircleAvatar(
                   radius: 36,
-                  backgroundColor: AppColors.primarySurface,
+                  backgroundColor: context.primarySurfaceColor,
                   child: Text(
                     doc.name.isNotEmpty ? doc.name[0].toUpperCase() : '?',
-                    style: const TextStyle(fontSize: 28, color: AppColors.primary, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 28, color: scheme.primary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              Center(child: Text(doc.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+              Center(child: Text(doc.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: scheme.onSurface))),
               const SizedBox(height: 4),
-              Center(child: Text(doc.email, style: const TextStyle(color: AppColors.textTertiary, fontSize: 13))),
-              Center(child: Text(doc.phone, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13))),
+              Center(child: Text(doc.email, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13))),
+              Center(child: Text(doc.phone, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13))),
               const SizedBox(height: 16),
               Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (doc.isApproved)
-                      const StatusBadge(label: 'Approved', color: AppColors.secondary, icon: Icons.verified)
+                      StatusBadge(label: 'Approved', color: context.successColor, icon: Icons.verified)
                     else
-                      const StatusBadge(label: 'Pending', color: AppColors.warning, icon: Icons.schedule),
+                      StatusBadge(label: 'Pending', color: context.warningColor, icon: Icons.schedule),
                     const SizedBox(width: 8),
                     StatusBadge(
                       label: doc.isActive ? 'Active' : 'Inactive',
-                      color: doc.isActive ? AppColors.online : AppColors.error,
+                      color: doc.isActive ? AppColors.online : context.errorColor,
                       icon: doc.isActive ? Icons.check_circle : Icons.block,
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 32),
-              _detailRow('Specialty', doc.specialty),
-              _detailRow('Qualification', doc.qualification),
-              _detailRow('Experience', doc.experience),
-              _detailRow('Years', '${doc.yearsOfExperience} yrs'),
-              _detailRow('Fee', 'Rs ${doc.consultationFee.toStringAsFixed(0)} (pay at clinic)'),
-              _detailRow('Rating', '${doc.averageRating.toStringAsFixed(1)} / 5 (${doc.totalReviews} reviews)'),
-              _detailRow('Available Days', doc.availableDays.join(', ')),
-              _detailRow('Hospital', '${doc.hospitalName}${doc.hospitalCity.isNotEmpty ? ', ${doc.hospitalCity}' : ''}'),
+              Divider(height: 32, color: context.dividerColor),
+              _detailRow(context, 'Specialty', doc.specialty),
+              _detailRow(context, 'Qualification', doc.qualification),
+              _detailRow(context, 'Experience', doc.experience),
+              _detailRow(context, 'Years', '${doc.yearsOfExperience} yrs'),
+              _detailRow(context, 'Fee', 'Rs ${doc.consultationFee.toStringAsFixed(0)} (pay at clinic)'),
+              _detailRow(context, 'Rating', '${doc.averageRating.toStringAsFixed(1)} / 5 (${doc.totalReviews} reviews)'),
+              _detailRow(context, 'Available Days', doc.availableDays.join(', ')),
+              _detailRow(context, 'Hospital', '${doc.hospitalName}${doc.hospitalCity.isNotEmpty ? ', ${doc.hospitalCity}' : ''}'),
               const SizedBox(height: 20),
               if (!doc.isApproved)
                 SizedBox(
@@ -214,7 +216,7 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
                     },
                     icon: const Icon(Icons.block_rounded, size: 18),
                     label: const Text('Revoke Approval'),
-                    style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error)),
+                    style: OutlinedButton.styleFrom(foregroundColor: scheme.error, side: BorderSide(color: scheme.error)),
                   ),
                 ),
               ],
@@ -237,7 +239,8 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
   );
 }
 
-Widget _detailRow(String label, String value) {
+Widget _detailRow(BuildContext context, String label, String value) {
+  final scheme = Theme.of(context).colorScheme;
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(
@@ -245,9 +248,9 @@ Widget _detailRow(String label, String value) {
       children: [
         SizedBox(
           width: 120,
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontSize: 13)),
+          child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13)),
         ),
-        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+        Expanded(child: Text(value, style: TextStyle(fontSize: 14, color: scheme.onSurface))),
       ],
     ),
   );

@@ -83,6 +83,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null && state.summary == null) {
+      final scheme = Theme.of(context).colorScheme;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -91,13 +92,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: AppColors.errorSurface,
+                color: context.errorSurfaceColor,
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 32),
+              child: Icon(Icons.error_outline_rounded, color: scheme.error, size: 32),
             ),
             const SizedBox(height: 16),
-            Text(state.error!, style: const TextStyle(color: AppColors.error), textAlign: TextAlign.center),
+            Text(state.error!, style: TextStyle(color: scheme.error), textAlign: TextAlign.center),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: () => ref.read(adminProvider.notifier).fetchSummary(),
@@ -195,12 +196,15 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final bgAlpha = isDark ? 0.12 : 0.06;
+    final borderAlpha = isDark ? 0.2 : 0.12;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
+        color: color.withValues(alpha: bgAlpha),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.12)),
+        border: Border.all(color: color.withValues(alpha: borderAlpha)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,15 +238,16 @@ class _ManagementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: AppShadows.sm,
+          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
         ),
         child: Row(
           children: [
@@ -250,7 +255,7 @@ class _ManagementCard extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 22),
@@ -260,13 +265,13 @@ class _ManagementCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: scheme.onSurface)),
                   const SizedBox(height: 2),
-                  Text('$count total', style: TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                  Text('$count total', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary),
+            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
           ],
         ),
       ),

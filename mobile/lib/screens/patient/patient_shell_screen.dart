@@ -24,6 +24,8 @@ class _PatientShellScreenState extends State<PatientShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     final pages = [
       const PatientHomeScreen(embedded: true),
       const SearchScreen(),
@@ -36,12 +38,39 @@ class _PatientShellScreenState extends State<PatientShellScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
-          NavigationDestination(icon: Icon(Icons.calendar_month_outlined), selectedIcon: Icon(Icons.calendar_month), label: 'Appointments'),
-          NavigationDestination(icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+        animationDuration: const Duration(milliseconds: 300),
+        destinations: [
+          NavigationDestination(
+            icon: Icon(_index == 0 ? Icons.home : Icons.home_outlined),
+            label: 'Home',
+          ),
+          NavigationDestination(
+            icon: Icon(_index == 1 ? Icons.search : Icons.search_rounded),
+            label: 'Search',
+          ),
+          NavigationDestination(
+            icon: Icon(_index == 2 ? Icons.calendar_month : Icons.calendar_month_outlined),
+            label: 'Appointments',
+          ),
+          NavigationDestination(
+            icon: Icon(_index == 3 ? Icons.person : Icons.person_outline),
+            label: 'Profile',
+          ),
         ],
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.primary,
+            );
+          }
+          return TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
+            color: colorScheme.onSurfaceVariant,
+          );
+        }),
       ),
     );
   }

@@ -49,6 +49,7 @@ class _AppointmentConfirmationScreenState
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -74,10 +75,10 @@ class _AppointmentConfirmationScreenState
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.secondarySurface,
+                color: context.secondarySurfaceColor,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_rounded, color: AppColors.secondary, size: 48),
+              child: Icon(Icons.check_circle_rounded, color: scheme.secondary, size: 48),
             ),
             const SizedBox(height: 24),
             Text(
@@ -89,7 +90,7 @@ class _AppointmentConfirmationScreenState
             Text(
               'The doctor/clinic will review and confirm your appointment. DocBook does not charge any fees.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textHint,
+                    color: scheme.onSurfaceVariant,
                   ),
               textAlign: TextAlign.center,
             ),
@@ -133,20 +134,22 @@ class _AppointmentConfirmationScreenState
   }
 
   Widget _infoCard(BuildContext context, {required List<Widget> children}) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: Column(children: children),
     );
   }
 
   Widget _row(String label, String value, {bool highlight = false}) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -157,7 +160,7 @@ class _AppointmentConfirmationScreenState
             child: Text(
               label,
               style: TextStyle(
-                color: AppColors.textHint,
+                color: scheme.onSurfaceVariant,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),
@@ -168,7 +171,7 @@ class _AppointmentConfirmationScreenState
               value,
               style: TextStyle(
                 fontWeight: highlight ? FontWeight.bold : FontWeight.w600,
-                color: highlight ? AppColors.primary : AppColors.textPrimary,
+                color: highlight ? scheme.primary : scheme.onSurface,
               ),
             ),
           ),

@@ -40,7 +40,7 @@ class _AdminPaymentsScreenState extends ConsumerState<AdminPaymentsScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            color: AppColors.surfaceVariant,
+            color: context.surfaceVariantColor,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -79,8 +79,6 @@ class _AdminPaymentsScreenState extends ConsumerState<AdminPaymentsScreen> {
                       items: const [
                         DropdownMenuItem(value: null, child: Text('All')),
                         DropdownMenuItem(value: 'mock', child: Text('Mock')),
-                        DropdownMenuItem(value: 'stripe', child: Text('Stripe')),
-                        DropdownMenuItem(value: 'payfast', child: Text('PayFast')),
                       ],
                       onChanged: (v) => setState(() { _providerFilter = v; _applyFilters(); }),
                     ),
@@ -154,6 +152,7 @@ class _PaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     String dateStr = payment.createdAt;
     try {
       final dt = DateTime.parse(payment.createdAt);
@@ -164,10 +163,10 @@ class _PaymentCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: Row(
         children: [
@@ -176,13 +175,13 @@ class _PaymentCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Rs ${payment.amount.toStringAsFixed(0)}  •  ${payment.provider.toUpperCase()}',
-                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: scheme.onSurface)),
                 const SizedBox(height: 4),
-                Text(payment.userName, style: const TextStyle(fontSize: 13)),
+                Text(payment.userName, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
                 Text('$dateStr${payment.appointmentTimeSlot.isNotEmpty ? " at ${payment.appointmentTimeSlot}" : ""}',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                    style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
                 if (payment.providerTxnId != null)
-                  Text('Txn: ${payment.providerTxnId}', style: const TextStyle(fontSize: 11, color: AppColors.textTertiary)),
+                  Text('Txn: ${payment.providerTxnId}', style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
               ],
             ),
           ),

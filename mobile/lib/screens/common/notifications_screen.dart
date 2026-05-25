@@ -135,32 +135,33 @@ class _NotificationCard extends StatelessWidget {
     }
   }
 
-  Color _colorForType(String? type) {
+  Color _colorForType(String? type, ColorScheme scheme, BuildContext context) {
     switch (type) {
       case 'appointment_booked':
-        return AppColors.primary;
+        return scheme.primary;
       case 'appointment_cancelled':
-        return AppColors.error;
+        return scheme.error;
       case 'appointment_completed':
-        return AppColors.secondary;
+        return scheme.secondary;
       case 'payment_paid':
-        return AppColors.warning;
+        return context.warningColor;
       default:
-        return AppColors.textTertiary;
+        return scheme.onSurfaceVariant;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: notification.isRead ? AppColors.surface : AppColors.primaryLight.withValues(alpha: 0.1),
+          color: notification.isRead ? scheme.surface : scheme.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.border,
+            color: scheme.outlineVariant,
           ),
         ),
         child: Row(
@@ -170,12 +171,12 @@ class _NotificationCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: _colorForType(notification.type).withValues(alpha: 0.15),
+                color: _colorForType(notification.type, scheme, context).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 _iconForType(notification.type),
-                color: _colorForType(notification.type),
+                color: _colorForType(notification.type, scheme, context),
                 size: 20,
               ),
             ),
@@ -199,8 +200,8 @@ class _NotificationCard extends StatelessWidget {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: AppColors.primary,
+                          decoration:                           BoxDecoration(
+                            color: scheme.primary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -209,8 +210,8 @@ class _NotificationCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.body,
-                    style: const TextStyle(
-                      color: AppColors.textHint,
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
                       fontSize: 13,
                     ),
                     maxLines: 2,
@@ -219,8 +220,8 @@ class _NotificationCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     _timeAgo(notification.createdAt),
-                    style: const TextStyle(
-                      color: AppColors.textHint,
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
                       fontSize: 11,
                     ),
                   ),

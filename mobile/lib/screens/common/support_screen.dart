@@ -43,18 +43,19 @@ class _SupportTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.support_agent_rounded, size: 48, color: AppColors.primary),
+          Icon(Icons.support_agent_rounded, size: 48, color: scheme.primary),
           const SizedBox(height: 16),
           Text('Need Help?', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Our support team is here to help you with any questions or issues.',
-            style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+            style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5),
           ),
           const SizedBox(height: 24),
           _ContactCard(
@@ -75,23 +76,23 @@ class _SupportTab extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primarySurface,
+              color: context.primarySurfaceColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+              border: Border.all(color: scheme.primary.withValues(alpha: 0.15)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'DocBook Beta',
-                  style: TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary),
-                ),
+                  Text(
+                    'DocBook Beta',
+                    style: TextStyle(fontWeight: FontWeight.w600, color: scheme.primary),
+                  ),
                 const SizedBox(height: 4),
-                const Text(
-                  'You are using an early beta version of DocBook. '
-                  'We appreciate your feedback and patience as we improve the platform.',
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
-                ),
+                  Text(
+                    'You are using an early beta version of DocBook. '
+                    'We appreciate your feedback and patience as we improve the platform.',
+                    style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant, height: 1.5),
+                  ),
               ],
             ),
           ),
@@ -116,22 +117,23 @@ class _ContactCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: scheme.outlineVariant),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+              color: scheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: AppColors.primary),
+            child: Icon(icon, color: scheme.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -139,8 +141,8 @@ class _ContactCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(subtitle, style: const TextStyle(fontSize: 13, color: AppColors.primary)),
-                Text(detail, style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+                Text(subtitle, style: TextStyle(fontSize: 13, color: scheme.primary)),
+                Text(detail, style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
               ],
             ),
           ),
@@ -155,6 +157,7 @@ class _PrivacyTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -162,7 +165,7 @@ class _PrivacyTab extends StatelessWidget {
         children: [
           Text('Privacy Policy', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
-          const Text('Last updated: May 2026', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+          Text('Last updated: May 2026', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
           const SizedBox(height: 16),
           const _LegalSection(
             title: 'Information We Collect',
@@ -200,6 +203,7 @@ class _TermsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -207,7 +211,7 @@ class _TermsTab extends StatelessWidget {
         children: [
           Text('Terms of Service', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 4),
-          const Text('Last updated: May 2026', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+          Text('Last updated: May 2026', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
           const SizedBox(height: 16),
           const _LegalSection(
             title: 'Acceptance of Terms',
@@ -251,6 +255,7 @@ class _DisclaimerTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -262,28 +267,28 @@ class _DisclaimerTab extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.errorSurface,
+              color: context.errorSurfaceColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+              border: Border.all(color: scheme.error.withValues(alpha: 0.2)),
             ),
-            child: const Column(
+            child: Column(
               children: [
-                Icon(Icons.local_hospital_rounded, size: 40, color: AppColors.error),
-                SizedBox(height: 12),
+                Icon(Icons.local_hospital_rounded, size: 40, color: scheme.error),
+                const SizedBox(height: 12),
                 Text(
                   'DocBook is NOT a medical emergency service.',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: AppColors.error,
+                    color: scheme.error,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'If you are experiencing a medical emergency, '
                   'please call emergency services or go to your nearest hospital immediately.',
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary, height: 1.5),
+                  style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant, height: 1.5),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -327,6 +332,7 @@ class _LegalSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -339,7 +345,7 @@ class _LegalSection extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             body,
-            style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.6),
+            style: TextStyle(fontSize: 14, color: scheme.onSurfaceVariant, height: 1.6),
           ),
         ],
       ),

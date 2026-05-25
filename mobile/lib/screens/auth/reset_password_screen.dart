@@ -47,10 +47,11 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
           newPassword: _passwordController.text,
         );
     if (ok && mounted) {
+      final scheme = Theme.of(context).colorScheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Password reset successfully. Please sign in with your new password.'),
-          backgroundColor: AppColors.secondary,
+          backgroundColor: scheme.secondary,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -61,6 +62,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -81,10 +83,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: context.primarySurfaceColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(Icons.password_rounded, size: 36, color: AppColors.primary),
+                  child: Icon(Icons.password_rounded, size: 36, color: scheme.primary),
                 ),
                 const SizedBox(height: 24),
                 Text('Reset Password', style: Theme.of(context).textTheme.displaySmall),
@@ -99,15 +101,15 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: context.primarySurfaceColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       widget.initialEmail,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                        color: scheme.primary,
                       ),
                     ),
                   ),
@@ -154,7 +156,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                 ),
                 const SizedBox(height: 20),
                 Text('New Password', style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: AppColors.textTertiary, fontWeight: FontWeight.w600, letterSpacing: 0.5,
+                  color: scheme.onSurfaceVariant, fontWeight: FontWeight.w600, letterSpacing: 0.5,
                 )),
                 const SizedBox(height: 10),
                 TextFormField(

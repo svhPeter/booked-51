@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../../core/utils/screen_security.dart';
 
 class VideoCallScreen extends StatefulWidget {
   final String appId;
@@ -40,6 +40,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   @override
   void initState() {
     super.initState();
+    ScreenSecurity.enableScreenshotProtection();
     if (widget.isMock) {
       _initMock();
     } else {
@@ -49,6 +50,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   void dispose() {
+    ScreenSecurity.disableScreenshotProtection();
     _cleanup();
     super.dispose();
   }
@@ -134,7 +136,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${p.toString().split(".").last} permission denied'),
-            backgroundColor: AppColors.error,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }

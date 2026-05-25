@@ -70,24 +70,25 @@ class _PatientCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: () => _showPatientDetail(context, ref, patient),
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: AppShadows.sm,
+          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
         ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 22,
-              backgroundColor: AppColors.secondarySurface,
+              backgroundColor: context.secondarySurfaceColor,
               child: Text(
                 patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
-                style: const TextStyle(color: AppColors.secondary, fontWeight: FontWeight.w600, fontSize: 16),
+                style: TextStyle(color: scheme.secondary, fontWeight: FontWeight.w600, fontSize: 16),
               ),
             ),
             const SizedBox(width: 12),
@@ -95,18 +96,18 @@ class _PatientCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(patient.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  Text(patient.name, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: scheme.onSurface)),
                   const SizedBox(height: 2),
-                  Text(patient.email, style: const TextStyle(fontSize: 12, color: AppColors.textTertiary)),
+                  Text(patient.email, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
                 ],
               ),
             ),
             if (!patient.isActive)
-              const StatusBadge(label: 'Inactive', color: AppColors.error, icon: Icons.block)
+              StatusBadge(label: 'Inactive', color: scheme.error, icon: Icons.block)
             else if (patient.isVerified)
-              const StatusBadge(label: 'Verified', color: AppColors.secondary, icon: Icons.verified_user),
+              StatusBadge(label: 'Verified', color: scheme.secondary, icon: Icons.verified_user),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.textTertiary, size: 20),
+            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant, size: 20),
           ],
         ),
       ),
@@ -115,10 +116,11 @@ class _PatientCard extends ConsumerWidget {
 }
 
 void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patient) {
+  final scheme = Theme.of(context).colorScheme;
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.7,
@@ -137,7 +139,7 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: AppColors.border,
+                    color: context.borderColor,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -145,18 +147,18 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
               Center(
                 child: CircleAvatar(
                   radius: 36,
-                  backgroundColor: AppColors.secondarySurface,
+                  backgroundColor: context.secondarySurfaceColor,
                   child: Text(
                     patient.name.isNotEmpty ? patient.name[0].toUpperCase() : '?',
-                    style: const TextStyle(fontSize: 28, color: AppColors.secondary, fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 28, color: scheme.secondary, fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
               const SizedBox(height: 12),
-              Center(child: Text(patient.name, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
+              Center(child: Text(patient.name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: scheme.onSurface))),
               const SizedBox(height: 4),
-              Center(child: Text(patient.email, style: const TextStyle(color: AppColors.textTertiary, fontSize: 13))),
-              Center(child: Text(patient.phone, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13))),
+              Center(child: Text(patient.email, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13))),
+              Center(child: Text(patient.phone, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13))),
               const SizedBox(height: 12),
               Center(
                 child: Row(
@@ -164,22 +166,22 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
                   children: [
                     StatusBadge(
                       label: patient.isActive ? 'Active' : 'Inactive',
-                      color: patient.isActive ? AppColors.online : AppColors.error,
+                      color: patient.isActive ? AppColors.online : scheme.error,
                       icon: patient.isActive ? Icons.check_circle : Icons.block,
                     ),
                     const SizedBox(width: 8),
                     StatusBadge(
                       label: patient.isVerified ? 'Verified' : 'Unverified',
-                      color: patient.isVerified ? AppColors.secondary : AppColors.warning,
+                      color: patient.isVerified ? scheme.secondary : context.warningColor,
                       icon: patient.isVerified ? Icons.verified_user : Icons.schedule,
                     ),
                   ],
                 ),
               ),
-              const Divider(height: 32),
-              _detailRow('Gender', patient.gender.isNotEmpty ? patient.gender : 'N/A'),
-              _detailRow('Blood Group', patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'N/A'),
-              _detailRow('DOB', patient.dob ?? 'N/A'),
+              Divider(height: 32, color: context.dividerColor),
+              _detailRow(context, 'Gender', patient.gender.isNotEmpty ? patient.gender : 'N/A'),
+              _detailRow(context, 'Blood Group', patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'N/A'),
+              _detailRow(context, 'DOB', patient.dob ?? 'N/A'),
             ],
           ),
         );
@@ -188,7 +190,8 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
   );
 }
 
-Widget _detailRow(String label, String value) {
+Widget _detailRow(BuildContext context, String label, String value) {
+  final scheme = Theme.of(context).colorScheme;
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 5),
     child: Row(
@@ -196,9 +199,9 @@ Widget _detailRow(String label, String value) {
       children: [
         SizedBox(
           width: 120,
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.textTertiary, fontSize: 13)),
+          child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13)),
         ),
-        Expanded(child: Text(value, style: const TextStyle(fontSize: 14))),
+        Expanded(child: Text(value, style: TextStyle(fontSize: 14, color: scheme.onSurface))),
       ],
     ),
   );

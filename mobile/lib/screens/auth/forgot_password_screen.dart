@@ -41,6 +41,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -61,10 +62,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: context.primarySurfaceColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(Icons.lock_reset_rounded, size: 36, color: AppColors.primary),
+                  child: Icon(Icons.lock_reset_rounded, size: 36, color: scheme.primary),
                 ),
                 const SizedBox(height: 24),
                 Text('Forgot password?', style: Theme.of(context).textTheme.displaySmall),

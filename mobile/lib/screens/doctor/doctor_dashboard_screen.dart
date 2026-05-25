@@ -40,14 +40,15 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final state = ref.watch(doctorDashboardProvider);
 
     ref.listen<DoctorDashboardState>(doctorDashboardProvider, (previous, next) {
       if (next.actionSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Appointment updated successfully'),
-            backgroundColor: AppColors.secondary,
+          SnackBar(
+            content: const Text('Appointment updated successfully'),
+            backgroundColor: scheme.secondary,
           ),
         );
       }
@@ -55,7 +56,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
-            backgroundColor: AppColors.error,
+            backgroundColor: scheme.error,
           ),
         );
       }
@@ -86,8 +87,8 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
                       top: 6,
                       child: Container(
                         padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: AppColors.error,
+                        decoration: BoxDecoration(
+                          color: scheme.error,
                           shape: BoxShape.circle,
                         ),
                         constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
@@ -110,9 +111,9 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: AppColors.primary,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textHint,
+          indicatorColor: scheme.primary,
+          labelColor: scheme.primary,
+          unselectedLabelColor: scheme.onSurfaceVariant,
           isScrollable: true,
           tabs: const [
             Tab(text: 'Requests'),
@@ -148,13 +149,14 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
   }
 
   Widget _buildError(DoctorDashboardState state) {
+    final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+            Icon(Icons.error_outline, size: 48, color: scheme.error),
             const SizedBox(height: 16),
             Text(state.error!, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -172,6 +174,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
   }
 
   Widget _buildSummaryCards(DashboardSummary? summary) {
+    final scheme = Theme.of(context).colorScheme;
     if (summary == null) return const SizedBox.shrink();
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -181,21 +184,21 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
             icon: Icons.schedule_rounded,
             value: '${summary.todayCount}',
             label: 'Today',
-            color: AppColors.primary,
+            color: scheme.primary,
           ),
           const SizedBox(width: 10),
           _StatCard(
             icon: Icons.check_circle_outline_rounded,
             value: '${summary.completedCount}',
             label: 'Completed',
-            color: AppColors.secondary,
+            color: scheme.secondary,
           ),
           const SizedBox(width: 10),
           _StatCard(
             icon: Icons.people_outline_rounded,
             value: '${summary.totalPatients}',
             label: 'Patients',
-            color: AppColors.accent,
+            color: scheme.tertiary,
           ),
         ],
       ),
@@ -280,9 +283,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
             onCancel: appt.status != 'cancelled' && appt.status != 'completed'
                 ? () => ref.read(doctorDashboardProvider.notifier).cancelAppointment(appt.id)
                 : null,
-            onVerifyPayment: appt.payment != null && appt.payment!.status == 'pending'
-                ? () => _showVerifyPaymentDialog(context, ref, appt)
-                : null,
+
           );
         },
       ),
@@ -297,6 +298,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
       text: DateFormat('yyyy-MM-dd').format(selectedDate),
     );
 
+    final dialogScheme = Theme.of(context).colorScheme;
     await showDialog(
       context: context,
       builder: (context) {
@@ -316,12 +318,11 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
                   if (appointment.preferredDate != null && appointment.preferredTimeSlot != null) ...[
                     Text(
                       'Preferred: ${DateFormat('MMM dd, yyyy').format(appointment.preferredDate!)} at ${appointment.preferredTimeSlot}',
-                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                      style: TextStyle(fontSize: 13, color: dialogScheme.onSurfaceVariant),
                     ),
                     const SizedBox(height: 16),
                   ],
-                  const Text('Set Confirmed Date:', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
-                  const SizedBox(height: 6),
+                  Text('Set Confirmed Date:', style: TextStyle(fontSize: 12, color: dialogScheme.onSurfaceVariant)),
                   TextField(
                     controller: dateController,
                     readOnly: true,
@@ -345,7 +346,7 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
                     },
                   ),
                   const SizedBox(height: 16),
-                  const Text('Set Confirmed Time Slot:', style: TextStyle(fontSize: 12, color: AppColors.textHint)),
+                  Text('Set Confirmed Time Slot:', style: TextStyle(fontSize: 12, color: dialogScheme.onSurfaceVariant)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: selectedSlot,
@@ -401,60 +402,6 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
     );
   }
 
-  Future<void> _showVerifyPaymentDialog(
-    BuildContext context,
-    WidgetRef ref,
-    DoctorAppointmentModel appointment,
-  ) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Verify Payment Transfer'),
-        content: Text(
-          'Please ensure you received the JazzCash/EasyPaisa transfer of PKR ${appointment.payment!.amount.toStringAsFixed(0)} with Trx ID:\n\n"${appointment.payment!.providerTxnId}"\n\nbefore confirming.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Verify & Confirm', style: TextStyle(color: AppColors.secondary)),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm != true) return;
-
-    try {
-      final apiClient = ref.read(apiClientProvider);
-      await apiClient.post('/payments/verify', data: {
-        'appointmentId': appointment.id,
-      });
-
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Payment verified successfully!'),
-          backgroundColor: AppColors.secondary,
-        ),
-      );
-
-      ref.read(doctorDashboardProvider.notifier).fetchAppointments();
-      ref.read(doctorDashboardProvider.notifier).fetchSummary();
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not verify payment: $e'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
   Future<void> _joinVideoCall(BuildContext context, WidgetRef ref, String appointmentId) async {
     try {
       final apiClient = ref.read(apiClientProvider);
@@ -466,10 +413,11 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
       context.push('/call/$appointmentId', extra: session);
     } catch (e) {
       if (context.mounted) {
+        final errScheme = Theme.of(context).colorScheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: AppColors.error,
+            backgroundColor: errScheme.error,
           ),
         );
       }
@@ -484,7 +432,6 @@ class _AppointmentCard extends StatelessWidget {
   final VoidCallback? onConfirm;
   final VoidCallback? onJoinCall;
   final VoidCallback? onMessage;
-  final VoidCallback? onVerifyPayment;
 
   const _AppointmentCard({
     required this.appointment,
@@ -493,11 +440,11 @@ class _AppointmentCard extends StatelessWidget {
     this.onConfirm,
     this.onJoinCall,
     this.onMessage,
-    this.onVerifyPayment,
   });
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final timeStr = appointment.timeSlot;
     final dateStr = DateFormat('MMM dd, yyyy').format(appointment.date);
 
@@ -505,10 +452,10 @@ class _AppointmentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -517,14 +464,14 @@ class _AppointmentCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 22,
-                backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                backgroundColor: scheme.primary.withValues(alpha: 0.2),
                 child: Text(
                   appointment.patientName.isNotEmpty
                       ? appointment.patientName[0].toUpperCase()
                       : '?',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
-                    color: AppColors.primary,
+                    color: scheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -541,7 +488,7 @@ class _AppointmentCard extends StatelessWidget {
                     if (appointment.patientPhone.isNotEmpty)
                       Text(
                         appointment.patientPhone,
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
                   ],
                 ),
@@ -552,62 +499,31 @@ class _AppointmentCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 14, color: AppColors.textHint),
+              Icon(Icons.calendar_today, size: 14, color: scheme.onSurfaceVariant),
               const SizedBox(width: 6),
               Text(
                 appointment.status == 'pending' ? 'Preferred: $dateStr' : dateStr,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
               ),
               const SizedBox(width: 16),
-              const Icon(Icons.access_time, size: 14, color: AppColors.textHint),
+              Icon(Icons.access_time, size: 14, color: scheme.onSurfaceVariant),
               const SizedBox(width: 6),
               Text(
                 appointment.status == 'pending' ? 'Preferred: $timeStr' : timeStr,
-                style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
               ),
             ],
           ),
-          if (appointment.payment != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.wallet_outlined, size: 14, color: AppColors.secondary),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        appointment.hospitalName == null
-                            ? 'JazzCash/EasyPaisa (Trx: ${appointment.payment!.providerTxnId}) • '
-                            : 'PKR ${appointment.payment!.amount.toStringAsFixed(0)} • Pay at Clinic ',
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                      ),
-                      _buildPaymentBadge(appointment.payment!.status),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null || onConfirm != null || onVerifyPayment != null) ...[
+          if (onMessage != null || onJoinCall != null || onComplete != null || onCancel != null || onConfirm != null) ...[
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (onVerifyPayment != null) ...[
-                  _ActionButton(
-                    label: 'Verify Payment',
-                    icon: Icons.verified_user_outlined,
-                    color: Colors.teal,
-                    onTap: onVerifyPayment!,
-                  ),
-                  const SizedBox(width: 8),
-                ],
                 if (onConfirm != null) ...[
                   _ActionButton(
                     label: 'Confirm',
                     icon: Icons.check_circle_outline,
-                    color: AppColors.secondary,
+                    color: scheme.secondary,
                     onTap: onConfirm!,
                   ),
                   const SizedBox(width: 8),
@@ -616,7 +532,7 @@ class _AppointmentCard extends StatelessWidget {
                   _ActionButton(
                     label: 'Message',
                     icon: Icons.chat_bubble_outline,
-                    color: AppColors.primary,
+                    color: scheme.primary,
                     onTap: onMessage!,
                   ),
                   const SizedBox(width: 8),
@@ -634,7 +550,7 @@ class _AppointmentCard extends StatelessWidget {
                   _ActionButton(
                     label: 'Complete',
                     icon: Icons.check_circle_outline,
-                    color: AppColors.secondary,
+                    color: scheme.secondary,
                     onTap: onComplete!,
                   ),
                 if (onCancel != null) ...[
@@ -642,7 +558,7 @@ class _AppointmentCard extends StatelessWidget {
                   _ActionButton(
                     label: appointment.status == 'pending' ? 'Reject' : 'Cancel',
                     icon: Icons.cancel_outlined,
-                    color: AppColors.error,
+                    color: scheme.error,
                     onTap: onCancel!,
                   ),
                 ],
@@ -658,38 +574,6 @@ class _AppointmentCard extends StatelessWidget {
     return StatusBadge.fromStatus(status);
   }
 
-  Widget _buildPaymentBadge(String status) {
-    Color color;
-    String label;
-    switch (status) {
-      case 'paid':
-        color = AppColors.secondary;
-        label = 'Paid';
-        break;
-      case 'pending':
-        color = AppColors.warning;
-        label = 'Pending';
-        break;
-      case 'failed':
-        color = AppColors.error;
-        label = 'Failed';
-        break;
-      default:
-        color = AppColors.textHint;
-        label = status;
-    }
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w500),
-      ),
-    );
-  }
 }
 
 class _ActionButton extends StatelessWidget {
@@ -741,13 +625,14 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: scheme.outlineVariant),
         ),
         child: Column(
           children: [
@@ -761,7 +646,7 @@ class _StatCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
+            Text(label, style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
           ],
         ),
       ),

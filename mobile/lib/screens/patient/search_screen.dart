@@ -151,22 +151,23 @@ class _SpecialtyChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? scheme.primary : scheme.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected ? scheme.primary : scheme.outlineVariant,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
+            color: isSelected ? Colors.white : scheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
             fontSize: 13,
           ),
@@ -184,15 +185,16 @@ class _DoctorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 0.5),
-          boxShadow: AppShadows.sm,
+          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,16 +203,16 @@ class _DoctorCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 30,
-                  backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                  backgroundColor: scheme.primary.withValues(alpha: 0.2),
                   backgroundImage: doctor.avatarUrl != null
                       ? NetworkImage(doctor.avatarUrl!)
                       : null,
                   child: doctor.avatarUrl == null
                       ? Text(
                           doctor.name[0].toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 24,
-                            color: AppColors.primary,
+                            color: scheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         )
@@ -241,10 +243,10 @@ class _DoctorCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Dr. ${doctor.name}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: scheme.onSurface,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -256,19 +258,19 @@ class _DoctorCard extends StatelessWidget {
                           margin: const EdgeInsets.only(left: 4),
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: AppColors.secondary.withValues(alpha: 0.1),
+                            color: scheme.secondary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),
                           ),
-                          child: const Icon(Icons.verified_rounded,
-                              color: AppColors.secondary, size: 14),
+                          child: Icon(Icons.verified_rounded,
+                              color: scheme.secondary, size: 14),
                         ),
                     ],
                   ),
                   const SizedBox(height: 4),
                   Text(
                     doctor.specialty,
-                    style: const TextStyle(
-                      color: AppColors.primary,
+                    style: TextStyle(
+                      color: scheme.primary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -282,15 +284,15 @@ class _DoctorCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         doctor.averageRating.toStringAsFixed(1),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textSecondary,
+                          color: scheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
                         ' (${doctor.totalReviews})',
-                        style: const TextStyle(fontSize: 11, color: AppColors.textTertiary),
+                        style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
                       ),
                       const SizedBox(width: 12),
                       Container(
@@ -324,25 +326,25 @@ class _DoctorCard extends StatelessWidget {
                       _ModeLabel(
                         icon: Icons.business_rounded,
                         label: 'Clinic',
-                        color: AppColors.primary,
+                        color: scheme.primary,
                       ),
                       const Spacer(),
                       if (doctor.consultationFee > 0)
                         Text(
                           'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
+                            color: scheme.primary,
                           ),
                         )
                       else
-                        const Text(
+                        Text(
                           'Free',
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.secondary,
+                            color: scheme.secondary,
                           ),
                         ),
                     ],

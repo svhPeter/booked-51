@@ -83,6 +83,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.isAuthenticated) {
@@ -110,10 +111,10 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                   width: 72,
                   height: 72,
                   decoration: BoxDecoration(
-                    color: AppColors.primarySurface,
+                    color: context.primarySurfaceColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: const Icon(Icons.mark_email_read_rounded, size: 36, color: AppColors.primary),
+                  child: Icon(Icons.mark_email_read_rounded, size: 36, color: scheme.primary),
                 ),
                 const SizedBox(height: 24),
                 Text('Verify your email', style: Theme.of(context).textTheme.displaySmall),
@@ -128,22 +129,22 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.primarySurface,
+                      color: context.primarySurfaceColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
                       _email,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
+                        color: scheme.primary,
                       ),
                     ),
                   ),
                 ] else
-                  const Text(
+                  Text(
                     'Email is missing. Please go back and sign up again.',
-                    style: TextStyle(color: AppColors.error, fontSize: 14),
+                    style: TextStyle(color: scheme.error, fontSize: 14),
                     textAlign: TextAlign.center,
                   ),
                 const SizedBox(height: 8),
@@ -199,7 +200,7 @@ class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
                         'Resend available in ${_resendCooldown}s',
                         style: TextStyle(
                           fontSize: 13,
-                          color: AppColors.textTertiary,
+                          color: scheme.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
                       )

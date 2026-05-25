@@ -28,16 +28,18 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
   void _shareProfile() {
     final url = 'https://docbook.pk/doctor/${widget.doctorId}';
     Clipboard.setData(ClipboardData(text: url));
+    final scheme = Theme.of(context).colorScheme;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Doctor profile link copied to clipboard!'),
-        backgroundColor: AppColors.secondary,
+      SnackBar(
+        content: const Text('Doctor profile link copied to clipboard!'),
+        backgroundColor: scheme.secondary,
         behavior: SnackBarBehavior.floating,
       ),
     );
   }
 
   void _showReportDialog() {
+    final scheme = Theme.of(context).colorScheme;
     String? selectedReason;
     final descController = TextEditingController();
 
@@ -51,8 +53,8 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('What would you like to report?',
-                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+                Text('What would you like to report?',
+                    style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
                 const SizedBox(height: 12),
                 ...['wrong_doctor_info', 'wrong_clinic_address', 'doctor_unavailable', 'other'].map((reason) {
                   final label = {
@@ -100,9 +102,9 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                         });
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Report submitted. Thank you!'),
-                              backgroundColor: AppColors.secondary,
+                            SnackBar(
+                              content: const Text('Report submitted. Thank you!'),
+                              backgroundColor: scheme.secondary,
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
@@ -112,7 +114,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('Failed to submit report: $e'),
-                              backgroundColor: AppColors.error,
+                              backgroundColor: scheme.error,
                             ),
                           );
                         }
@@ -130,6 +132,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
   Widget build(BuildContext context) {
     final doctorState = ref.watch(doctorProvider);
     final doctor = doctorState.selectedDoctor;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: doctorState.isLoading
@@ -165,8 +168,8 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                AppColors.primary,
-                                AppColors.primaryDark,
+                                scheme.primary,
+                                scheme.primary.withValues(alpha: 0.8),
                               ],
                             ),
                           ),
@@ -252,7 +255,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                   _TrustChip(
                                     icon: Icons.badge_rounded,
                                     label: 'PMDC Reg.',
-                                    color: AppColors.primary,
+                                    color: scheme.primary,
                                   ),
                                 _TrustChip(
                                   icon: Icons.schedule_rounded,
@@ -262,7 +265,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                 _TrustChip(
                                   icon: Icons.money_off_rounded,
                                   label: 'Direct payment',
-                                  color: AppColors.secondary,
+                                  color: scheme.secondary,
                                 ),
                               ],
                             ),
@@ -280,14 +283,14 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                   icon: Icons.work_outline,
                                   value: '${doctor.yearsOfExperience}+',
                                   label: 'Years Exp',
-                                  color: AppColors.primary,
+                                  color: scheme.primary,
                                 ),
                                 const SizedBox(width: 12),
                                 _InfoChip(
                                   icon: Icons.people_outline,
                                   value: '${doctor.totalReviews}',
                                   label: 'Reviews',
-                                  color: AppColors.secondary,
+                                  color: scheme.secondary,
                                 ),
                               ],
                             ),
@@ -299,9 +302,9 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surface,
+                                  color: scheme.surface,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.border),
+                                  border: Border.all(color: scheme.outlineVariant),
                                 ),
                                 child: Text(doctor.qualification!),
                               ),
@@ -322,20 +325,20 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surface,
+                                  color: scheme.surface,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.border),
+                                  border: Border.all(color: scheme.outlineVariant),
                                 ),
                                 child: Row(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha: 0.1),
+                                        color: scheme.primary.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      child: const Icon(Icons.local_hospital,
-                                          color: AppColors.primary),
+                                      child: Icon(Icons.local_hospital,
+                                          color: scheme.primary),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
@@ -351,10 +354,10 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                           if (doctor.hospitalAddress != null)
                                             Text(
                                               doctor.hospitalAddress!,
-                                              style: const TextStyle(
-                                                fontSize: 13,
-                                                color: AppColors.textHint,
-                                              ),
+                                            style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: scheme.onSurfaceVariant,
+                                                ),
                                             ),
                                         ],
                                       ),
@@ -373,17 +376,17 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                   .map((day) => Chip(
                                         label: Text(day),
                                         backgroundColor: doctor.availableDays.contains(day)
-                                            ? AppColors.primary.withValues(alpha: 0.1)
+                                            ? scheme.primary.withValues(alpha: 0.1)
                                             : null,
                                         side: BorderSide(
                                           color: doctor.availableDays.contains(day)
-                                              ? AppColors.primary
-                                              : AppColors.border,
+                                              ? scheme.primary
+                                              : scheme.outlineVariant,
                                         ),
                                         labelStyle: TextStyle(
                                           color: doctor.availableDays.contains(day)
-                                              ? AppColors.primary
-                                              : AppColors.textHint,
+                                              ? scheme.primary
+                                              : scheme.onSurfaceVariant,
                                           fontSize: 13,
                                         ),
                                       ))
@@ -396,18 +399,18 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                  color: AppColors.surface,
+                                  color: scheme.surface,
                                   borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: AppColors.border),
+                                  border: Border.all(color: scheme.outlineVariant),
                                 ),
                                 child: Row(
                                   children: [
                                     Text(
                                       'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
+                                        color: scheme.primary,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
@@ -420,13 +423,13 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: AppColors.secondary.withValues(alpha: 0.1),
+                                        color: scheme.secondary.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: const Text(
+                                      child: Text(
                                         'Direct payment',
                                         style: TextStyle(
-                                          color: AppColors.secondary,
+                                          color: scheme.secondary,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -443,9 +446,9 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                 final url = 'https://docbook.pk/book/${doctor.id}';
                                 Clipboard.setData(ClipboardData(text: url));
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Booking link copied!'),
-                                    backgroundColor: AppColors.secondary,
+                                  SnackBar(
+                                    content: const Text('Booking link copied!'),
+                                    backgroundColor: scheme.secondary,
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
@@ -495,10 +498,10 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Center(
+                            Center(
                               child: Text(
                                 'Doctor will confirm your final appointment time.',
-                                style: TextStyle(fontSize: 12, color: AppColors.textTertiary),
+                                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                               ),
                             ),
                             const SizedBox(height: 24),
@@ -568,13 +571,14 @@ class _InfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: scheme.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(color: scheme.outlineVariant),
         ),
         child: Column(
           children: [
@@ -589,7 +593,7 @@ class _InfoChip extends StatelessWidget {
             ),
             Text(
               label,
-              style: TextStyle(fontSize: 11, color: AppColors.textHint),
+              style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
             ),
           ],
         ),

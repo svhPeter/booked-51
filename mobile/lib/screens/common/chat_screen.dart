@@ -98,27 +98,28 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final chatState = ref.watch(chatProvider);
     final myId = ref.watch(authProvider).user?.id;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: scheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: scheme.surface,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
-          child: Container(color: AppColors.border, height: 0.8),
+          child: Container(color: scheme.outlineVariant, height: 0.8),
         ),
         title: Row(
           children: [
             CircleAvatar(
               radius: 16,
-              backgroundColor: AppColors.primarySurface,
+              backgroundColor: context.primarySurfaceColor,
               child: Text(
                 widget.title.isNotEmpty ? widget.title[0].toUpperCase() : 'D',
-                style: const TextStyle(
-                  color: AppColors.primary,
+                style: TextStyle(
+                  color: scheme.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
@@ -131,12 +132,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 children: [
                   Text(
                     widget.title,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: scheme.onSurface),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const Text(
+                  Text(
                     'Online • Secure connection',
-                    style: TextStyle(fontSize: 10, color: AppColors.secondary, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 10, color: scheme.secondary, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
@@ -144,7 +145,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.textSecondary),
+          icon: Icon(Icons.arrow_back_ios_new, size: 18, color: scheme.onSurfaceVariant),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -153,15 +154,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: AppColors.primarySurface.withValues(alpha: 0.8),
+            color: context.primarySurfaceColor.withValues(alpha: 0.8),
             child: Row(
               children: [
-                const Icon(Icons.shield_outlined, size: 16, color: AppColors.primary),
+                Icon(Icons.shield_outlined, size: 16, color: scheme.primary),
                 const SizedBox(width: 8),
-                const Expanded(
+                Expanded(
                   child: Text(
                     'Appointment scoped chat. Strictly confidential.',
-                    style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 11, color: scheme.primary, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -203,11 +204,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 padding: const EdgeInsets.only(left: 6, bottom: 4),
                                 child: Text(
                                   msg.senderName,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textTertiary,
-                                  ),
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: scheme.onSurfaceVariant,
+                                    ),
                                 ),
                               ),
                             ],
@@ -220,15 +221,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 maxWidth: MediaQuery.of(context).size.width * 0.76,
                               ),
                               decoration: BoxDecoration(
-                                color: isMine ? AppColors.primary : AppColors.surface,
+                                color: isMine ? scheme.primary : scheme.surfaceVariant,
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),
                                   bottomLeft: isMine ? const Radius.circular(16) : const Radius.circular(4),
                                   bottomRight: isMine ? const Radius.circular(4) : const Radius.circular(16),
                                 ),
-                                border: isMine ? null : Border.all(color: AppColors.border, width: 0.8),
-                                boxShadow: AppShadows.sm,
+                                border: isMine ? null : Border.all(color: scheme.outlineVariant, width: 0.8),
+                                boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
                               ),
                               child: isVoice
                                   ? _VoicePlayerBubble(
@@ -239,7 +240,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   : Text(
                                       msg.content,
                                       style: TextStyle(
-                                        color: isMine ? Colors.white : AppColors.textPrimary,
+                                        color: isMine ? Colors.white : scheme.onSurface,
                                         fontSize: 14,
                                         height: 1.4,
                                       ),
@@ -254,11 +255,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           if (chatState.error != null)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              color: AppColors.error.withValues(alpha: 0.1),
+              color: scheme.error.withValues(alpha: 0.1),
               width: double.infinity,
               child: Text(
                 chatState.error!,
-                style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w500),
+                style: TextStyle(color: scheme.error, fontSize: 12, fontWeight: FontWeight.w500),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -270,9 +271,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       height: 56,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: AppColors.primarySurface,
+                        color: context.primarySurfaceColor,
                         borderRadius: BorderRadius.circular(28),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                        border: Border.all(color: scheme.primary.withValues(alpha: 0.2)),
                       ),
                       child: Row(
                         children: [
@@ -280,20 +281,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           const SizedBox(width: 10),
                           Text(
                             'Recording: ${_formatDuration(_recordSeconds)}',
-                            style: const TextStyle(
-                              color: AppColors.primary,
+                            style: TextStyle(
+                              color: scheme.primary,
                               fontWeight: FontWeight.w600,
                               fontSize: 14,
                             ),
                           ),
                           const Spacer(),
                           IconButton(
-                            icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                            icon: Icon(Icons.delete_outline, color: scheme.error),
                             onPressed: _cancelRecording,
                           ),
                           const SizedBox(width: 8),
                           IconButton(
-                            icon: const Icon(Icons.send, color: AppColors.secondary),
+                            icon: Icon(Icons.send, color: scheme.secondary),
                             onPressed: _sendVoiceNote,
                           ),
                         ],
@@ -304,10 +305,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         Expanded(
                           child: Container(
                             decoration: BoxDecoration(
-                              color: AppColors.surface,
+                              color: scheme.surface,
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: AppColors.border, width: 0.8),
-                              boxShadow: AppShadows.sm,
+                              border: Border.all(color: scheme.outlineVariant, width: 0.8),
+                              boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
                             ),
                             child: Row(
                               children: [
@@ -326,7 +327,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 ),
                                 if (ApiConstants.enableVoiceNotes)
                                   IconButton(
-                                    icon: const Icon(Icons.mic, color: AppColors.primary),
+                                    icon: Icon(Icons.mic, color: scheme.primary),
                                     onPressed: _startRecording,
                                     tooltip: 'Record voice note',
                                   ),
@@ -339,7 +340,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           onTap: _send,
                           child: CircleAvatar(
                             radius: 22,
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: scheme.primary,
                             child: const Icon(Icons.send, color: Colors.white, size: 18),
                           ),
                         ),
@@ -380,13 +381,14 @@ class _PulsingRedDotState extends State<_PulsingRedDot> with SingleTickerProvide
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return FadeTransition(
       opacity: _controller,
       child: Container(
         width: 10,
         height: 10,
-        decoration: const BoxDecoration(
-          color: AppColors.error,
+        decoration: BoxDecoration(
+          color: scheme.error,
           shape: BoxShape.circle,
         ),
       ),
@@ -414,7 +416,8 @@ class _VoicePlayerBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = isMine ? Colors.white : AppColors.primary;
+    final scheme = Theme.of(context).colorScheme;
+    final activeColor = isMine ? Colors.white : scheme.primary;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -434,7 +437,7 @@ class _VoicePlayerBubble extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isMine ? Colors.white : AppColors.textPrimary,
+                color: isMine ? Colors.white : scheme.onSurface,
               ),
             ),
             const SizedBox(height: 2),
@@ -442,7 +445,7 @@ class _VoicePlayerBubble extends StatelessWidget {
               '${_formatDisplay(duration)} • Playback unavailable in web',
               style: TextStyle(
                 fontSize: 10,
-                color: isMine ? Colors.white70 : AppColors.textSecondary,
+                color: isMine ? Colors.white70 : scheme.onSurfaceVariant,
               ),
             ),
           ],

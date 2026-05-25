@@ -218,12 +218,13 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
   }
 
   Widget _sectionLabel(String text) {
+    final t = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(top: 20),
       child: Text(text, style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppColors.textTertiary,
+        color: t.onSurfaceVariant,
         letterSpacing: 0.5,
       )),
     );

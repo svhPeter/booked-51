@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_theme.dart';
 import '../../providers/doctor_provider.dart';
 import '../../providers/appointment_provider.dart';
 
@@ -79,6 +78,7 @@ class _BookAppointmentScreenState
     final doctorState = ref.watch(doctorProvider);
     final appointmentState = ref.watch(appointmentProvider);
     final doctor = doctorState.selectedDoctor;
+    final scheme = Theme.of(context).colorScheme;
 
     ref.listen<AppointmentState>(appointmentProvider, (previous, next) {
       if (next.bookingSuccess && next.lastBookedAppointment != null) {
@@ -90,7 +90,7 @@ class _BookAppointmentScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
-            backgroundColor: AppColors.error,
+            backgroundColor: scheme.error,
           ),
         );
       }
@@ -109,20 +109,20 @@ class _BookAppointmentScreenState
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.surface,
+                        color: scheme.surface,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
+                        border: Border.all(color: scheme.outlineVariant),
                       ),
                       child: Row(
                         children: [
                           CircleAvatar(
                             radius: 28,
-                            backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                            backgroundColor: scheme.primary.withValues(alpha: 0.2),
                             child: Text(
                               doctor.name[0].toUpperCase(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
-                                color: AppColors.primary,
+                                color: scheme.primary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -136,42 +136,42 @@ class _BookAppointmentScreenState
                                   'Dr. ${doctor.name}',
                                   style: Theme.of(context).textTheme.titleMedium,
                                 ),
-                                Text(
-                                  doctor.specialty,
-                                  style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 28),
-                  Text('Select Preferred Date', style: Theme.of(context).textTheme.titleLarge),
-                  if (doctor != null && doctor.availableDays.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Available: ${doctor.availableDays.join(', ')}',
-                      style: const TextStyle(fontSize: 13, color: AppColors.textHint),
-                    ),
+                                 Text(
+                                   doctor.specialty,
+                                   style: TextStyle(
+                                     color: scheme.primary,
+                                     fontSize: 13,
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           ),
+                           Text(
+                             'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
+                             style: TextStyle(
+                               fontSize: 16,
+                               fontWeight: FontWeight.bold,
+                               color: scheme.primary,
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                   const SizedBox(height: 28),
+                   Text('Select Preferred Date', style: Theme.of(context).textTheme.titleLarge),
+                   if (doctor != null && doctor.availableDays.isNotEmpty) ...[
+                     const SizedBox(height: 4),
+                     Text(
+                       'Available: ${doctor.availableDays.join(', ')}',
+                       style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+                     ),
                   ],
                   const SizedBox(height: 16),
                   Container(
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: scheme.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: scheme.outlineVariant),
                     ),
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -219,9 +219,9 @@ class _BookAppointmentScreenState
                                     child: Text(
                                       d,
                                       textAlign: TextAlign.center,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 13,
-                                        color: AppColors.textHint,
+                                        color: scheme.onSurfaceVariant,
                                         fontWeight: FontWeight.w500,
                                       ),
                                     ),
@@ -255,9 +255,9 @@ class _BookAppointmentScreenState
                                 height: 40,
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? AppColors.primary
+                                      ? scheme.primary
                                       : isToday
-                                          ? AppColors.primary.withValues(alpha: 0.1)
+                                          ? scheme.primary.withValues(alpha: 0.1)
                                           : null,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -271,8 +271,8 @@ class _BookAppointmentScreenState
                                       color: isSelected
                                           ? Colors.white
                                           : isPast || !isCurrentMonth || isUnavailable
-                                              ? AppColors.textHint
-                                              : AppColors.textPrimary,
+                                              ? scheme.onSurfaceVariant
+                                              : scheme.onSurface,
                                     ),
                                   ),
                                 ),
@@ -291,13 +291,13 @@ class _BookAppointmentScreenState
                           width: double.infinity,
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: AppColors.surface,
+                            color: scheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.border),
+                            border: Border.all(color: scheme.outlineVariant),
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.schedule, size: 40, color: AppColors.textHint),
+                              Icon(Icons.schedule, size: 40, color: scheme.onSurfaceVariant),
                               const SizedBox(height: 8),
                               Text(
                                 'No slots available for this date',
@@ -317,16 +317,16 @@ class _BookAppointmentScreenState
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 20, vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppColors.primary : AppColors.surface,
+                                  color: isSelected ? scheme.primary : scheme.surface,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: isSelected ? AppColors.primary : AppColors.border,
+                                    color: isSelected ? scheme.primary : scheme.outlineVariant,
                                   ),
                                 ),
                                 child: Text(
                                   slot,
                                   style: TextStyle(
-                                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                                    color: isSelected ? Colors.white : scheme.onSurface,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

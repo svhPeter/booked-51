@@ -80,14 +80,15 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
   }
 
   Widget _buildPaymentInfoCard(AppointmentModel a) {
+    final scheme = Theme.of(context).colorScheme;
     final isClinicVisit = a.hospitalName != null && a.hospitalName!.isNotEmpty;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,28 +96,28 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
           Row(
             children: [
               Icon(isClinicVisit ? Icons.store_rounded : Icons.info_outline,
-                  color: AppColors.primary, size: 20),
+                  color: scheme.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 isClinicVisit ? 'Pay at Clinic' : 'Consultation Fee',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+                  color: scheme.onSurface,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
           if (isClinicVisit) ...[
-            const Text(
+            Text(
               'Pay the consultation fee directly at the clinic during your visit.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
             ),
           ] else ...[
-            const Text(
+            Text(
               'The doctor may request payment via their official account. DocBook does not collect any fees. Do not send money to unverified numbers or accounts.',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
             ),
           ],
           const SizedBox(height: 12),
@@ -124,20 +125,20 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
             width: double.infinity,
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.warningSurface,
+              color: context.warningColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
+              border: Border.all(color: context.warningColor.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
-                Icon(Icons.warning_amber_rounded, size: 14, color: AppColors.warning),
+                Icon(Icons.warning_amber_rounded, size: 14, color: context.warningColor),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     'Only pay the verified doctor/clinic directly. DocBook will never ask you to pay online.',
                     style: TextStyle(
                       fontSize: 11,
-                      color: AppColors.warning.withValues(alpha: 0.9),
+                      color: context.warningColor.withValues(alpha: 0.9),
                       height: 1.3,
                     ),
                   ),
@@ -152,6 +153,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -176,7 +178,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Dr. ${a.doctorName}', style: Theme.of(context).textTheme.headlineSmall),
-            Text(a.specialty, style: const TextStyle(color: AppColors.primary)),
+            Text(a.specialty, style: TextStyle(color: scheme.primary)),
             const SizedBox(height: 16),
             _card([
               _line(
@@ -191,7 +193,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
-                    const SizedBox(width: 140, child: Text('Status', style: TextStyle(color: AppColors.textTertiary))),
+                    SizedBox(width: 140, child: Text('Status', style: TextStyle(color: scheme.onSurfaceVariant))),
                     StatusBadge.fromStatus(a.status.name),
                   ],
                 ),
@@ -205,7 +207,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
               isClinicVisit
                   ? 'Payment is made directly to the doctor at your visit. DocBook does not charge you online.'
                   : 'DocBook does not collect any fees. Pay the doctor/clinic directly after confirmation.',
-              style: const TextStyle(fontSize: 13, color: AppColors.textTertiary, height: 1.4),
+              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant, height: 1.4),
             ),
             if (a.status == AppointmentStatus.pending) ...[
               const SizedBox(height: 16),
@@ -213,32 +215,32 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.05),
+                  color: scheme.primary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                  border: Border.all(color: scheme.primary.withValues(alpha: 0.15)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.info_outline, color: AppColors.primary),
+                        Icon(Icons.info_outline, color: scheme.primary),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             'Awaiting doctor confirmation',
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
+                                  color: scheme.primary,
                                 ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'The doctor will review and confirm your appointment. You will be notified once the time is finalised.',
-                      style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                      Text(
+                        'The doctor will review and confirm your appointment. You will be notified once the time is finalised.',
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
                     ),
                     const SizedBox(height: 12),
                     SizedBox(
@@ -248,7 +250,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                         icon: const Icon(Icons.videocam, size: 18),
                         label: const Text('Video call available after confirmation'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.textTertiary,
+                          foregroundColor: scheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -271,9 +273,9 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Secure Agora-powered video consultation. Only join if the doctor has confirmed your appointment.',
-                style: TextStyle(fontSize: 11, color: AppColors.textTertiary, height: 1.3),
+                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, height: 1.3),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -297,7 +299,7 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
                     a.status == AppointmentStatus.pending
                         ? 'Cancel Request'
                         : 'Cancel Appointment',
-                    style: const TextStyle(color: AppColors.error),
+                    style: TextStyle(color: scheme.error),
                   ),
                 ),
               ),
@@ -309,25 +311,27 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
   }
 
   Widget _card(List<Widget> children) {
+    final scheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: Column(children: children),
     );
   }
 
   Widget _line(String label, String value) {
+    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(width: 140, child: Text(label, style: const TextStyle(color: AppColors.textTertiary, fontSize: 13))),
+          SizedBox(width: 140, child: Text(label, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13))),
           Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600))),
         ],
       ),

@@ -38,6 +38,7 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final appointmentState = ref.watch(appointmentProvider);
 
     final upcoming = appointmentState.appointments
@@ -73,15 +74,15 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
-              color: AppColors.error.withValues(alpha: 0.1),
+              color: scheme.error.withValues(alpha: 0.1),
               child: Row(
                 children: [
-                  const Icon(Icons.error_outline, size: 18, color: AppColors.error),
+                  Icon(Icons.error_outline, size: 18, color: scheme.error),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       appointmentState.error!,
-                      style: const TextStyle(color: AppColors.error, fontSize: 13),
+                      style: TextStyle(color: scheme.error, fontSize: 13),
                     ),
                   ),
                 ],
@@ -137,6 +138,7 @@ class _AppointmentList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
     if (appointments.isEmpty) {
       return EmptyStateWidget(
         icon: Icons.event_busy_rounded,
@@ -159,10 +161,10 @@ class _AppointmentList extends ConsumerWidget {
           child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: scheme.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border, width: 0.5),
-            boxShadow: AppShadows.sm,
+            border: Border.all(color: scheme.outlineVariant, width: 0.5),
+            boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,11 +173,11 @@ class _AppointmentList extends ConsumerWidget {
                 children: [
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: AppColors.primaryLight.withValues(alpha: 0.2),
+                    backgroundColor: scheme.primary.withValues(alpha: 0.2),
                     child: Text(
                       appt.doctorName[0].toUpperCase(),
-                      style: const TextStyle(
-                        color: AppColors.primary,
+                      style: TextStyle(
+                        color: scheme.primary,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -191,7 +193,7 @@ class _AppointmentList extends ConsumerWidget {
                         ),
                         Text(appt.specialty,
                             style:
-                                const TextStyle(fontSize: 12, color: AppColors.primary)),
+                                TextStyle(fontSize: 12, color: scheme.primary)),
                       ],
                     ),
                   ),
@@ -201,22 +203,22 @@ class _AppointmentList extends ConsumerWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.calendar_today,
-                      size: 14, color: AppColors.textHint),
+                  Icon(Icons.calendar_today,
+                      size: 14, color: scheme.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Text(
                     '${appt.date.day}/${appt.date.month}/${appt.date.year}',
                     style:
-                        const TextStyle(fontSize: 12, color: AppColors.textHint),
+                        TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                   ),
                   const SizedBox(width: 16),
-                  const Icon(Icons.access_time,
-                      size: 14, color: AppColors.textHint),
+                  Icon(Icons.access_time,
+                      size: 14, color: scheme.onSurfaceVariant),
                   const SizedBox(width: 4),
                   Text(
                     appt.timeSlot,
                     style:
-                        const TextStyle(fontSize: 12, color: AppColors.textHint),
+                        TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -231,7 +233,7 @@ class _AppointmentList extends ConsumerWidget {
                           icon: const Icon(Icons.videocam, size: 18),
                           label: const Text('Join Call'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.secondary,
+                            backgroundColor: scheme.secondary,
                             foregroundColor: Colors.white,
                           ),
                         ),
@@ -245,8 +247,8 @@ class _AppointmentList extends ConsumerWidget {
                           icon: const Icon(Icons.cancel_outlined, size: 18),
                           label: const Text('Cancel'),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.error,
-                            side: const BorderSide(color: AppColors.error),
+                            foregroundColor: scheme.error,
+                            side: BorderSide(color: scheme.error),
                           ),
                         ),
                       ),
@@ -262,6 +264,7 @@ class _AppointmentList extends ConsumerWidget {
   }
 
   Future<void> _joinVideoCall(BuildContext context, WidgetRef ref, String appointmentId) async {
+    final scheme = Theme.of(context).colorScheme;
     try {
       final apiClient = ref.read(apiClientProvider);
       final response = await apiClient.get('/appointments/$appointmentId/video-session');
@@ -275,7 +278,7 @@ class _AppointmentList extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
-            backgroundColor: AppColors.error,
+            backgroundColor: scheme.error,
           ),
         );
       }
@@ -283,6 +286,7 @@ class _AppointmentList extends ConsumerWidget {
   }
 
   void _confirmCancel(BuildContext context, WidgetRef ref, AppointmentModel appt) {
+    final scheme = Theme.of(context).colorScheme;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -299,8 +303,8 @@ class _AppointmentList extends ConsumerWidget {
               Navigator.of(ctx).pop();
               ref.read(appointmentProvider.notifier).cancelAppointment(appt.id);
             },
-            child: const Text('Yes, Cancel',
-                style: TextStyle(color: AppColors.error)),
+            child: Text('Yes, Cancel',
+                style: TextStyle(color: scheme.error)),
           ),
         ],
       ),

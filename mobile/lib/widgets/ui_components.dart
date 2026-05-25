@@ -19,7 +19,7 @@ class MessageBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = _config;
+    final config = _config(context);
     return Container(
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.only(bottom: 16),
@@ -48,32 +48,39 @@ class MessageBanner extends StatelessWidget {
     );
   }
 
-  _BannerConfig get _config => switch (type) {
-        MessageType.error => _BannerConfig(
-            color: AppColors.error,
-            bg: AppColors.errorSurface,
-            borderColor: AppColors.error.withValues(alpha: 0.2),
-            icon: Icons.error_outline_rounded,
-          ),
-        MessageType.success => _BannerConfig(
-            color: AppColors.secondary,
-            bg: AppColors.secondarySurface,
-            borderColor: AppColors.secondary.withValues(alpha: 0.2),
-            icon: Icons.check_circle_outline_rounded,
-          ),
-        MessageType.info => _BannerConfig(
-            color: AppColors.info,
-            bg: AppColors.primarySurface,
-            borderColor: AppColors.info.withValues(alpha: 0.2),
-            icon: Icons.info_outline_rounded,
-          ),
-        MessageType.warning => _BannerConfig(
-            color: AppColors.warning,
-            bg: AppColors.warningSurface,
-            borderColor: AppColors.warning.withValues(alpha: 0.2),
-            icon: Icons.warning_amber_rounded,
-          ),
-      };
+  _BannerConfig _config(BuildContext context) {
+    final isDark = context.isDarkMode;
+    switch (type) {
+      case MessageType.error:
+        return _BannerConfig(
+          color: isDark ? const Color(0xFFFCA5A5) : AppColors.error,
+          bg: isDark ? const Color(0xFF450A0A) : AppColors.errorSurface,
+          borderColor: (isDark ? const Color(0xFFFCA5A5) : AppColors.error).withValues(alpha: 0.2),
+          icon: Icons.error_outline_rounded,
+        );
+      case MessageType.success:
+        return _BannerConfig(
+          color: AppColors.secondary,
+          bg: isDark ? const Color(0xFF064E3B) : AppColors.secondarySurface,
+          borderColor: AppColors.secondary.withValues(alpha: 0.2),
+          icon: Icons.check_circle_outline_rounded,
+        );
+      case MessageType.info:
+        return _BannerConfig(
+          color: isDark ? AppColors.primaryLight : AppColors.info,
+          bg: isDark ? const Color(0xFF1E3A5F) : AppColors.primarySurface,
+          borderColor: (isDark ? AppColors.primaryLight : AppColors.info).withValues(alpha: 0.2),
+          icon: Icons.info_outline_rounded,
+        );
+      case MessageType.warning:
+        return _BannerConfig(
+          color: AppColors.warning,
+          bg: isDark ? const Color(0xFF422006) : AppColors.warningSurface,
+          borderColor: AppColors.warning.withValues(alpha: 0.2),
+          icon: Icons.warning_amber_rounded,
+        );
+    }
+  }
 }
 
 enum MessageType { error, success, info, warning }
@@ -134,9 +141,9 @@ class StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.15)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -177,6 +184,7 @@ class EmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -187,22 +195,22 @@ class EmptyStateWidget extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.primarySurface,
+                color: context.primarySurfaceColor,
                 borderRadius: BorderRadius.circular(24),
               ),
-              child: Icon(icon, size: 40, color: AppColors.primary.withValues(alpha: 0.5)),
+              child: Icon(icon, size: 40, color: scheme.primary.withValues(alpha: 0.5)),
             ),
             const SizedBox(height: 20),
             Text(
               title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: scheme.onSurface),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
               Text(
                 subtitle!,
-                style: const TextStyle(fontSize: 13, color: AppColors.textTertiary, height: 1.4),
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant, height: 1.4),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -271,14 +279,15 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final card = Container(
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
-        boxShadow: AppShadows.sm,
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
       child: child,
     );
@@ -307,7 +316,7 @@ class TrustBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? AppColors.textTertiary;
+    final c = color ?? context.textTertiaryColor;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
