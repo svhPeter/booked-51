@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>DocBook needs camera access to connect you to your doctor via secure video consultations.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>DocBook needs microphone access so you can talk to your doctor during secure video consultations.</string>
 </dict>
 </plist>
