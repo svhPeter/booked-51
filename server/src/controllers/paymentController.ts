@@ -8,7 +8,7 @@ import { createNotification } from '../services/notificationService';
 
 export const createPayment = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { appointmentId, provider } = req.body;
+    const { appointmentId, provider, providerTxnId } = req.body;
     const userId = req.userId!;
 
     if (!appointmentId || !provider) {
@@ -59,11 +59,13 @@ export const createPayment = async (req: AuthRequest, res: Response, next: NextF
       userId,
     });
 
+    const txnId = providerTxnId || result.providerTxnId!;
+
     const payment = await prisma.payment.upsert({
       where: { appointmentId },
       update: {
         provider: provider as any,
-        providerTxnId: result.providerTxnId,
+        providerTxnId: txnId,
         status: 'pending',
         amount,
         currency,
@@ -74,7 +76,7 @@ export const createPayment = async (req: AuthRequest, res: Response, next: NextF
         amount,
         currency,
         provider: provider as any,
-        providerTxnId: result.providerTxnId!,
+        providerTxnId: txnId,
         status: 'pending',
       },
     });
