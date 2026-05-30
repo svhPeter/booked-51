@@ -46,6 +46,7 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
     final notifState = ref.watch(notificationProvider);
     final apptState = ref.watch(appointmentProvider);
     final scheme = Theme.of(context).colorScheme;
+    final isLoading = apptState.isLoading;
     final now = DateTime.now();
     final upcoming = apptState.appointments
         .where((a) =>
@@ -139,253 +140,259 @@ class _PatientHomeScreenState extends ConsumerState<PatientHomeScreen> {
                           ),
                       ],
                     ),
-                    RoleMenuButton(profileRoute: '/patient/profile'),
+                    const RoleMenuButton(profileRoute: '/patient/profile'),
                   ],
                 ),
 
-                // Next appointment card
-                if (nextAppt != null) ...[
+                // Loading state
+                if (isLoading && apptState.appointments.isEmpty) ...[
                   const SizedBox(height: 20),
-                  GestureDetector(
-                    onTap: () => context.push('/patient/appointment/${nextAppt.id}'),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: scheme.primary.withValues(alpha: 0.25),
-                            blurRadius: 16,
-                            offset: const Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: const Text(
-                                  'NEXT APPOINTMENT',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                              ),
-                              const Spacer(),
-                              const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white70),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Dr. ${nextAppt.doctorName}',
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            children: [
-                              const Icon(Icons.calendar_today_rounded, size: 13, color: Colors.white70),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${nextAppt.date.day}/${nextAppt.date.month}/${nextAppt.date.year}',
-                                style: const TextStyle(color: Colors.white70, fontSize: 13),
-                              ),
-                              const SizedBox(width: 16),
-                              const Icon(Icons.access_time_rounded, size: 13, color: Colors.white70),
-                              const SizedBox(width: 6),
-                              Text(
-                                nextAppt.timeSlot,
-                                style: const TextStyle(color: Colors.white70, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-
-                // Search bar
-                const SizedBox(height: 20),
-                GestureDetector(
-                  onTap: () => context.push('/patient/search'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    decoration: BoxDecoration(
-                      color: scheme.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: scheme.outlineVariant),
-                      boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.search_rounded, color: scheme.onSurfaceVariant, size: 22),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Search doctors, specialties...',
-                          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                // Service Action Grid (2x2)
-                const SizedBox(height: 24),
-                const SectionHeader(title: 'Our Services'),
-                const SizedBox(height: 12),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 1.2,
-                  children: [
-                    _ServiceCard(
-                      title: 'Book Appointment',
-                      subtitle: 'Request a visit',
-                      icon: Icons.calendar_month_rounded,
-                      color: AppColors.primary,
-                      onTap: () => context.push('/patient/search'),
-                    ),
-                    _ServiceCard(
-                      title: 'Video Consultation',
-                      subtitle: 'Secure online call',
-                      icon: Icons.videocam_rounded,
-                      color: const Color(0xFF0D9488),
-                      onTap: () => context.push('/patient/search'),
-                    ),
-                    _ServiceCard(
-                      title: 'Find Specialists',
-                      subtitle: 'Search by expertise',
-                      icon: Icons.people_rounded,
-                      color: const Color(0xFF6366F1),
-                      onTap: () => context.push('/patient/search'),
-                    ),
-                    _ServiceCard(
-                      title: 'My Appointments',
-                      subtitle: 'View & manage',
-                      icon: Icons.assignment_rounded,
-                      color: AppColors.secondary,
-                      onTap: () => context.push('/patient/appointments'),
-                    ),
-                  ],
-                ),
-
-                // Trust & safety banner
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: context.secondarySurfaceColor,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: scheme.secondary.withValues(alpha: 0.15)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const LoadingSkeleton(height: 100, borderRadius: 16),
+                  const SizedBox(height: 20),
+                  const LoadingSkeleton(height: 52, borderRadius: 14),
+                  const SizedBox(height: 24),
+                  const LoadingSkeleton(height: 20, width: 140, borderRadius: 6),
+                  const SizedBox(height: 12),
+                  const Row(
                     children: [
-                      Icon(Icons.shield_rounded, color: scheme.secondary, size: 20),
-                      const SizedBox(width: 10),
-                      Expanded(
+                      Expanded(child: LoadingSkeleton(height: 120, borderRadius: 16)),
+                      SizedBox(width: 12),
+                      Expanded(child: LoadingSkeleton(height: 120, borderRadius: 16)),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  const LoadingSkeleton(height: 20, width: 120, borderRadius: 6),
+                  const SizedBox(height: 12),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 0.95,
+                    ),
+                    itemCount: 6,
+                    itemBuilder: (_, __) => const LoadingSkeleton(height: 100, borderRadius: 14),
+                  ),
+                ] else ...[
+                  // Next appointment card
+                  if (nextAppt != null) ...[
+                    const SizedBox(height: 20),
+                    GestureDetector(
+                      onTap: () => context.push('/patient/appointment/${nextAppt.id}'),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryDark,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'Safe & Verified',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: scheme.secondary.withValues(alpha: 0.9),
-                              ),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text(
+                                    'NEXT APPOINTMENT',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ),
+                                const Spacer(),
+                                const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white70),
+                              ],
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'DocBook does not collect any fees. Pay the doctor/clinic directly only after your appointment is confirmed. Do not send money to unverified numbers.',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: scheme.secondary.withValues(alpha: 0.7),
-                                height: 1.4,
-                              ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Text(
+                                  'Dr. ${nextAppt.doctorName}',
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                const VerifiedBadge(size: 16),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.calendar_today_rounded, size: 13, color: Colors.white70),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '${nextAppt.date.day}/${nextAppt.date.month}/${nextAppt.date.year}',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                ),
+                                const SizedBox(width: 16),
+                                const Icon(Icons.access_time_rounded, size: 13, color: Colors.white70),
+                                const SizedBox(width: 6),
+                                Text(
+                                  nextAppt.timeSlot,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                                ),
+                              ],
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ],
+
+                  // Search bar
+                  const SizedBox(height: 20),
+                  GestureDetector(
+                    onTap: () => context.push('/patient/search'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: scheme.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: scheme.outlineVariant),
+                        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.search_rounded, color: scheme.onSurfaceVariant, size: 22),
+                          const SizedBox(width: 12),
+                          Text(
+                            'Search doctors, specialties...',
+                            style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Service Action Grid (2x2)
+                  const SizedBox(height: 24),
+                  const SectionHeader(title: 'Our Services'),
+                  const SizedBox(height: 12),
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _ServiceCard(
+                        title: 'Book Appointment',
+                        subtitle: 'Request a visit',
+                        icon: Icons.calendar_month_rounded,
+                        color: AppColors.primary,
+                        onTap: () => context.push('/patient/search'),
+                      ),
+                      _ServiceCard(
+                        title: 'Video Consultation',
+                        subtitle: 'Secure online call',
+                        icon: Icons.videocam_rounded,
+                        color: AppColors.secondary,
+                        onTap: () => context.push('/patient/search'),
+                      ),
+                      _ServiceCard(
+                        title: 'Find Specialists',
+                        subtitle: 'Search by expertise',
+                        icon: Icons.people_rounded,
+                        color: const Color(0xFF6366F1),
+                        onTap: () => context.push('/patient/search'),
+                      ),
+                      _ServiceCard(
+                        title: 'My Appointments',
+                        subtitle: 'View & manage',
+                        icon: Icons.assignment_rounded,
+                        color: AppColors.secondary,
+                        onTap: () => context.push('/patient/appointments'),
                       ),
                     ],
                   ),
-                ),
 
-                // Top specialties
-                const SizedBox(height: 28),
-                const SectionHeader(title: 'Top Specialties'),
-                const SizedBox(height: 12),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 0.95,
+                  // Trust & safety banner
+                  const SizedBox(height: 24),
+                  const SafetyNoticeCard(
+                    message: 'DocBook does not collect any fees. Pay the doctor/clinic directly only after your appointment is confirmed. Do not send money to unverified numbers.',
                   ),
-                  itemCount: _specialties.length,
-                  itemBuilder: (context, index) {
-                    final spec = _specialties[index];
-                    final specName = spec['name'] as String;
-                    final specColor = spec['color'] as Color;
-                    return GestureDetector(
-                      onTap: () => context.push(
-                        '/patient/search?specialty=${Uri.encodeComponent(specName)}',
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: scheme.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: scheme.outlineVariant, width: 0.5),
-                          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
+
+                  // Top specialties
+                  const SizedBox(height: 28),
+                  const SectionHeader(title: 'Top Specialties'),
+                  const SizedBox(height: 12),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      childAspectRatio: 0.95,
+                    ),
+                    itemCount: _specialties.length,
+                    itemBuilder: (context, index) {
+                      final spec = _specialties[index];
+                      final specName = spec['name'] as String;
+                      final specColor = spec['color'] as Color;
+                      return GestureDetector(
+                        onTap: () => context.push(
+                          '/patient/search?specialty=${Uri.encodeComponent(specName)}',
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: specColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: scheme.surface,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: scheme.outlineVariant, width: 0.5),
+                            boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: specColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(spec['icon'] as IconData, color: specColor, size: 22),
                               ),
-                              child: Icon(spec['icon'] as IconData, color: specColor, size: 22),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              specName,
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                specName,
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
+                      );
+                    },
+                  ),
+                ],
               ],
             ),
           ),

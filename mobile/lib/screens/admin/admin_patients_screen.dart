@@ -120,7 +120,7 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.7,

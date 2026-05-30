@@ -317,10 +317,10 @@ class _DoctorCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _ModeLabel(
+                      const _ModeLabel(
                         icon: Icons.videocam_rounded,
                         label: 'Video',
-                        color: const Color(0xFF0D9488),
+                        color: Color(0xFF0D9488),
                       ),
                       const SizedBox(width: 8),
                       _ModeLabel(

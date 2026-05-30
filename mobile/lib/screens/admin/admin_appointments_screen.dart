@@ -212,7 +212,7 @@ void _showAppointmentDetail(BuildContext context, WidgetRef ref, AdminAppointmen
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.7,
@@ -273,9 +273,3 @@ Widget _detailRow(BuildContext context, String label, String value) {
   );
 }
 
-extension on String {
-  String capitalize() {
-    if (isEmpty) return this;
-    return this[0].toUpperCase() + substring(1);
-  }
-}

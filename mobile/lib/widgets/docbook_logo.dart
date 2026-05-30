@@ -66,9 +66,9 @@ class DocBookLogo extends StatelessWidget {
                   text: 'Doc',
                   style: TextStyle(color: textColor ?? AppColors.textPrimary),
                 ),
-                TextSpan(
+                const TextSpan(
                   text: 'Book',
-                  style: const TextStyle(color: AppColors.primary),
+                  style: TextStyle(color: AppColors.primary),
                 ),
               ],
             ),

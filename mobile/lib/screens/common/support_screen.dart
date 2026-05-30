@@ -58,14 +58,14 @@ class _SupportTab extends StatelessWidget {
             style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5),
           ),
           const SizedBox(height: 24),
-          _ContactCard(
+          const _ContactCard(
             icon: Icons.email_outlined,
             title: 'Email Support',
             subtitle: 'support@docbook.pk',
             detail: 'We typically respond within 24 hours.',
           ),
           const SizedBox(height: 12),
-          _ContactCard(
+          const _ContactCard(
             icon: Icons.chat_outlined,
             title: 'WhatsApp',
             subtitle: 'Chat with us',

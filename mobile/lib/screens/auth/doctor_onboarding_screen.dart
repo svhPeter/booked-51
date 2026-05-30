@@ -26,11 +26,15 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirm = true;
+  String _password = '';
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() => ref.read(authProvider.notifier).clearMessages());
+    _passwordController.addListener(() {
+      setState(() => _password = _passwordController.text);
+    });
   }
 
   @override
@@ -48,6 +52,32 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
     super.dispose();
   }
 
+  int get _passwordStrength {
+    int score = 0;
+    if (_password.length >= 10) score++;
+    if (RegExp(r'[A-Z]').hasMatch(_password)) score++;
+    if (RegExp(r'[a-z]').hasMatch(_password)) score++;
+    if (RegExp(r'[0-9]').hasMatch(_password)) score++;
+    if (RegExp(r'[^A-Za-z0-9]').hasMatch(_password)) score++;
+    return score;
+  }
+
+  String get _strengthLabel {
+    final s = _passwordStrength;
+    if (_password.isEmpty) return '';
+    if (s < 3) return 'Weak';
+    if (s < 5) return 'Medium';
+    return 'Strong';
+  }
+
+  Color _strengthColor(BuildContext context) {
+    final s = _passwordStrength;
+    if (_password.isEmpty) return Colors.transparent;
+    if (s < 3) return Theme.of(context).colorScheme.error;
+    if (s < 5) return context.warningColor;
+    return context.successColor;
+  }
+
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     ref.read(authProvider.notifier).registerDoctor(
@@ -58,7 +88,7 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
           city: _cityController.text.trim(),
           clinicName: _clinicController.text.trim(),
           consultationFee: _feeController.text.trim(),
-          pmdcRegistrationNumber: _pmdcController.text.trim().isEmpty ? null : _pmdcController.text.trim(),
+          pmdcRegistrationNumber: _pmdcController.text.trim(),
           password: _passwordController.text,
         );
   }
@@ -147,7 +177,7 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                     hint: '1500', keyboardType: TextInputType.number,
                     helper: 'Informational only — patients pay you directly'),
                 _field(_pmdcController, 'PMDC registration number', Icons.badge_outlined,
-                    hint: 'Optional', required: false),
+                    hint: 'e.g. 12345-P'),
 
                 // Security
                 _sectionLabel('Account Security'),
@@ -158,7 +188,7 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                   textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    helperText: 'At least 8 characters',
+                    helperText: 'Min 10 chars with upper, lower, number & symbol',
                     prefixIcon: const Icon(Icons.lock_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -167,10 +197,34 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Please enter a password';
-                    if (v.length < 8) return 'Password must be at least 8 characters';
+                    if (v.length < 10) return 'Password must be at least 10 characters';
+                    if (!RegExp(r'[A-Z]').hasMatch(v)) return 'Must include an uppercase letter';
+                    if (!RegExp(r'[a-z]').hasMatch(v)) return 'Must include a lowercase letter';
+                    if (!RegExp(r'[0-9]').hasMatch(v)) return 'Must include a number';
+                    if (!RegExp(r'[^A-Za-z0-9]').hasMatch(v)) return 'Must include a symbol';
                     return null;
                   },
                 ),
+                if (_password.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: _passwordStrength / 5,
+                      backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: _strengthColor(context),
+                      minHeight: 4,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      _strengthLabel,
+                      style: TextStyle(fontSize: 11, color: _strengthColor(context), fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 14),
                 TextFormField(
                   controller: _confirmPasswordController,
@@ -193,7 +247,6 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                   onPressed: _submit,
                   label: 'Submit for Approval',
                   icon: Icons.send_rounded,
-                  backgroundColor: AppColors.accent,
                 ),
                 const SizedBox(height: 16),
                 Center(
@@ -218,13 +271,10 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
   }
 
   Widget _sectionLabel(String text) {
-    final t = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(top: 20),
-      child: Text(text, style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: t.onSurfaceVariant,
+      child: Text(text, style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onSurfaceVariant,
         letterSpacing: 0.5,
       )),
     );

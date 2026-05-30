@@ -70,7 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 16),
                       RichText(
                         text: TextSpan(
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontFamily: 'Inter',
                             fontSize: 32,
                             fontWeight: FontWeight.w800,
@@ -167,12 +167,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 // Trust indicators
-                Center(
+                const Center(
                   child: Wrap(
                     spacing: 20,
                     runSpacing: 8,
                     alignment: WrapAlignment.center,
-                    children: const [
+                    children: [
                       TrustBanner(icon: Icons.verified_user_outlined, text: 'Verified doctors'),
                       TrustBanner(icon: Icons.event_available_outlined, text: 'Free booking'),
                       TrustBanner(icon: Icons.shield_outlined, text: 'Secure & private'),

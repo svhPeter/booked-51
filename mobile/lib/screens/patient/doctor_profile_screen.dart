@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/network/api_client.dart';
 import '../../providers/doctor_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class DoctorProfileScreen extends ConsumerStatefulWidget {
   final String doctorId;
@@ -197,13 +198,19 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                       : null,
                                 ),
                                 const SizedBox(height: 12),
-                                Text(
-                                  'Dr. ${doctor.name}',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      'Dr. ${doctor.name}',
+                                      style: const TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const VerifiedBadge(size: 20),
+                                  ],
                                 ),
                                 const SizedBox(height: 6),
                                 Container(
@@ -245,7 +252,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               spacing: 8,
                               runSpacing: 8,
                               children: [
-                                _TrustChip(
+                                const _TrustChip(
                                   icon: Icons.verified_user_rounded,
                                   label: 'Verified',
                                   color: AppColors.verified,
@@ -257,7 +264,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                     label: 'PMDC Reg.',
                                     color: scheme.primary,
                                   ),
-                                _TrustChip(
+                                const _TrustChip(
                                   icon: Icons.schedule_rounded,
                                   label: 'Confirmed timing',
                                   color: AppColors.info,
@@ -296,7 +303,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                             ),
                             const SizedBox(height: 24),
                             if (doctor.qualification != null) ...[
-                              _SectionTitle(title: 'Qualifications'),
+                              const _SectionTitle(title: 'Qualifications'),
                               const SizedBox(height: 8),
                               Container(
                                 width: double.infinity,
@@ -311,7 +318,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               const SizedBox(height: 20),
                             ],
                             if (doctor.bio != null) ...[
-                              _SectionTitle(title: 'About'),
+                              const _SectionTitle(title: 'About'),
                               const SizedBox(height: 8),
                               Text(
                                 doctor.bio!,
@@ -320,7 +327,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               const SizedBox(height: 20),
                             ],
                             if (doctor.hospitalName != null) ...[
-                              _SectionTitle(title: 'Practice Location'),
+                              const _SectionTitle(title: 'Practice Location'),
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.all(16),
@@ -367,7 +374,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               ),
                               const SizedBox(height: 20),
                             ],
-                            _SectionTitle(title: 'Available Days'),
+                            const _SectionTitle(title: 'Available Days'),
                             const SizedBox(height: 8),
                             Wrap(
                               spacing: 8,
@@ -394,7 +401,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                             ),
                             const SizedBox(height: 20),
                             if (doctor.consultationFee > 0) ...[
-                              _SectionTitle(title: 'Consultation Fee'),
+                              const _SectionTitle(title: 'Consultation Fee'),
                               const SizedBox(height: 8),
                               Container(
                                 padding: const EdgeInsets.all(16),
@@ -470,7 +477,7 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.shield_rounded, size: 16, color: AppColors.warning),
+                                  const Icon(Icons.shield_rounded, size: 16, color: AppColors.warning),
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(

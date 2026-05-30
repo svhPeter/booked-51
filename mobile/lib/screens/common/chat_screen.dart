@@ -221,7 +221,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 maxWidth: MediaQuery.of(context).size.width * 0.76,
                               ),
                               decoration: BoxDecoration(
-                                color: isMine ? scheme.primary : scheme.surfaceVariant,
+                                color: isMine ? scheme.primary : scheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.only(
                                   topLeft: const Radius.circular(16),
                                   topRight: const Radius.circular(16),

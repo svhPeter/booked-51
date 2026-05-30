@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
 
-final secureStorage = const FlutterSecureStorage();
+const secureStorage = FlutterSecureStorage();
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   return ApiClient();

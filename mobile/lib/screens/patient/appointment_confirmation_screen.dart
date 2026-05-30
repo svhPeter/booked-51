@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/appointment.dart';
 import '../../providers/appointment_provider.dart';
+import '../../widgets/ui_components.dart';
 
 class AppointmentConfirmationScreen extends ConsumerStatefulWidget {
   final AppointmentModel? appointment;
@@ -111,7 +112,11 @@ class _AppointmentConfirmationScreenState
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            const SafetyNoticeCard(
+              message: 'DocBook does not collect any fees. Please pay the doctor/clinic directly at the time of your visit. Do not send money to unverified numbers.',
+            ),
+            const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

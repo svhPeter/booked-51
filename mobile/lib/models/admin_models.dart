@@ -52,6 +52,7 @@ class AdminDoctor {
   final List<String> availableDays;
   final String hospitalName;
   final String hospitalCity;
+  final String pmdcRegistrationNumber;
   final String createdAt;
 
   AdminDoctor({
@@ -73,6 +74,7 @@ class AdminDoctor {
     required this.availableDays,
     required this.hospitalName,
     required this.hospitalCity,
+    required this.pmdcRegistrationNumber,
     required this.createdAt,
   });
 
@@ -96,6 +98,7 @@ class AdminDoctor {
       availableDays: List<String>.from(json['availableDays'] ?? []),
       hospitalName: json['hospitalName'] ?? '',
       hospitalCity: json['hospitalCity'] ?? '',
+      pmdcRegistrationNumber: json['pmdcRegistrationNumber'] ?? '',
       createdAt: json['createdAt'] ?? '',
     );
   }

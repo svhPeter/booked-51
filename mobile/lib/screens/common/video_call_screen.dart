@@ -40,8 +40,12 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
   @override
   void initState() {
     super.initState();
-    ScreenSecurity.enableScreenshotProtection();
-    if (widget.isMock) {
+    if (!kIsWeb) {
+      ScreenSecurity.enableScreenshotProtection();
+    }
+    if (kIsWeb) {
+      _isConnecting = false;
+    } else if (widget.isMock) {
       _initMock();
     } else {
       _initAgora();
@@ -50,7 +54,9 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   void dispose() {
-    ScreenSecurity.disableScreenshotProtection();
+    if (!kIsWeb) {
+      ScreenSecurity.disableScreenshotProtection();
+    }
     _cleanup();
     super.dispose();
   }
@@ -180,6 +186,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (kIsWeb) return _buildWebFallback();
     return Scaffold(
       body: Stack(
         children: [
@@ -252,6 +259,72 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
               style: TextStyle(color: Colors.white54, fontSize: 16),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWebFallback() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: _endCall,
+        ),
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: const Icon(
+                  Icons.phone_android_rounded,
+                  size: 72,
+                  color: Colors.white38,
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'Mobile-Only Feature',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Video consultations are currently available on the DocBook mobile app.\n\n'
+                'Please open this appointment on your iOS or Android device to join the video call.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 14,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton.icon(
+                onPressed: _endCall,
+                icon: const Icon(Icons.arrow_back, size: 18),
+                label: const Text('Go Back'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 48),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

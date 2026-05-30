@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../core/theme/app_theme.dart';
 
@@ -378,6 +379,240 @@ class LoadingButton extends StatelessWidget {
                   ],
                 )
               : Text(label),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// VerifiedBadge — trustmark next to verified doctor name
+// ---------------------------------------------------------------------------
+
+class VerifiedBadge extends StatelessWidget {
+  final double size;
+  final Color? backgroundColor;
+  final Color? iconColor;
+
+  const VerifiedBadge({
+    super.key,
+    this.size = 18,
+    this.backgroundColor,
+    this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? AppColors.primary,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.check_rounded,
+        color: iconColor ?? Colors.white,
+        size: size * 0.65,
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SafetyNoticeCard — trust/safety guidance shown post-confirmation
+// ---------------------------------------------------------------------------
+
+class SafetyNoticeCard extends StatelessWidget {
+  final String message;
+  final double? fee;
+  final String? doctorName;
+
+  const SafetyNoticeCard({
+    super.key,
+    required this.message,
+    this.fee,
+    this.doctorName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.secondarySurfaceColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.secondary.withValues(alpha: 0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.shield_rounded, color: AppColors.secondary, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Safe & Verified',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary.withValues(alpha: 0.9),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            message,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.secondary.withValues(alpha: 0.7),
+              height: 1.4,
+            ),
+          ),
+          if (fee != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                doctorName != null
+                    ? '$doctorName charges Rs ${fee!.toStringAsFixed(0)}'
+                    : 'Consultation fee: Rs ${fee!.toStringAsFixed(0)}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondary,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// LoadingSkeleton — shimmer placeholder for loading states
+// ---------------------------------------------------------------------------
+
+class LoadingSkeleton extends StatefulWidget {
+  final double width;
+  final double height;
+  final double borderRadius;
+  final EdgeInsetsGeometry? margin;
+
+  const LoadingSkeleton({
+    super.key,
+    this.width = double.infinity,
+    required this.height,
+    this.borderRadius = 8,
+    this.margin,
+  });
+
+  @override
+  State<LoadingSkeleton> createState() => _LoadingSkeletonState();
+}
+
+class _LoadingSkeletonState extends State<LoadingSkeleton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Container(
+          width: widget.width,
+          height: widget.height,
+          margin: widget.margin,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            gradient: LinearGradient(
+              colors: [
+                isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+                isDark ? const Color(0xFF334155) : const Color(0xFFD5E3FC),
+                isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+              ],
+              stops: [0.0, _animation.value.clamp(0.0, 1.0), 1.0],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// SkeletonList — common list skeleton pattern
+// ---------------------------------------------------------------------------
+
+class SkeletonList extends StatelessWidget {
+  final int itemCount;
+  final double itemHeight;
+  final EdgeInsetsGeometry? padding;
+
+  const SkeletonList({
+    super.key,
+    this.itemCount = 5,
+    this.itemHeight = 80,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 20),
+      itemCount: itemCount,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (_, __) => Row(
+        children: [
+          const LoadingSkeleton(width: 48, height: 48, borderRadius: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                LoadingSkeleton(
+                  width: Random().nextBool() ? 180 : 140,
+                  height: 14,
+                ),
+                const SizedBox(height: 8),
+                LoadingSkeleton(
+                  width: Random().nextBool() ? 120 : 90,
+                  height: 12,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

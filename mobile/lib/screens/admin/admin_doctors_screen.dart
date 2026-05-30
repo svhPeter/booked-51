@@ -126,7 +126,7 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     builder: (_) => DraggableScrollableSheet(
       expand: false,
       initialChildSize: 0.8,
@@ -185,6 +185,7 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
               ),
               Divider(height: 32, color: context.dividerColor),
               _detailRow(context, 'Specialty', doc.specialty),
+              _detailRow(context, 'PMDC Reg #', doc.pmdcRegistrationNumber),
               _detailRow(context, 'Qualification', doc.qualification),
               _detailRow(context, 'Experience', doc.experience),
               _detailRow(context, 'Years', '${doc.yearsOfExperience} yrs'),

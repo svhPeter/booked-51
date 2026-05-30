@@ -79,6 +79,7 @@ const strictLimiter = rateLimit({
 app.use('/api/v1/auth/login', authLimiter);
 app.use('/api/v1/auth/register', strictLimiter);
 app.use('/api/v1/auth/register-doctor', strictLimiter);
+app.use('/api/v1/auth/verify-otp', strictLimiter);
 app.use('/api/v1/auth/resend-otp', strictLimiter);
 app.use('/api/v1/auth/forgot-password', strictLimiter);
 

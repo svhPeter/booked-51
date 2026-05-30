@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
 import '../core/network/api_client.dart';
 
-final secureStorage = const FlutterSecureStorage();
+const secureStorage = FlutterSecureStorage();
 
 String _extractError(dynamic e) {
   if (e is DioException) {

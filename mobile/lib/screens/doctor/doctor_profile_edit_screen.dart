@@ -68,8 +68,8 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
     });
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Profile updated. Fee is shown to patients as pay-at-clinic.'),
+        const SnackBar(
+          content: Text('Profile updated. Fee is shown to patients as pay-at-clinic.'),
           backgroundColor: AppColors.secondary,
           behavior: SnackBarBehavior.floating,
         ),

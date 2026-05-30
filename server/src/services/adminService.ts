@@ -63,6 +63,7 @@ export class AdminService {
       availableDays: u.doctor?.availableDays ?? [],
       hospitalName: u.doctor?.hospital?.name ?? '',
       hospitalCity: u.doctor?.hospital?.city ?? '',
+      pmdcRegistrationNumber: u.doctor?.pmdcRegistrationNumber ?? '',
     }));
   }
 

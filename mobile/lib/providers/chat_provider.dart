@@ -85,7 +85,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   ChatNotifier(this._apiClient) : super(const ChatState());
 
   String get _socketBaseUrl {
-    final base = ApiConstants.baseUrl;
+    const base = ApiConstants.baseUrl;
     return base.replaceAll(RegExp(r'/api/v1/?$'), '');
   }
 

@@ -31,7 +31,7 @@ type RegisterDoctorInput = {
   city: string;
   clinicName: string;
   consultationFee: number | string;
-  pmdcRegistrationNumber?: string;
+  pmdcRegistrationNumber: string;
 };
 
 type PendingInput = {
@@ -57,9 +57,50 @@ function requireText(value: string | undefined, label: string): string {
   return trimmed;
 }
 
-function validatePassword(password: string): void {
-  if (!password || password.length < 8) {
-    throw new AppError('Password must be at least 8 characters', 400);
+const COMMON_PASSWORDS = new Set([
+  'password', 'password123', '12345678', '123456789', '1234567890',
+  'qwerty123', 'qwerty1', 'admin123', 'letmein', 'welcome',
+  'monkey', 'dragon', 'master', 'abc123', '111111',
+  '121212', 'iloveyou', 'trustno1', 'sunshine', 'princess',
+  'football', 'Password1', 'Password123', 'Qwerty123', 'Admin123',
+  'changeme', 'passw0rd', 'P@ssw0rd', 'hello123', 'test123',
+]);
+
+function validatePassword(password: string, context?: { email?: string; name?: string }): void {
+  const errors: string[] = [];
+
+  if (!password || password.length < 10) {
+    errors.push('at least 10 characters');
+  } else {
+    if (!/[A-Z]/.test(password)) errors.push('an uppercase letter');
+    if (!/[a-z]/.test(password)) errors.push('a lowercase letter');
+    if (!/[0-9]/.test(password)) errors.push('a number');
+    if (!/[^A-Za-z0-9]/.test(password)) errors.push('a symbol');
+  }
+
+  if (password && COMMON_PASSWORDS.has(password)) {
+    throw new AppError('This password is too common. Please choose a stronger password.', 400);
+  }
+
+  if (password && context?.email) {
+    const emailPrefix = context.email.split('@')[0].toLowerCase();
+    if (password.toLowerCase().includes(emailPrefix)) {
+      errors.push('must not contain your email');
+    }
+  }
+
+  if (password && context?.name) {
+    const nameParts = context.name.toLowerCase().split(/\s+/);
+    for (const part of nameParts) {
+      if (part.length > 2 && password.toLowerCase().includes(part)) {
+        errors.push('must not contain your name');
+        break;
+      }
+    }
+  }
+
+  if (errors.length > 0) {
+    throw new AppError(`Password must include ${errors.join(', ')}`, 400);
   }
 }
 
@@ -92,7 +133,7 @@ export class AuthService {
     const email = normalizeEmail(requireText(data.email, 'Email'));
     const phone = requireText(data.phone, 'Phone');
     const city = requireText(data.city, 'City');
-    validatePassword(data.password);
+    validatePassword(data.password, { email, name });
     if (data.confirmPassword !== undefined && data.confirmPassword !== data.password) {
       throw new AppError('Passwords do not match', 400);
     }
@@ -124,7 +165,8 @@ export class AuthService {
     const specialty = requireText(data.specialty, 'Specialty');
     const city = requireText(data.city, 'City');
     const clinicName = requireText(data.clinicName, 'Clinic or hospital name');
-    validatePassword(data.password);
+    const pmdc = requireText(data.pmdcRegistrationNumber, 'PMDC registration number');
+    validatePassword(data.password, { email, name });
 
     const consultationFee = typeof data.consultationFee === 'number'
       ? data.consultationFee
@@ -144,7 +186,7 @@ export class AuthService {
       specialty,
       clinicName,
       consultationFee,
-      pmdcRegistrationNumber: data.pmdcRegistrationNumber?.trim() || null,
+      pmdcRegistrationNumber: pmdc,
     });
 
     logger.info('pending_doctor_registration_created', {
@@ -435,7 +477,7 @@ export class AuthService {
   async resetPassword(email: string, otp: string, newPassword: string): Promise<void> {
     const normalizedEmail = normalizeEmail(requireText(email, 'Email'));
     const code = requireText(otp, 'Reset code');
-    validatePassword(newPassword);
+    validatePassword(newPassword, { email: normalizedEmail });
 
     const ok = await canVerifyStoredOtp(normalizedEmail);
     if (!ok) {

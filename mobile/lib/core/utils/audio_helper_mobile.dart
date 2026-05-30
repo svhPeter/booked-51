@@ -4,7 +4,7 @@ import 'audio_helper_stub.dart';
 
 class AudioHelperImpl implements AudioHelper {
   Timer? _simulatedTimer;
-  double _duration = 3.0;
+  final double _duration = 3.0;
 
   @override
   Future<void> init() async {}
