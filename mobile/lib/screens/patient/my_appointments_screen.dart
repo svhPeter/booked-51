@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/network/api_client.dart';
 import '../../models/appointment.dart';
 import '../../providers/appointment_provider.dart';
@@ -60,6 +59,9 @@ class _MyAppointmentsScreenState extends ConsumerState<MyAppointmentsScreen>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
+          labelColor: scheme.primary,
+          unselectedLabelColor: scheme.onSurfaceVariant,
+          indicatorColor: scheme.primary,
           tabs: [
             Tab(text: 'Confirmed (${upcoming.length})'),
             Tab(text: 'Requests (${pending.length})'),
@@ -155,109 +157,170 @@ class _AppointmentList extends ConsumerWidget {
         final appt = appointments[index];
         final isPastOrCancelled = appt.status == AppointmentStatus.completed ||
             appt.status == AppointmentStatus.cancelled;
+        final statusColor = appt.status == AppointmentStatus.confirmed
+            ? const Color(0xFF10B981)
+            : appt.status == AppointmentStatus.pending
+                ? const Color(0xFFF59E0B)
+                : appt.status == AppointmentStatus.completed
+                    ? const Color(0xFF64748B)
+                    : const Color(0xFFEF4444);
+        final statusBg = appt.status == AppointmentStatus.confirmed
+            ? const Color(0xFFD1FAE5)
+            : appt.status == AppointmentStatus.pending
+                ? const Color(0xFFFEF3C7)
+                : appt.status == AppointmentStatus.completed
+                    ? const Color(0xFFF1F5F9)
+                    : const Color(0xFFFEE2E2);
         return InkWell(
           onTap: () => context.push('/patient/appointment/${appt.id}'),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: scheme.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: scheme.outlineVariant, width: 0.5),
-            boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: scheme.primary.withValues(alpha: 0.2),
-                    child: Text(
-                      appt.doctorName[0].toUpperCase(),
-                      style: TextStyle(
-                        color: scheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dr. ${appt.doctorName}',
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                        Text(appt.specialty,
-                            style:
-                                TextStyle(fontSize: 12, color: scheme.primary)),
-                      ],
-                    ),
-                  ),
-                  StatusBadge.fromStatus(appt.status.name),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(Icons.calendar_today,
-                      size: 14, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${appt.date.day}/${appt.date.month}/${appt.date.year}',
-                    style:
-                        TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(Icons.access_time,
-                      size: 14, color: scheme.onSurfaceVariant),
-                  const SizedBox(width: 4),
-                  Text(
-                    appt.timeSlot,
-                    style:
-                        TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-              if (!isPastOrCancelled) ...[
-                const SizedBox(height: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isPastOrCancelled
+                  ? scheme.surface.withValues(alpha: 0.75)
+                  : scheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: scheme.outlineVariant, width: 0.5),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: avatar + name/specialty + status badge
                 Row(
                   children: [
-                    if (appt.status == AppointmentStatus.confirmed) ...[
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _joinVideoCall(context, ref, appt.id),
-                          icon: const Icon(Icons.videocam, size: 18),
-                          label: const Text('Join Call'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: scheme.secondary,
-                            foregroundColor: Colors.white,
-                          ),
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: scheme.primary.withValues(alpha: 0.2),
+                      child: Text(
+                        appt.doctorName[0].toUpperCase(),
+                        style: TextStyle(
+                          color: scheme.primary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                    if (allowCancel)
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => _confirmCancel(context, ref, appt),
-                          icon: const Icon(Icons.cancel_outlined, size: 18),
-                          label: const Text('Cancel'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: scheme.error,
-                            side: BorderSide(color: scheme.error),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dr. ${appt.doctorName}',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isPastOrCancelled
+                                  ? scheme.onSurfaceVariant
+                                  : scheme.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
+                          Text(
+                            appt.specialty,
+                            style: TextStyle(fontSize: 12, color: scheme.primary),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Stitch-style status badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        appt.status == AppointmentStatus.confirmed
+                            ? 'Confirmed'
+                            : appt.status == AppointmentStatus.pending
+                                ? 'Pending'
+                                : appt.status == AppointmentStatus.completed
+                                    ? 'Completed'
+                                    : 'Cancelled',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: statusColor,
                         ),
                       ),
+                    ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                // Date/time row (Stitch-style)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: scheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.calendar_today_rounded, size: 14, color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${appt.date.day}/${appt.date.month}/${appt.date.year}',
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(Icons.access_time_rounded, size: 14, color: scheme.onSurfaceVariant),
+                      const SizedBox(width: 6),
+                      Text(
+                        appt.timeSlot,
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+                // Action buttons
+                if (!isPastOrCancelled) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      if (appt.status == AppointmentStatus.confirmed) ...[
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _joinVideoCall(context, ref, appt.id),
+                            icon: const Icon(Icons.videocam_rounded, size: 16),
+                            label: const Text('Join Call', style: TextStyle(fontSize: 13)),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: scheme.secondaryContainer,
+                              foregroundColor: scheme.onSecondaryContainer,
+                              minimumSize: const Size(0, 38),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      if (allowCancel)
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _confirmCancel(context, ref, appt),
+                            icon: const Icon(Icons.cancel_outlined, size: 16),
+                            label: const Text('Cancel', style: TextStyle(fontSize: 13)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: scheme.error,
+                              side: BorderSide(color: scheme.error.withValues(alpha: 0.4)),
+                              minimumSize: const Size(0, 38),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
         );
       },
     );

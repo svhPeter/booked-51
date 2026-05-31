@@ -98,8 +98,7 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Professional info
-                  _sectionLabel('Professional Information'),
+                  const StitchFormSection(label: 'Professional Information', padding: EdgeInsets.zero),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _nameController,
@@ -141,7 +140,7 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
                   ),
 
                   const SizedBox(height: 24),
-                  _sectionLabel('Practice Details'),
+                  const StitchFormSection(label: 'Practice Details', padding: EdgeInsets.zero),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _feeController,
@@ -164,7 +163,7 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
                   ),
 
                   const SizedBox(height: 24),
-                  _sectionLabel('About You'),
+                  const StitchFormSection(label: 'About You', padding: EdgeInsets.zero),
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _bioController,
@@ -173,8 +172,13 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
                       hintText: 'Tell patients about yourself...',
                       alignLabelWithHint: true,
                       prefixIcon: Padding(
-                        padding: EdgeInsets.only(bottom: 60),
+                        padding: EdgeInsets.only(top: 16),
                         child: Icon(Icons.description_outlined),
+                      ),
+                      prefixIconConstraints: BoxConstraints(
+                        minWidth: 48,
+                        minHeight: 0,
+                        maxHeight: 56,
                       ),
                     ),
                     maxLines: 4,
@@ -193,12 +197,4 @@ class _DoctorProfileEditScreenState extends ConsumerState<DoctorProfileEditScree
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Text(text, style: const TextStyle(
-      fontSize: 12,
-      fontWeight: FontWeight.w600,
-      color: AppColors.textTertiary,
-      letterSpacing: 0.5,
-    ));
-  }
 }

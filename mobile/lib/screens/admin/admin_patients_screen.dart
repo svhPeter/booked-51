@@ -179,9 +179,9 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
                 ),
               ),
               Divider(height: 32, color: context.dividerColor),
-              _detailRow(context, 'Gender', patient.gender.isNotEmpty ? patient.gender : 'N/A'),
-              _detailRow(context, 'Blood Group', patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'N/A'),
-              _detailRow(context, 'DOB', patient.dob ?? 'N/A'),
+              DetailRow(label: 'Gender', value: patient.gender.isNotEmpty ? patient.gender : 'N/A'),
+              DetailRow(label: 'Blood Group', value: patient.bloodGroup.isNotEmpty ? patient.bloodGroup : 'N/A'),
+              DetailRow(label: 'DOB', value: patient.dob ?? 'N/A'),
             ],
           ),
         );
@@ -190,19 +190,3 @@ void _showPatientDetail(BuildContext context, WidgetRef ref, AdminPatient patien
   );
 }
 
-Widget _detailRow(BuildContext context, String label, String value) {
-  final scheme = Theme.of(context).colorScheme;
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 120,
-          child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13)),
-        ),
-        Expanded(child: Text(value, style: TextStyle(fontSize: 14, color: scheme.onSurface))),
-      ],
-    ),
-  );
-}

@@ -5,7 +5,7 @@ import '../../core/network/api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../models/appointment.dart';
 import '../../providers/appointment_provider.dart';
-import '../../widgets/ui_components.dart';
+
 
 class AppointmentDetailScreen extends ConsumerStatefulWidget {
   final String appointmentId;
@@ -79,81 +79,10 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
     }
   }
 
-  Widget _buildPaymentInfoCard(AppointmentModel a) {
-    final scheme = Theme.of(context).colorScheme;
-    final isClinicVisit = a.hospitalName != null && a.hospitalName!.isNotEmpty;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: scheme.outlineVariant, width: 0.5),
-        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(isClinicVisit ? Icons.store_rounded : Icons.info_outline,
-                  color: scheme.primary, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                isClinicVisit ? 'Pay at Clinic' : 'Consultation Fee',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: scheme.onSurface,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (isClinicVisit) ...[
-            Text(
-              'Pay the consultation fee directly at the clinic during your visit.',
-              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
-            ),
-          ] else ...[
-            Text(
-              'The doctor may request payment via their official account. DocBook does not collect any fees. Do not send money to unverified numbers or accounts.',
-              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
-            ),
-          ],
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: context.warningColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: context.warningColor.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.warning_amber_rounded, size: 14, color: context.warningColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Only pay the verified doctor/clinic directly. DocBook will never ask you to pay online.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: context.warningColor.withValues(alpha: 0.9),
-                      height: 1.3,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = context.isDarkMode;
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -173,133 +102,283 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
     return Scaffold(
       appBar: AppBar(title: const Text('Appointment Details')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Dr. ${a.doctorName}', style: Theme.of(context).textTheme.headlineSmall),
-            Text(a.specialty, style: TextStyle(color: scheme.primary)),
-            const SizedBox(height: 16),
-            _card([
-              _line(
-                a.status == AppointmentStatus.pending ? 'Preferred Date' : 'Date',
-                dateStr,
-              ),
-              _line(
-                a.status == AppointmentStatus.pending ? 'Preferred Time' : 'Time',
-                a.timeSlot,
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    SizedBox(width: 140, child: Text('Status', style: TextStyle(color: scheme.onSurfaceVariant))),
-                    StatusBadge.fromStatus(a.status.name),
-                  ],
-                ),
-              ),
-              if (a.hospitalName != null) _line('Hospital', a.hospitalName!),
-              if (a.fee > 0)
-                _line('Consultation Fee', 'PKR ${a.fee.toStringAsFixed(0)}'),
-            ]),
-            const SizedBox(height: 8),
-            Text(
-              isClinicVisit
-                  ? 'Payment is made directly to the doctor at your visit. DocBook does not charge you online.'
-                  : 'DocBook does not collect any fees. Pay the doctor/clinic directly after confirmation.',
-              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant, height: 1.4),
-            ),
-            if (a.status == AppointmentStatus.pending) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
+            // Status pill badge (Stitch-style)
+            Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: scheme.primary.withValues(alpha: 0.15)),
+                  color: a.status == AppointmentStatus.confirmed
+                      ? scheme.secondaryContainer
+                      : a.status == AppointmentStatus.pending
+                          ? const Color(0xFFFEF3C7)
+                          : a.status == AppointmentStatus.completed
+                              ? const Color(0xFFF1F5F9)
+                              : const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: a.status == AppointmentStatus.confirmed
+                        ? const Color(0xFF6BD8CB)
+                        : a.status == AppointmentStatus.pending
+                            ? const Color(0xFFF59E0B).withValues(alpha: 0.3)
+                            : a.status == AppointmentStatus.completed
+                                ? const Color(0xFF64748B).withValues(alpha: 0.3)
+                                : const Color(0xFFEF4444).withValues(alpha: 0.3),
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      children: [
-                        Icon(Icons.info_outline, color: scheme.primary),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Awaiting doctor confirmation',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: scheme.primary,
-                                ),
-                          ),
-                        ),
-                      ],
+                    Icon(
+                      a.status == AppointmentStatus.confirmed
+                          ? Icons.check_circle_rounded
+                          : a.status == AppointmentStatus.pending
+                              ? Icons.hourglass_top_rounded
+                              : a.status == AppointmentStatus.completed
+                                  ? Icons.task_alt_rounded
+                                  : Icons.cancel_rounded,
+                      size: 18,
+                      color: a.status == AppointmentStatus.confirmed
+                          ? const Color(0xFF006F66)
+                          : a.status == AppointmentStatus.pending
+                              ? const Color(0xFFF59E0B)
+                              : a.status == AppointmentStatus.completed
+                                  ? const Color(0xFF64748B)
+                                  : const Color(0xFFEF4444),
                     ),
-                    const SizedBox(height: 8),
-                      Text(
-                        'The doctor will review and confirm your appointment. You will be notified once the time is finalised.',
-                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: null,
-                        icon: const Icon(Icons.videocam, size: 18),
-                        label: const Text('Video call available after confirmation'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: scheme.onSurfaceVariant,
-                        ),
+                    const SizedBox(width: 6),
+                    Text(
+                      a.status == AppointmentStatus.confirmed
+                          ? 'Confirmed'
+                          : a.status == AppointmentStatus.pending
+                              ? 'Awaiting Confirmation'
+                              : a.status == AppointmentStatus.completed
+                                  ? 'Completed'
+                                  : 'Cancelled',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: a.status == AppointmentStatus.confirmed
+                            ? const Color(0xFF006F66)
+                            : a.status == AppointmentStatus.pending
+                                ? const Color(0xFFF59E0B)
+                                : a.status == AppointmentStatus.completed
+                                    ? const Color(0xFF64748B)
+                                    : const Color(0xFFEF4444),
                       ),
                     ),
                   ],
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
+            // Doctor card (Stitch-style)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: scheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: scheme.outlineVariant, width: 0.5),
+                boxShadow: isDark ? AppShadows.darkSm : AppShadows.sm,
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: scheme.primary.withValues(alpha: 0.2),
+                    child: Text(
+                      a.doctorName[0].toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dr. ${a.doctorName}',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: scheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          a.specialty,
+                          style: TextStyle(color: scheme.primary, fontSize: 13),
+                        ),
+                        if (a.hospitalName != null) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.location_on_rounded, size: 13, color: scheme.onSurfaceVariant),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  a.hospitalName!,
+                                  style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Schedule + Fee grid (Stitch-style)
+            Row(
+              children: [
+                Expanded(
+                  child: _InfoTile(
+                    icon: Icons.calendar_month_rounded,
+                    label: a.status == AppointmentStatus.pending ? 'Preferred Date' : 'Date',
+                    value: dateStr,
+                    scheme: scheme,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _InfoTile(
+                    icon: Icons.schedule_rounded,
+                    label: a.status == AppointmentStatus.pending ? 'Preferred Time' : 'Time',
+                    value: a.timeSlot,
+                    scheme: scheme,
+                  ),
+                ),
+              ],
+            ),
+            if (a.fee > 0) ...[
+              const SizedBox(height: 12),
+              _InfoTile(
+                icon: Icons.payments_rounded,
+                label: 'Consultation Fee',
+                value: 'PKR ${a.fee.toStringAsFixed(0)}',
+                scheme: scheme,
+                isFee: true,
+              ),
             ],
-            if (a.fee > 0 && (a.status == AppointmentStatus.confirmed)) ...[
-              const SizedBox(height: 16),
-              _buildPaymentInfoCard(a),
+            const SizedBox(height: 20),
+            // Payment info card (Stitch-style)
+            if (a.status == AppointmentStatus.confirmed) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: scheme.primary.withValues(alpha: 0.15)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_rounded, color: scheme.primary, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        isClinicVisit
+                            ? 'Payment will be collected directly at the clinic reception.'
+                            : 'DocBook does not collect fees. Pay the doctor/clinic directly after confirmation.',
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
             ],
-            const SizedBox(height: 24),
+            // Pending state info (Stitch-style)
+            if (a.status == AppointmentStatus.pending) ...[
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7).withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline_rounded, color: Color(0xFFF59E0B), size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Awaiting confirmation',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: scheme.onSurface),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'The doctor will review and confirm your appointment. You will be notified once the time is finalised.',
+                            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant, height: 1.4),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+            // Actions (Stitch-style)
             if (a.status == AppointmentStatus.confirmed) ...[
               SizedBox(
                 width: double.infinity,
+                height: 50,
                 child: ElevatedButton.icon(
                   onPressed: _joinCall,
-                  icon: const Icon(Icons.videocam),
+                  icon: const Icon(Icons.videocam_rounded, size: 20),
                   label: const Text('Join Video Call'),
+                  style: ElevatedButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Secure Agora-powered video consultation. Only join if the doctor has confirmed your appointment.',
-                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, height: 1.3),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
             ],
             if (canChat)
               SizedBox(
                 width: double.infinity,
+                height: 50,
                 child: OutlinedButton.icon(
                   onPressed: () => context.push('/patient/appointment/${a.id}/chat'),
-                  icon: const Icon(Icons.chat_bubble_outline),
+                  icon: const Icon(Icons.chat_bubble_outline_rounded, size: 20),
                   label: const Text('Message Doctor'),
+                  style: OutlinedButton.styleFrom(
+                    textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             if (a.status == AppointmentStatus.confirmed || a.status == AppointmentStatus.pending) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
+              const SizedBox(height: 20),
+              Center(
                 child: TextButton(
                   onPressed: _cancel,
                   child: Text(
                     a.status == AppointmentStatus.pending
                         ? 'Cancel Request'
                         : 'Cancel Appointment',
-                    style: TextStyle(color: scheme.error),
+                    style: TextStyle(color: scheme.error, fontSize: 14),
                   ),
                 ),
               ),
@@ -309,30 +388,63 @@ class _AppointmentDetailScreenState extends ConsumerState<AppointmentDetailScree
       ),
     );
   }
+}
 
-  Widget _card(List<Widget> children) {
-    final scheme = Theme.of(context).colorScheme;
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ColorScheme scheme;
+  final bool isFee;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.scheme,
+    this.isFee = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: scheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: scheme.outlineVariant, width: 0.5),
-        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
       ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _line(String label, String value) {
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(width: 140, child: Text(label, style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 13))),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600))),
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Icon(icon, color: scheme.primary, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant, fontWeight: FontWeight.w500)),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isFee ? scheme.secondary : scheme.onSurface,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

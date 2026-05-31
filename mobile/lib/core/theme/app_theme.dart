@@ -704,3 +704,21 @@ extension ThemeColors on BuildContext {
   Color get scaffoldBackgroundColor =>
       isDarkMode ? AppColors.darkBackground : AppColors.background;
 }
+
+class StitchSpacing {
+  static const double xs = 4;
+  static const double sm = 8;
+  static const double md = 16;
+  static const double lg = 24;
+  static const double xl = 32;
+  static const double xxl = 48;
+  static const double xxxl = 64;
+}
+
+class StitchRadius {
+  static const double sm = 8;
+  static const double md = 12;
+  static const double lg = 14;
+  static const double xl = 16;
+  static const double xxl = 20;
+}

@@ -155,9 +155,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   validator: (v) => v == null || v.length != 6 ? 'Please enter the 6-digit code' : null,
                 ),
                 const SizedBox(height: 20),
-                Text('New Password', style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant, fontWeight: FontWeight.w600, letterSpacing: 0.5,
-                )),
+                const StitchFormSection(label: 'New Password', padding: EdgeInsets.zero),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,

@@ -186,19 +186,21 @@ class _DoctorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = context.isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: scheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(color: scheme.outlineVariant, width: 0.5),
-          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
+          boxShadow: isDark ? AppShadows.darkSm : AppShadows.sm,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Doctor avatar with verified badge (Stitch-style)
             Stack(
               children: [
                 CircleAvatar(
@@ -218,19 +220,21 @@ class _DoctorCard extends StatelessWidget {
                         )
                       : null,
                 ),
-                Positioned(
-                  bottom: 2,
-                  right: 2,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: doctor.isAvailable ? AppColors.online : AppColors.offline,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                if (doctor.pmdcRegistrationNumber != null &&
+                    doctor.pmdcRegistrationNumber!.isNotEmpty)
+                  Positioned(
+                    bottom: -2,
+                    right: -2,
+                    child: Container(
+                      width: 22,
+                      height: 22,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.check_rounded, color: Colors.white, size: 14),
                     ),
                   ),
-                ),
               ],
             ),
             const SizedBox(width: 14),
@@ -238,35 +242,17 @@ class _DoctorCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Dr. ${doctor.name}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: scheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      if (doctor.pmdcRegistrationNumber != null &&
-                          doctor.pmdcRegistrationNumber!.isNotEmpty)
-                        Container(
-                          margin: const EdgeInsets.only(left: 4),
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: scheme.secondary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Icon(Icons.verified_rounded,
-                              color: scheme.secondary, size: 14),
-                        ),
-                    ],
+                  Text(
+                    'Dr. ${doctor.name}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: scheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     doctor.specialty,
                     style: TextStyle(
@@ -278,75 +264,95 @@ class _DoctorCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
+                  // Rating + experience row (Stitch-style)
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 14, color: AppColors.rating),
-                      const SizedBox(width: 4),
+                      const Icon(Icons.star_rounded, size: 16, color: Color(0xFFF59E0B)),
+                      const SizedBox(width: 3),
                       Text(
                         doctor.averageRating.toStringAsFixed(1),
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: scheme.onSurfaceVariant,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: scheme.onSurface,
                         ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '(${doctor.totalReviews})',
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Text('•', style: TextStyle(color: Color(0xFFC3C6D5))),
                       ),
                       Text(
-                        ' (${doctor.totalReviews})',
-                        style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-                      ),
-                      const SizedBox(width: 12),
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: doctor.isAvailable ? AppColors.online : AppColors.offline,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        doctor.isAvailable ? 'Available' : 'Unavailable',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: doctor.isAvailable ? AppColors.online : AppColors.offline,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        '${doctor.yearsOfExperience}+ yrs',
+                        style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const _ModeLabel(
-                        icon: Icons.videocam_rounded,
-                        label: 'Video',
-                        color: Color(0xFF0D9488),
-                      ),
-                      const SizedBox(width: 8),
-                      _ModeLabel(
-                        icon: Icons.business_rounded,
-                        label: 'Clinic',
-                        color: scheme.primary,
-                      ),
-                      const Spacer(),
-                      if (doctor.consultationFee > 0)
-                        Text(
-                          'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: scheme.primary,
-                          ),
-                        )
-                      else
-                        Text(
-                          'Free',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: scheme.secondary,
+                  // Location (Stitch-style)
+                  if (doctor.hospitalName != null)
+                    Row(
+                      children: [
+                        Icon(Icons.location_on_rounded, size: 14, color: scheme.onSurfaceVariant),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            doctor.hospitalName!,
+                            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                      ],
+                    ),
+                  const SizedBox(height: 10),
+                  // Fee + availability row (Stitch-style)
+                  Row(
+                    children: [
+                      // Availability badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: doctor.isAvailable
+                              ? const Color(0xFF86F2E4).withValues(alpha: 0.2)
+                              : scheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              doctor.isAvailable ? Icons.event_available_rounded : Icons.calendar_month_rounded,
+                              size: 12,
+                              color: doctor.isAvailable ? const Color(0xFF006A61) : scheme.onSurfaceVariant,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              doctor.isAvailable ? 'Available Today' : 'Next Avail: Soon',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: doctor.isAvailable ? const Color(0xFF006A61) : scheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        doctor.consultationFee > 0
+                            ? 'PKR ${doctor.consultationFee.toStringAsFixed(0)}'
+                            : 'Free',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: doctor.consultationFee > 0 ? scheme.onSurface : scheme.secondary,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -359,41 +365,3 @@ class _DoctorCard extends StatelessWidget {
   }
 }
 
-class _ModeLabel extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-
-  const _ModeLabel({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withValues(alpha: 0.15), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 10, color: color),
-          const SizedBox(width: 3),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -198,19 +198,27 @@ class _DoctorProfileScreenState extends ConsumerState<DoctorProfileScreen> {
                                       : null,
                                 ),
                                 const SizedBox(height: 12),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'Dr. ${doctor.name}',
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          'Dr. ${doctor.name}',
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const VerifiedBadge(size: 20),
-                                  ],
+                                      const SizedBox(width: 8),
+                                      const VerifiedBadge(size: 20),
+                                    ],
+                                  ),
                                 ),
                                 const SizedBox(height: 6),
                                 Container(

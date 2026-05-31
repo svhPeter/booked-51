@@ -184,15 +184,15 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
                 ),
               ),
               Divider(height: 32, color: context.dividerColor),
-              _detailRow(context, 'Specialty', doc.specialty),
-              _detailRow(context, 'PMDC Reg #', doc.pmdcRegistrationNumber),
-              _detailRow(context, 'Qualification', doc.qualification),
-              _detailRow(context, 'Experience', doc.experience),
-              _detailRow(context, 'Years', '${doc.yearsOfExperience} yrs'),
-              _detailRow(context, 'Fee', 'Rs ${doc.consultationFee.toStringAsFixed(0)} (pay at clinic)'),
-              _detailRow(context, 'Rating', '${doc.averageRating.toStringAsFixed(1)} / 5 (${doc.totalReviews} reviews)'),
-              _detailRow(context, 'Available Days', doc.availableDays.join(', ')),
-              _detailRow(context, 'Hospital', '${doc.hospitalName}${doc.hospitalCity.isNotEmpty ? ', ${doc.hospitalCity}' : ''}'),
+              DetailRow(label: 'Specialty', value: doc.specialty),
+              DetailRow(label: 'PMDC Reg #', value: doc.pmdcRegistrationNumber),
+              DetailRow(label: 'Qualification', value: doc.qualification),
+              DetailRow(label: 'Experience', value: doc.experience),
+              DetailRow(label: 'Years', value: '${doc.yearsOfExperience} yrs'),
+              DetailRow(label: 'Fee', value: 'Rs ${doc.consultationFee.toStringAsFixed(0)} (pay at clinic)'),
+              DetailRow(label: 'Rating', value: '${doc.averageRating.toStringAsFixed(1)} / 5 (${doc.totalReviews} reviews)'),
+              DetailRow(label: 'Available Days', value: doc.availableDays.join(', ')),
+              DetailRow(label: 'Hospital', value: '${doc.hospitalName}${doc.hospitalCity.isNotEmpty ? ', ${doc.hospitalCity}' : ''}'),
               const SizedBox(height: 20),
               if (!doc.isApproved)
                 SizedBox(
@@ -240,19 +240,3 @@ void _showDoctorDetail(BuildContext context, WidgetRef ref, AdminDoctor doc) {
   );
 }
 
-Widget _detailRow(BuildContext context, String label, String value) {
-  final scheme = Theme.of(context).colorScheme;
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 120,
-          child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13)),
-        ),
-        Expanded(child: Text(value, style: TextStyle(fontSize: 14, color: scheme.onSurface))),
-      ],
-    ),
-  );
-}

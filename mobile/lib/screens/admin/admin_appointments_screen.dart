@@ -233,42 +233,28 @@ void _showAppointmentDetail(BuildContext context, WidgetRef ref, AdminAppointmen
             children: [
               Center(child: Text('Appointment Details', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: scheme.onSurface))),
               Divider(height: 32, color: context.dividerColor),
-              _detailRow(context, 'Patient', appt.patientName),
-              _detailRow(context, 'Patient Email', appt.patientEmail),
-              _detailRow(context, 'Patient Phone', appt.patientPhone),
-              _detailRow(context, 'Doctor', appt.doctorName),
-              _detailRow(context, 'Doctor Email', appt.doctorEmail),
-              _detailRow(context, 'Date', dateStr),
-              _detailRow(context, 'Time', appt.timeSlot),
-              _detailRow(context, 'Status', appt.status),
-              _detailRow(context, 'Hospital', appt.hospitalName),
-              if (appt.notes != null) _detailRow(context, 'Notes', appt.notes!),
+              DetailRow(label: 'Patient', value: appt.patientName),
+              DetailRow(label: 'Patient Email', value: appt.patientEmail),
+              DetailRow(label: 'Patient Phone', value: appt.patientPhone),
+              DetailRow(label: 'Doctor', value: appt.doctorName),
+              DetailRow(label: 'Doctor Email', value: appt.doctorEmail),
+              DetailRow(label: 'Date', value: dateStr),
+              DetailRow(label: 'Time', value: appt.timeSlot),
+              DetailRow(label: 'Status', value: appt.status),
+              DetailRow(label: 'Hospital', value: appt.hospitalName),
+              if (appt.notes != null) DetailRow(label: 'Notes', value: appt.notes!),
               if (appt.payment != null) ...[
                 Divider(color: context.dividerColor),
                 Text('Payment', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: scheme.onSurface)),
                 const SizedBox(height: 8),
-                _detailRow(context, 'Amount', 'Rs. ${appt.payment!.amount.toStringAsFixed(0)}'),
-                _detailRow(context, 'Provider', appt.payment!.provider),
-                _detailRow(context, 'Status', appt.payment!.status),
+                DetailRow(label: 'Amount', value: 'Rs. ${appt.payment!.amount.toStringAsFixed(0)}'),
+                DetailRow(label: 'Provider', value: appt.payment!.provider),
+                DetailRow(label: 'Status', value: appt.payment!.status),
               ],
             ],
           ),
         );
       },
-    ),
-  );
-}
-
-Widget _detailRow(BuildContext context, String label, String value) {
-  final scheme = Theme.of(context).colorScheme;
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(width: 120, child: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13))),
-        Expanded(child: Text(value, style: TextStyle(color: scheme.onSurface))),
-      ],
     ),
   );
 }

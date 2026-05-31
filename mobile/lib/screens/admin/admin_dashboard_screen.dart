@@ -119,7 +119,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         const SizedBox(height: 28),
         const SectionHeader(title: 'Management'),
         const SizedBox(height: 14),
-        _ManagementCard(
+        StitchManagementCard(
           icon: Icons.medical_services_rounded,
           label: 'Doctors',
           count: s.totalDoctors,
@@ -127,7 +127,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           onTap: () => context.push('/admin/doctors'),
         ),
         const SizedBox(height: 10),
-        _ManagementCard(
+        StitchManagementCard(
           icon: Icons.people_rounded,
           label: 'Patients',
           count: s.totalPatients,
@@ -135,7 +135,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           onTap: () => context.push('/admin/patients'),
         ),
         const SizedBox(height: 10),
-        _ManagementCard(
+        StitchManagementCard(
           icon: Icons.calendar_month_rounded,
           label: 'Appointments',
           count: s.totalAppointments,
@@ -143,7 +143,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           onTap: () => context.push('/admin/appointments'),
         ),
         const SizedBox(height: 10),
-        _ManagementCard(
+        StitchManagementCard(
           icon: Icons.receipt_long_rounded,
           label: 'Payments',
           count: s.paidPaymentsCount + s.pendingPaymentsCount,
@@ -169,112 +169,20 @@ class _SummaryCardGrid extends StatelessWidget {
       crossAxisSpacing: 10,
       childAspectRatio: 1.65,
       children: [
-        _SummaryCard(title: 'Doctors', value: summary.totalDoctors.toString(), icon: Icons.medical_services_outlined, color: AppColors.primary),
-        _SummaryCard(title: 'Patients', value: summary.totalPatients.toString(), icon: Icons.people_outline, color: AppColors.secondary),
-        _SummaryCard(title: 'Appointments', value: summary.totalAppointments.toString(), icon: Icons.calendar_today_rounded, color: AppColors.warning),
-        _SummaryCard(title: 'Completed', value: summary.completedAppointments.toString(), icon: Icons.task_alt_rounded, color: const Color(0xFF14B8A6)),
-        _SummaryCard(title: 'Cancelled', value: summary.cancelledAppointments.toString(), icon: Icons.cancel_outlined, color: AppColors.error),
-        _SummaryCard(title: 'Paid', value: summary.paidPaymentsCount.toString(), icon: Icons.check_circle_outline, color: const Color(0xFF6366F1)),
-        _SummaryCard(title: 'Pending', value: summary.pendingPaymentsCount.toString(), icon: Icons.schedule_rounded, color: const Color(0xFFD97706)),
-        _SummaryCard(
-          title: 'Revenue',
-          value: 'Rs ${summary.totalRevenue.toStringAsFixed(0)}',
+        StitchStatCard(icon: Icons.medical_services_outlined, value: summary.totalDoctors.toString(), label: 'Doctors', color: AppColors.primary),
+        StitchStatCard(icon: Icons.people_outline, value: summary.totalPatients.toString(), label: 'Patients', color: AppColors.secondary),
+        StitchStatCard(icon: Icons.calendar_today_rounded, value: summary.totalAppointments.toString(), label: 'Appointments', color: AppColors.warning),
+        StitchStatCard(icon: Icons.task_alt_rounded, value: summary.completedAppointments.toString(), label: 'Completed', color: const Color(0xFF14B8A6)),
+        StitchStatCard(icon: Icons.cancel_outlined, value: summary.cancelledAppointments.toString(), label: 'Cancelled', color: AppColors.error),
+        StitchStatCard(icon: Icons.check_circle_outline, value: summary.paidPaymentsCount.toString(), label: 'Paid', color: const Color(0xFF6366F1)),
+        StitchStatCard(icon: Icons.schedule_rounded, value: summary.pendingPaymentsCount.toString(), label: 'Pending', color: const Color(0xFFD97706)),
+        StitchStatCard(
           icon: Icons.trending_up_rounded,
+          value: 'Rs ${summary.totalRevenue.toStringAsFixed(0)}',
+          label: 'Revenue',
           color: AppColors.accent,
         ),
       ],
-    );
-  }
-}
-
-class _SummaryCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-  const _SummaryCard({required this.title, required this.value, required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = context.isDarkMode;
-    final bgAlpha = isDark ? 0.12 : 0.06;
-    final borderAlpha = isDark ? 0.2 : 0.12;
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: bgAlpha),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: borderAlpha)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20, color: color),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(title, style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-}
-
-class _ManagementCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int count;
-  final Color color;
-  final VoidCallback onTap;
-  const _ManagementCard({required this.icon, required this.label, required this.count, required this.color, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: scheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: scheme.outlineVariant, width: 0.5),
-          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: scheme.onSurface)),
-                  const SizedBox(height: 2),
-                  Text('$count total', style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
-          ],
-        ),
-      ),
     );
   }
 }

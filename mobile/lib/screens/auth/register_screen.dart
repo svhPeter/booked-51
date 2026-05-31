@@ -49,7 +49,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final scheme = Theme.of(context).colorScheme;
 
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next.isOtpSent) {
@@ -84,10 +83,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 if (authState.error != null)
                   MessageBanner(message: authState.error!, type: MessageType.error),
 
-                // Personal info section
-                Text('Personal Information', style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant, fontWeight: FontWeight.w600, letterSpacing: 0.5,
-                )),
+                const StitchFormSection(label: 'Personal Information', padding: EdgeInsets.zero),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _nameController,
@@ -143,10 +139,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
 
                 const SizedBox(height: 24),
-                // Security section
-                Text('Security', style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: scheme.onSurfaceVariant, fontWeight: FontWeight.w600, letterSpacing: 0.5,
-                )),
+                const StitchFormSection(label: 'Security', padding: EdgeInsets.zero),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,

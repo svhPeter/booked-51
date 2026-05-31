@@ -101,7 +101,7 @@ class _BookAppointmentScreenState
       body: doctorState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -110,7 +110,7 @@ class _BookAppointmentScreenState
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: scheme.surface,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: scheme.outlineVariant),
                       ),
                       child: Row(
@@ -146,19 +146,32 @@ class _BookAppointmentScreenState
                                ],
                              ),
                            ),
-                           Text(
-                             'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
-                             style: TextStyle(
-                               fontSize: 16,
-                               fontWeight: FontWeight.bold,
-                               color: scheme.primary,
-                             ),
+                           Column(
+                             crossAxisAlignment: CrossAxisAlignment.end,
+                             children: [
+                               Text(
+                                 'PKR ${doctor.consultationFee.toStringAsFixed(0)}',
+                                 style: TextStyle(
+                                   fontSize: 16,
+                                   fontWeight: FontWeight.bold,
+                                   color: scheme.onSurface,
+                                 ),
+                               ),
+                               Text(
+                                 'Free booking',
+                                 style: TextStyle(
+                                   fontSize: 11,
+                                   color: scheme.secondary,
+                                   fontWeight: FontWeight.w600,
+                                 ),
+                               ),
+                             ],
                            ),
                          ],
                        ),
                      ),
-                   const SizedBox(height: 28),
-                   Text('Select Preferred Date', style: Theme.of(context).textTheme.titleLarge),
+                   const SizedBox(height: 24),
+                   Text('Select Preferred Date', style: Theme.of(context).textTheme.titleMedium),
                    if (doctor != null && doctor.availableDays.isNotEmpty) ...[
                      const SizedBox(height: 4),
                      Text(
@@ -283,13 +296,13 @@ class _BookAppointmentScreenState
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
-                  Text('Preferred Time Slot', style: Theme.of(context).textTheme.titleLarge),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
+                  Text('Preferred Time Slot', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 12),
                   appointmentState.availableSlots.isEmpty
                       ? Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
                             color: scheme.surface,
                             borderRadius: BorderRadius.circular(12),
@@ -297,28 +310,40 @@ class _BookAppointmentScreenState
                           ),
                           child: Column(
                             children: [
-                              Icon(Icons.schedule, size: 40, color: scheme.onSurfaceVariant),
-                              const SizedBox(height: 8),
+                              Icon(Icons.schedule_rounded, size: 40, color: scheme.onSurfaceVariant),
+                              const SizedBox(height: 12),
                               Text(
-                                'No slots available for this date',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                                'No slots available',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: scheme.onSurfaceVariant),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Try another date',
+                                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
                               ),
                             ],
                           ),
                         )
-                      : Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: appointmentState.availableSlots.map((slot) {
+                      : GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                            childAspectRatio: 2.2,
+                          ),
+                          itemCount: appointmentState.availableSlots.length,
+                          itemBuilder: (context, index) {
+                            final slot = appointmentState.availableSlots[index];
                             final isSelected = _selectedSlot == slot;
                             return GestureDetector(
                               onTap: () => setState(() => _selectedSlot = slot),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 20, vertical: 12),
+                                alignment: Alignment.center,
                                 decoration: BoxDecoration(
                                   color: isSelected ? scheme.primary : scheme.surface,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: isSelected ? scheme.primary : scheme.outlineVariant,
                                   ),
@@ -328,13 +353,14 @@ class _BookAppointmentScreenState
                                   style: TextStyle(
                                     color: isSelected ? Colors.white : scheme.onSurface,
                                     fontWeight: FontWeight.w500,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ),
                             );
-                          }).toList(),
+                          },
                         ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     height: 54,

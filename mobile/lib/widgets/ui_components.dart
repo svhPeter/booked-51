@@ -435,6 +435,7 @@ class SafetyNoticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -448,14 +449,14 @@ class SafetyNoticeCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.shield_rounded, color: AppColors.secondary, size: 20),
+              Icon(Icons.shield_rounded, color: isDark ? Colors.white : AppColors.secondary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Safe & Verified',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.secondary.withValues(alpha: 0.9),
+                  color: isDark ? Colors.white.withValues(alpha: 0.9) : AppColors.secondary.withValues(alpha: 0.9),
                 ),
               ),
             ],
@@ -465,7 +466,7 @@ class SafetyNoticeCard extends StatelessWidget {
             message,
             style: TextStyle(
               fontSize: 12,
-              color: AppColors.secondary.withValues(alpha: 0.7),
+              color: isDark ? Colors.white.withValues(alpha: 0.7) : AppColors.secondary.withValues(alpha: 0.7),
               height: 1.4,
             ),
           ),
@@ -474,17 +475,17 @@ class SafetyNoticeCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.3),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 doctorName != null
                     ? '$doctorName charges Rs ${fee!.toStringAsFixed(0)}'
                     : 'Consultation fee: Rs ${fee!.toStringAsFixed(0)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.secondary,
+                  color: isDark ? Colors.white.withValues(alpha: 0.9) : AppColors.secondary,
                 ),
               ),
             ),
@@ -570,6 +571,262 @@ class _LoadingSkeletonState extends State<LoadingSkeleton>
 // ---------------------------------------------------------------------------
 // SkeletonList — common list skeleton pattern
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// StitchCard — dark-mode-safe card container
+// ---------------------------------------------------------------------------
+
+class StitchCard extends StatelessWidget {
+  final Widget child;
+  final EdgeInsetsGeometry? padding;
+  final VoidCallback? onTap;
+  final Color? backgroundColor;
+
+  const StitchCard({
+    super.key,
+    required this.child,
+    this.padding,
+    this.onTap,
+    this.backgroundColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final card = Container(
+      width: double.infinity,
+      padding: padding ?? const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? scheme.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: scheme.outlineVariant, width: 0.5),
+        boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
+      ),
+      child: child,
+    );
+    if (onTap != null) {
+      return GestureDetector(onTap: onTap, child: card);
+    }
+    return card;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// StitchStatCard — accent-tinted stat card (admin/doctor dashboards)
+// ---------------------------------------------------------------------------
+
+class StitchStatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+
+  const StitchStatCard({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final bgAlpha = isDark ? 0.12 : 0.06;
+    final borderAlpha = isDark ? 0.2 : 0.12;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: bgAlpha),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withValues(alpha: borderAlpha)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: color),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(label,
+              style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// StitchManagementCard — nav card with icon, label, count, chevron
+// ---------------------------------------------------------------------------
+
+class StitchManagementCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final int count;
+  final Color color;
+  final VoidCallback onTap;
+
+  const StitchManagementCard({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.count,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: scheme.outlineVariant, width: 0.5),
+          boxShadow: context.isDarkMode ? AppShadows.darkSm : AppShadows.sm,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: scheme.onSurface)),
+                  const SizedBox(height: 2),
+                  Text('$count total',
+                      style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: scheme.onSurfaceVariant),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// StitchFormSection — uppercase section label for auth/doctor forms
+// ---------------------------------------------------------------------------
+
+class StitchFormSection extends StatelessWidget {
+  final String label;
+  final EdgeInsetsGeometry? padding;
+
+  const StitchFormSection({
+    super.key,
+    required this.label,
+    this.padding,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: padding ?? const EdgeInsets.only(top: 20),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: scheme.onSurfaceVariant,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// DetailRow — label:value row used in admin bottomsheets
+// ---------------------------------------------------------------------------
+
+class DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final double labelWidth;
+
+  const DetailRow({
+    super.key,
+    required this.label,
+    required this.value,
+    this.labelWidth = 120,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: labelWidth,
+            child: Text(label,
+                style: TextStyle(fontWeight: FontWeight.w500, color: scheme.onSurfaceVariant, fontSize: 13)),
+          ),
+          Expanded(child: Text(value, style: TextStyle(fontSize: 14, color: scheme.onSurface))),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// StitchBottomSheet — consistent draggable bottom sheet
+// ---------------------------------------------------------------------------
+
+Future<T?> showStitchBottomSheet<T>(
+  BuildContext context, {
+  required Widget Function(BuildContext) builder,
+  double initialChildSize = 0.7,
+  double maxChildSize = 0.9,
+  double minChildSize = 0.5,
+}) {
+  return showModalBottomSheet<T>(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+    builder: (_) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: initialChildSize,
+      maxChildSize: maxChildSize,
+      minChildSize: minChildSize,
+      builder: (context, scrollController) {
+        return SingleChildScrollView(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          child: builder(context),
+        );
+      },
+    ),
+  );
+}
 
 class SkeletonList extends StatelessWidget {
   final int itemCount;

@@ -156,7 +156,7 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                   MessageBanner(message: authState.error!, type: MessageType.error),
 
                 // Professional info
-                _sectionLabel('Professional Information'),
+                const StitchFormSection(label: 'Professional Information'),
                 const SizedBox(height: 10),
                 _field(_nameController, 'Full name', Icons.person_outlined, hint: 'Dr. Ahmed Khan'),
                 _field(_emailController, 'Email address', Icons.email_outlined,
@@ -168,7 +168,7 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                     hint: 'e.g. Cardiologist, Dermatologist'),
 
                 // Practice info
-                _sectionLabel('Practice Details'),
+                const StitchFormSection(label: 'Practice Details'),
                 const SizedBox(height: 10),
                 _field(_cityController, 'City', Icons.location_on_outlined, hint: 'Karachi'),
                 _field(_clinicController, 'Clinic / Hospital name', Icons.local_hospital_outlined,
@@ -180,7 +180,7 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
                     hint: 'e.g. 12345-P'),
 
                 // Security
-                _sectionLabel('Account Security'),
+                const StitchFormSection(label: 'Account Security'),
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _passwordController,
@@ -267,16 +267,6 @@ class _DoctorOnboardingScreenState extends ConsumerState<DoctorOnboardingScreen>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20),
-      child: Text(text, style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: Theme.of(context).colorScheme.onSurfaceVariant,
-        letterSpacing: 0.5,
-      )),
     );
   }
 

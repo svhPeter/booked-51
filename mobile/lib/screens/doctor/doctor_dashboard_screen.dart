@@ -124,27 +124,29 @@ class _DoctorDashboardScreenState extends ConsumerState<DoctorDashboardScreen>
           ],
         ),
       ),
-      body: state.isLoading && state.appointments.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : state.error != null && state.appointments.isEmpty
-              ? _buildError(state)
-              : Column(
-                  children: [
-                    _buildSummaryCards(summary),
-                    Expanded(
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildAppointmentList(state, 'pending'),
-                          _buildAppointmentList(state, 'today'),
-                          _buildAppointmentList(state, 'upcoming'),
-                          _buildAppointmentList(state, 'completed'),
-                          _buildAppointmentList(state, 'cancelled'),
-                        ],
+      body: SafeArea(
+        child: state.isLoading && state.appointments.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : state.error != null && state.appointments.isEmpty
+                ? _buildError(state)
+                : Column(
+                    children: [
+                      _buildSummaryCards(summary),
+                      Expanded(
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildAppointmentList(state, 'pending'),
+                            _buildAppointmentList(state, 'today'),
+                            _buildAppointmentList(state, 'upcoming'),
+                            _buildAppointmentList(state, 'completed'),
+                            _buildAppointmentList(state, 'cancelled'),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+      ),
     );
   }
 
@@ -625,14 +627,14 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final isDark = context.isDarkMode;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: scheme.surface,
+          color: color.withValues(alpha: isDark ? 0.12 : 0.06),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: scheme.outlineVariant),
+          border: Border.all(color: color.withValues(alpha: isDark ? 0.2 : 0.12)),
         ),
         child: Column(
           children: [
@@ -642,11 +644,11 @@ class _StatCard extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: Text(
                 value,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color),
               ),
             ),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+            Text(label, style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8))),
           ],
         ),
       ),
